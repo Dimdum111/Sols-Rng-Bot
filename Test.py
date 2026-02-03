@@ -210,7 +210,7 @@ GLOBAL_DATA_FILE = SAVE_FILE
 
 if os.path.exists(GLOBAL_DATA_FILE):
 
-    print(f"Loading global data from {GLOBAL_DATA_FILE}...")
+    print(f"[💾] Loading global data from {GLOBAL_DATA_FILE}...")
 
     try:
 
