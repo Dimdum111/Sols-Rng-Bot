@@ -1,0 +1,11055 @@
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+# dimdum sin shluxi
+
+import telebot
+
+from telebot import types
+
+import random
+
+import json
+
+import os
+
+import threading
+
+import time
+
+import math
+
+import requests
+
+from datetime import datetime, timedelta
+
+
+
+TOKEN = "7965336094:AAE0uvd5kp7-FZQs0TtmF3mvj51S-H1iQpA"
+
+bot = telebot.TeleBot(TOKEN)
+
+
+
+USER_DATA_FILE = "users_data_lines.json"
+
+SAVE_FILE = "global_settings.json"
+
+EVENT_FILE = "event_data.json"
+
+BIOME_FILE = "biome_data.json"
+
+PAGE_SIZE = 20
+
+admin_ids = ["5298923430", "1876839608"]
+
+user_locks = {}
+
+
+
+
+
+# , "5221898690", "5158628471", "5710564708" ener and kot testosteron and rain
+
+
+
+# Загрузка данных события
+
+def load_event_data():
+
+    if os.path.exists(EVENT_FILE):
+
+        try:
+
+            with open(EVENT_FILE, "r", encoding="utf-8") as f:
+
+                event_data = json.load(f)
+
+                # Преобразуем строку времени обратно в datetime
+
+                if "event_end_time" in event_data and event_data["event_end_time"]:
+
+                    event_data["event_end_time"] = datetime.fromisoformat(event_data["event_end_time"])
+
+                return event_data
+
+        except:
+
+            return {"event_active": False, "event_end_time": None, "event_multiplier": 2.0, "event_duration": 18000}
+
+    return {"event_active": False, "event_end_time": None, "event_multiplier": 2.0, "event_duration": 18000}
+
+
+
+
+
+def save_event_data():
+
+    event_data_to_save = {
+
+        "event_active": EVENT_DATA["event_active"],
+
+        "event_end_time": EVENT_DATA["event_end_time"].isoformat() if EVENT_DATA["event_end_time"] else None,
+
+        "event_multiplier": EVENT_DATA["event_multiplier"]
+
+    }
+
+    with open(EVENT_FILE, "w", encoding="utf-8") as f:
+
+        json.dump(event_data_to_save, f, ensure_ascii=False)
+
+
+
+
+
+# Загрузка данных биома
+
+def load_biome_data():
+
+    if os.path.exists(BIOME_FILE):
+
+        try:
+
+            with open(BIOME_FILE, "r", encoding="utf-8") as f:
+
+                biome_data = json.load(f)
+
+                # Преобразуем строку времени обратно в datetime
+
+                if "biome_end_time" in biome_data and biome_data["biome_end_time"]:
+
+                    biome_data["biome_end_time"] = datetime.fromisoformat(biome_data["biome_end_time"])
+
+                return biome_data
+
+        except:
+
+            return {"current_biome": "Normal", "biome_end_time": None}
+
+    return {"current_biome": "Normal", "biome_end_time": None}
+
+
+
+
+
+def save_biome_data():
+
+    biome_data_to_save = {
+
+        "current_biome": BIOME_DATA["current_biome"],
+
+        "biome_end_time": BIOME_DATA["biome_end_time"].isoformat() if BIOME_DATA["biome_end_time"] else None
+
+    }
+
+    with open(BIOME_FILE, "w", encoding="utf-8") as f:
+
+        json.dump(biome_data_to_save, f, ensure_ascii=False)
+
+
+
+
+
+# Инициализация данных события и биома
+
+EVENT_DATA = load_event_data()
+
+BIOME_DATA = load_biome_data()
+
+
+
+# При запуске бота событие выключено по умолчанию
+
+if not EVENT_DATA.get("event_multiplier"):
+
+    EVENT_DATA = {
+
+        "event_active": False,
+
+        "event_end_time": None,
+
+        "event_multiplier": 2.0,
+
+        "event_duration": 18000  # 5 часов по умолчанию
+
+    }
+
+    save_event_data()
+
+
+
+# 📦 Ауры + шансы (от частых к редким)
+
+auras = {
+
+    "Common": 2,
+
+    "Uncommon": 4,
+
+    "Good": 5,
+
+    "Natural": 8,
+
+    "Rare": 16,
+
+    "Divinus": 32,
+
+    "Crystallised": 64,
+
+    "Rage": 128,
+
+    "Topaz": 150,
+
+    "Ruby": 350,
+
+    "Forbidden": 404,
+
+    "Emerald": 500,
+
+    "Gilded": 512,
+
+    "Ink": 700,
+
+    "Jackpot": 777,
+
+    "Sapphire": 800,
+
+    "Aquamarine": 900,
+
+    "Wind": 900,
+
+    "Diaboli": 1004,
+
+    "Precious": 1024,
+
+    "Atomic": 1180,
+
+    "Glock": 1700,
+
+    "Magnetic": 2048,
+
+    "Ash": 2300,
+
+    "Glacier": 2304,
+
+    "Player": 3000,
+
+    "Flora": 3700,
+
+    "Cola": 3999,
+
+    "Sidereum": 4096,
+
+    "Bleeding": 4444,
+
+    "Flushed": 6900,
+
+    "Hazard": 7000,
+
+    "Quartz": 8192,
+
+    "Honey": 8335,
+
+    "Lost Soul": 9200,
+
+    "Atomic : Riboneucleic": 9876,
+
+    "Undead": 12000,
+
+    "Corrosive": 12000,
+
+    "Rage : Heated": 12800,
+
+    "Ink : LEAK": 14000,
+
+    "Powered": 16384,
+
+    "Copper": 29000,
+
+    "WATT": 32768,
+
+    "Aquatic": 40000,
+
+    "Solar": 50000,
+
+    "Lunar": 50000,
+
+    "Starlight": 50000,
+
+    "Star Rider": 50000,
+
+    "Flushed : Lobotomy": 69000,
+
+    "Hazard : Rays": 70000,
+
+    "Nautilus": 70000,
+
+    "Permafrost": 73500,
+
+    "Flow": 87000,
+
+    "Stormal": 90000,
+
+    "Exotic": 99999,
+
+    "Diaboli : Void": 100400,
+
+    "Comet": 120000,
+
+    "Divinus : Angel": 120000,
+
+    "Jade": 125000,
+
+    "Spectre": 140000,
+
+    "Jazz": 160000,
+
+    "Aether": 180000,
+
+    "Bounded": 200000,
+
+    "Celestial": 350000,
+
+    "Terror": 400000,
+
+    "Warlock": 666000,
+
+    "Undead : Devil": 666666,
+
+    "Kyawthuite": 850000,
+
+    "Arcane": 1000000,
+
+    "Magnetic : Reverse Polarity": 1024000,
+
+    "Undefined": 1111000,
+
+    "Rage : Brawler": 1280000,
+
+    "Astral": 1336000,
+
+    "Cosmos": 1520000,
+
+    "Gravitational": 2000000,
+
+    "Bounded : Unbound": 2000000,
+
+    "Virtual": 2500000,
+
+    "Parasite": 3000000,
+
+    "Savior": 3200000,
+
+    "Shift lock": 3325000,
+
+    "Cosmos : Alice": 3500000,
+
+    "Aquatic : Flame": 4000000,
+
+    "Poseidon": 4000000,
+
+    "Zeus": 4500000,
+
+    "Solar : Solstice": 5000000,
+
+    "Galaxy": 5000000,
+
+    "Lunar : Full Moon": 5000000,
+
+    "Twilight": 6000000,
+
+    "Origin": 6500000,
+
+    "Hades": 6666666,
+
+    "Celestial : Divine": 7000000,
+
+    "Anubis": 7200000,
+
+    "Hyper-Volt": 7500000,
+
+    "Velocity": 7630000,
+
+    "Nautilus : Lost": 7700000,
+
+    "Harnessed": 8500000,
+
+    "Nihility": 9000000,
+
+    "Helios": 9000000,
+
+    "Stargazer": 9200000,
+
+    "Starscourge": 10000000,
+
+    "Sailor": 12000000,
+
+    "Stormal : Hurricane": 13500000,
+
+    "Sirius": 14000000,
+
+    "Arcane : Legacy": 15000000,
+
+    "Lullaby": 17000000,
+
+    "Chromatic": 20000000,
+
+    "Aviator": 24000000,
+
+    "Blizzard": 27315000,
+
+    "Arcane : Dark": 30000000,
+
+    "Ethereal": 35000000,
+
+    "Virtual : Fatal Error": 40413000,
+
+    "Overseer": 45000000,
+
+    "Exotic : Apex": 49999500,
+
+    "Matrix": 50000000,
+
+    "Runic": 50000000,
+
+    "Sentinel": 60000000,
+
+    "Twilight : Iridescent Memory": 60000000,
+
+    "Antivirus": 62500000,
+
+    "Carriage": 80000000,
+
+    "Sailor : Flying Dutchman": 80000000,
+
+    "Harnessed : Elements": 85000000,
+
+    "Virtual : WorldWide": 87500000,
+
+    "Chromatic : Genesis": 99999999,
+
+    "Starscourge : Radiant": 100000000,
+
+    "Overture": 150000000,
+
+    "Symphony": 175000000,
+
+    "Twilight : Withering Grace": 180000000,
+
+    "Felled": 180000000,
+
+    "Impeached": 200000000,
+
+    "Lumenpool": 220000000,
+
+    "Hyper-Volt : Ever-Storm": 225000000,
+
+    "Archangel": 250000000,
+
+    "Astral : Zodiac": 267000000,
+
+    "Exotic : Void": 299999999,
+
+    "Overture : History": 300000000,
+
+    "Bloodlust": 300000000,
+
+    "Maelstrom": 309999999,
+
+    "Lotusfall": 320000000,
+
+    "Jazz : Orchestra": 336870912,
+
+    "Atlas": 360000000,
+
+    "Flora : Evergreen": 370073730,
+
+    "Chillsear": 375000000,
+
+    "Abyssal Hunter": 400000000,
+
+    "Gargantua": 430000000,
+
+    "Apostolos": 444000000,
+
+    "Kyawthuite : Remembrance": 450000000,
+
+    "Ruins": 500000000,
+
+    "Matrix : Overdrive": 503000000,
+
+    "Sophyra": 570000000,
+
+    "Matrix : Reality": 601020102,
+
+    "Sovereign": 750000000,
+
+    "Ruins : Withered": 800000000,
+
+    "Aegis": 825000000,
+
+    "Pixelation": 1073741824,
+
+    "Luminosity": 1200000000,
+
+    "Equinox": 2500000000,
+
+    # Новые ауры для биомов
+
+    "Oppression": 220000000,
+
+    "Glitch": 12210110,
+
+    "Fault": 3000,
+
+    "⭐": 100,
+
+    "⭐⭐": 1000,
+
+    "⭐⭐⭐": 10000,
+
+    "Dreammetric": 520000000
+
+}
+
+
+
+limbo_auras = {
+
+    "Nothing": 1,
+
+    # Ауры из Null биома (базовый шанс / 1000, так как в Null множитель x1000)
+
+    "Undefined": 1111,
+
+    "Shift lock": 3325,
+
+    "Nihility": 9000,
+
+    # Эксклюзивы Лимбо
+
+    "Raven": 500000,
+
+    "Anima": 5500000,
+
+    "Juxtaposition": 40440400,
+
+    "Unknown": 444444444,
+
+    "Elude": 555555555,
+
+    "Prologue": 666616111,
+
+    "dreamscape": 850000000,
+
+    "NYCTOPHOBIA": 1011111010
+
+}
+
+
+
+GLOBAL_THRESHOLD = 9_999_999
+
+
+
+# Биомы и их настройки
+
+BIOMES = {
+
+    "Normal": {"chance": 0, "duration": 0, "multiplier": 1, "auras": []},
+
+    "Windy": {"chance": 1 / 500, "duration": 120, "multiplier": 3,
+
+              "auras": ["Wind", "Flow", "Stormal", "Stormal : Hurricane", "Aviator", "Maelstrom"]},
+
+    "Snowy": {"chance": 1 / 600, "duration": 120, "multiplier": 3,
+
+              "auras": ["Glacier", "Permafrost", "Blizzard", "Chillsear"]},
+
+    "Rainy": {"chance": 1 / 750, "duration": 120, "multiplier": 4,
+
+              "auras": ["Poseidon", "Sailor", "Sailor : Flying Dutchman", "Lumenpool", "Abyssal Hunter"]},
+
+    "Sand Storm": {"chance": 1 / 3000, "duration": 660, "multiplier": 4,
+
+                   "auras": ["Gilded", "Jackpot", "Anubis", "Atlas"]},
+
+    "Hell": {"chance": 1 / 6666, "duration": 660, "multiplier": 6,
+
+             "auras": ["Undead", "Undead : Devil", "Hades", "Felled", "Bloodlust"]},
+
+    "Starfall": {"chance": 1 / 7500, "duration": 600, "multiplier": 5,
+
+                 "auras": ["Starlight", "Star Rider", "Comet", "Astral", "Galaxy", "Stargazer", "Sirius",
+
+                           "Starscourge : Radiant", "Astral : Zodiac", "Gargantua"]},
+
+    "Corruption": {"chance": 1 / 9000, "duration": 660, "multiplier": 5,
+
+                   "auras": ["Hazard", "Corrosive", "Hazard : Rays", "Parasite", "Impeached"]},
+
+    "Null": {"chance": 1 / 10000, "duration": 99, "multiplier": 1000, "auras": ["Undefined", "Shift lock", "Nihility"]},
+
+    "Glitched": {"chance": 1 / 6000000, "duration": 184, "multiplier": 1,
+
+                 "auras": ["Oppression", "Glitch", "Fault", "⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]},
+
+    "Dreamspace": {"chance": 1 / 5000000, "duration": 128, "multiplier": 1, "auras": ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]}
+
+}
+
+
+
+# --- НОВЫЙ СЛОВАРЬ ДЛЯ GIF ---
+
+# Связывает название ауры с ID гифки.
+
+#
+
+# !!! ВАМ НУЖНО ЗАПОЛНИТЬ ЭТОТ СЛОВАРЬ !!!
+
+# Получите File ID для каждой гифки и вставьте его вместо "YOUR_ID_HERE"
+
+#
+
+# Если вы не хотите гифку для какой-то ауры, просто удалите ее из этого словаря.
+
+# Логика ">= 1,000,000" все еще будет применяться.
+
+aura_gif_map = {
+
+    "Arcane": "https://t.me/solsrngbotcutscenes/3",
+
+    "Magnetic : Reverse Polarity": "https://t.me/solsrngbotcutscenes/6",
+
+    "Undefined": "https://t.me/solsrngbotcutscenes/7",
+
+    "Rage : Brawler": "https://t.me/solsrngbotcutscenes/11",
+
+    "Astral": "https://t.me/solsrngbotcutscenes/8",
+
+    "Cosmos": "https://t.me/solsrngbotcutscenes/9",
+
+    "Gravitational": "https://t.me/solsrngbotcutscenes/10",
+
+    "Bounded : Unbound": "https://t.me/solsrngbotcutscenes/12",
+
+    "Virtual": "https://t.me/solsrngbotcutscenes/87",
+
+    "Parasite": "https://t.me/solsrngbotcutscenes/13",
+
+    "Savior": "https://t.me/solsrngbotcutscenes/14",
+
+    "Shift lock": "https://t.me/solsrngbotcutscenes/49",
+
+    "Cosmos : Alice": "https://t.me/solsrngbotcutscenes/34",
+
+    "Aquatic : Flame": "https://t.me/solsrngbotcutscenes/66",
+
+    "Poseidon": "https://t.me/solsrngbotcutscenes/15",
+
+    "Zeus": "https://t.me/solsrngbotcutscenes/33",
+
+    "Solar : Solstice": "https://t.me/solsrngbotcutscenes/39",
+
+    "Galaxy": "https://t.me/solsrngbotcutscenes/35",
+
+    "Lunar : Full Moon": "https://t.me/solsrngbotcutscenes/40",
+
+    "Twilight": "https://t.me/solsrngbotcutscenes/36",
+
+    "Origin": "https://t.me/solsrngbotcutscenes/38",
+
+    "Hades": "https://t.me/solsrngbotcutscenes/88",
+
+    "Celestial : Divine": "https://t.me/solsrngbotcutscenes/37",
+
+    "Anubis": "https://t.me/solsrngbotcutscenes/41",
+
+    "Hyper-Volt": "https://t.me/solsrngbotcutscenes/42",
+
+    "Velocity": "https://t.me/solsrngbotcutscenes/43",
+
+    "Nautilus : Lost": "https://t.me/solsrngbotcutscenes/48",
+
+    "Harnessed": "https://t.me/solsrngbotcutscenes/44",
+
+    "Nihility": "https://t.me/solsrngbotcutscenes/45",
+
+    "Helios": "https://t.me/solsrngbotcutscenes/46",
+
+    "Stargazer": "https://t.me/solsrngbotcutscenes/47",
+
+    "Starscourge": "https://t.me/solsrngbotcutscenes/17",
+
+    "Sailor": "https://t.me/solsrngbotcutscenes/18",
+
+    "Stormal : Hurricane": "https://t.me/solsrngbotcutscenes/19",
+
+    "Sirius": "https://t.me/solsrngbotcutscenes/20",
+
+    "Arcane : Legacy": "https://t.me/solsrngbotcutscenes/67",
+
+    "Lullaby": "https://t.me/solsrngbotcutscenes/21",
+
+    "Chromatic": "https://t.me/solsrngbotcutscenes/22",
+
+    "Aviator": "https://t.me/solsrngbotcutscenes/23",
+
+    "Blizzard": "https://t.me/solsrngbotcutscenes/24",
+
+    "Arcane : Dark": "https://t.me/solsrngbotcutscenes/68",
+
+    "Ethereal": "https://t.me/solsrngbotcutscenes/25",
+
+    "Virtual : Fatal Error": "https://t.me/solsrngbotcutscenes/86",
+
+    "Overseer": "https://t.me/solsrngbotcutscenes/26",
+
+    "Exotic : Apex": "https://t.me/solsrngbotcutscenes/85",
+
+    "Matrix": "https://t.me/solsrngbotcutscenes/28",
+
+    "Runic": "https://t.me/solsrngbotcutscenes/27",
+
+    "Sentinel": "https://t.me/solsrngbotcutscenes/29",
+
+    "Twilight : Iridescent Memory": "https://t.me/solsrngbotcutscenes/30",
+
+    "Antivirus": "https://t.me/solsrngbotcutscenes/95",
+
+    "Carriage": "https://t.me/solsrngbotcutscenes/82",
+
+    "Sailor : Flying Dutchman": "https://t.me/solsrngbotcutscenes/31",
+
+    "Harnessed : Elements": "https://t.me/solsrngbotcutscenes/32",
+
+    "Virtual : WorldWide": "https://t.me/solsrngbotcutscenes/84",
+
+    "Chromatic : Genesis": "https://t.me/solsrngbotcutscenes/90",
+
+    "Starscourge : Radiant": "https://t.me/solsrngbotcutscenes/83",
+
+    "Overture": "https://t.me/solsrngbotcutscenes/50",
+
+    "Symphony": "https://t.me/solsrngbotcutscenes/52",
+
+    "Twilight : Withering Grace": "https://t.me/solsrngbotcutscenes/65",
+
+    "Felled": "https://t.me/solsrngbotcutscenes/96",
+
+    "Impeached": "https://t.me/solsrngbotcutscenes/81",
+
+    "Lumenpool": "https://t.me/solsrngbotcutscenes/97",
+
+    "Hyper-Volt : Ever-Storm": "https://t.me/solsrngbotcutscenes/80",
+
+    "Archangel": "https://t.me/solsrngbotcutscenes/53",
+
+    "Astral : Zodiac": "https://t.me/solsrngbotcutscenes/79",
+
+    "Exotic : Void": "https://t.me/solsrngbotcutscenes/75",
+
+    "Overture : History": "https://t.me/solsrngbotcutscenes/51",
+
+    "Bloodlust": "https://t.me/solsrngbotcutscenes/54",
+
+    "Maelstrom": "https://t.me/solsrngbotcutscenes/55",
+
+    "Lotusfall": "https://t.me/solsrngbotcutscenes/56",
+
+    "Jazz : Orchestra": "https://t.me/solsrngbotcutscenes/78",
+
+    "Atlas": "https://t.me/solsrngbotcutscenes/57",
+
+    "Flora : Evergreen": "https://t.me/solsrngbotcutscenes/16",
+
+    "Chillsear": "https://t.me/solsrngbotcutscenes/64",
+
+    "Abyssal Hunter": "https://t.me/solsrngbotcutscenes/58",
+
+    "Gargantua": "https://t.me/solsrngbotcutscenes/77",
+
+    "Apostolos": "https://t.me/solsrngbotcutscenes/59",
+
+    "Kyawthuite : Remembrance": "https://t.me/solsrngbotcutscenes/76",
+
+    "Ruins": "https://t.me/solsrngbotcutscenes/60",
+
+    "Matrix : Overdrive": "https://t.me/solsrngbotcutscenes/74",
+
+    "Sophyra": "https://t.me/solsrngbotcutscenes/61",
+
+    "Matrix : Reality": "https://t.me/solsrngbotcutscenes/73",
+
+    "Sovereign": "https://t.me/solsrngbotcutscenes/89",
+
+    "Ruins : Withered": "https://t.me/solsrngbotcutscenes/72",
+
+    "Aegis": "https://t.me/solsrngbotcutscenes/62",
+
+    "Pixelation": "https://t.me/solsrngbotcutscenes/63",
+
+    "Luminosity": "https://t.me/solsrngbotcutscenes/71",
+
+    "Equinox": "https://t.me/solsrngbotcutscenes/5",
+
+    "Glitch": "https://t.me/solsrngbotcutscenes/94",
+
+    "Oppression": "https://t.me/solsrngbotcutscenes/91",
+
+    "Dreammetric": "https://t.me/solsrngbotcutscenes/93",
+
+    # -------------- limbo gifs ----------------- #
+
+    "Anima": "https://t.me/solsrngbotcutscenes/104",
+
+    "Juxtaposition": "https://t.me/solsrngbotcutscenes/105",
+
+    "Unknown": "https://t.me/solsrngbotcutscenes/106",
+
+    "Elude": "https://t.me/solsrngbotcutscenes/107",
+
+    "Prologue": "https://t.me/solsrngbotcutscenes/108",
+
+    "dreamscape": "https://t.me/solsrngbotcutscenes/109",
+
+    "NYCTOPHOBIA": "https://t.me/solsrngbotcutscenes/110",
+
+}
+
+
+
+# Глобальные переменные для предметов и зелий
+
+lucky_potion_active = False
+
+
+
+gear_items = [
+
+    "[T1] Luck Glove", "[T1] Desire Glove", "[T1] Solar Device",
+
+    "[T2] Shining Star", "[T3] Exo Gauntlet", "[T3] Windstorm Device",
+
+    "[T4] Subzero Device", "[T5] Galactic Device", "[T5] Volcanic Device",
+
+    "[T6] Exoflex Device", "[T6] Hologrammer", "[T7] Ragnaröker",
+
+    "[T8] Starshaper", "[T9] Neurolyzer", "[T10] Genesis Drive"
+
+]
+
+
+
+luck_bonuses = {
+
+    "[T1] Luck Glove": 0.8,
+
+    "[T1] Desire Glove": 1.4,
+
+    "[T1] Solar Device": 2.3,
+
+    "[T2] Shining Star": 2,  # Базовый
+
+    "[T3] Exo Gauntlet": 3.5,
+
+    "[T3] Windstorm Device": 4.5,
+
+    "[T4] Subzero Device": 5,
+
+    "[T5] Galactic Device": 6.8,
+
+    "[T5] Volcanic Device": 7.25,
+
+    "[T6] Exoflex Device": 9.2,
+
+    "[T6] Hologrammer": 10,
+
+    "[T7] Ragnaröker": 13.5,  # Базовый
+
+    "[T8] Starshaper": 27.5,
+
+    "[T9] Neurolyzer": 45.25,
+
+    "[T10] Genesis Drive": 65
+
+}
+
+
+
+# load data (глобальные настройки, которые не являются данными пользователя)
+
+data = {}  # Инициализируем data как пустой словарь
+
+
+
+# --- ЗАГРУЗКА ГЛОБАЛЬНЫХ ДАННЫХ (остается в формате JSON) ---
+
+GLOBAL_DATA_FILE = SAVE_FILE
+
+if os.path.exists(GLOBAL_DATA_FILE):
+
+    print(f"Loading global data from {GLOBAL_DATA_FILE}...")
+
+    try:
+
+        with open(GLOBAL_DATA_FILE, "r", encoding="utf-8") as f:
+
+            file_content = f.read()
+
+            if file_content:
+
+                data = json.loads(file_content)
+
+            else:
+
+                print(f"WARNING: Global data file {GLOBAL_DATA_FILE} is empty.")
+
+
+
+    except json.JSONDecodeError as e:
+
+        print(f"CRITICAL WARNING: Global data file {GLOBAL_DATA_FILE} corrupted. Error: {e}")
+
+        print("Using empty structure for global data.")
+
+        # При повреждении глобальных данных не падаем, но сбрасываем их
+
+
+
+    except Exception as e:
+
+        print(f"CRITICAL WARNING: Error loading global data: {e}")
+
+
+
+# Убеждаемся, что ключ 'auras' (для данных пользователей) инициализирован пустым.
+
+if "auras" not in data:
+
+    data["auras"] = {}
+
+
+
+# --- ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЕЙ (НОВЫЙ ФОРМАТ JSON Lines) ---
+
+if os.path.exists(USER_DATA_FILE):
+
+    print(f"Loading user data (JSON Lines) from {USER_DATA_FILE}...")
+
+    try:
+
+        loaded_users_count = 0
+
+        with open(USER_DATA_FILE, "r", encoding="utf-8") as f:
+
+            for line_number, line in enumerate(f):
+
+                line = line.strip()
+
+                if not line:
+
+                    continue
+
+
+
+                try:
+
+                    user_data = json.loads(line)
+
+                    user_id = user_data.get("user_id")
+
+
+
+                    if user_id:
+
+                        # ВАЖНО: убедиться, что uid - строка, т.к. ключи словарей - строки
+
+                        data["auras"][str(user_id)] = user_data
+
+                        loaded_users_count += 1
+
+                    else:
+
+                        print(f"WARNING: Line {line_number + 1} in {USER_DATA_FILE} missing 'user_id'. Skipping.")
+
+
+
+                except json.JSONDecodeError as e:
+
+                    # Если одна строка повреждена, мы пропускаем ее, но продолжаем
+
+                    print(f"WARNING: Corrupt JSON line {line_number + 1} in {USER_DATA_FILE}. Skipping this user.")
+
+                    print(f"Error: {e}")
+
+
+
+        print(f"Successfully loaded {loaded_users_count} users.")
+
+
+
+    except Exception as e:
+
+        # Если не смогли даже открыть файл (например, проблемы с правами)
+
+        print(f"CRITICAL ERROR: Failed to open or read {USER_DATA_FILE}. All user data might be missing!")
+
+        print(f"Error: {e}")
+
+        # data["auras"] остается пустым, но бот не падает
+
+
+
+else:
+
+    print(f"User data file {USER_DATA_FILE} not found. Starting with empty user data.")
+
+    data = {"auras": {}}
+
+
+
+# data_lock = threading.Lock() # <--- ИЗМЕНЕНИЕ 1: Заменено на RLock
+
+# (Строка ~557)
+
+data_lock = threading.RLock()
+
+# ДОБАВЬ ЭТОТ НОВЫЙ ЗАМОК ПРЯМО ПОД data_lock
+
+save_file_lock = threading.Lock()
+
+
+
+
+
+# (Строка ~560)
+
+# ПОЛНОСТЬЮ ЗАМЕНИ СТАРУЮ ФУНКЦИЮ save_data() НА ЭТУ НОВУЮ:
+
+def save_data():
+
+    """
+
+    Высокопроизводительная и потокобезопасная функция сохранения.
+
+    1. Быстро (под data_lock) копирует данные из памяти.
+
+    2. Медленно (под save_file_lock) записывает копию на диск.
+
+    """
+
+
+
+    global_data_to_save = {}
+
+    users_to_save = {}
+
+
+
+    # === ЭТАП 1: Быстрое копирование данных ===
+
+    # Блокируем data_lock только на время копирования словарей.
+
+    # Это очень быстро и не будет тормозить auto-roll.
+
+    try:
+
+        with data_lock:
+
+            global_data_to_save = {k: v for k, v in data.items() if k != "auras"}
+
+            # .copy() здесь критически важен!
+
+            users_to_save = data.get("auras", {}).copy()
+
+    except Exception as e:
+
+        print(f"CRITICAL ERROR: Failed to copy data for saving: {e}")
+
+        return  # Если не смогли скопировать, сохранять нечего
+
+
+
+    # === ЭТАП 2: Медленная запись на диск ===
+
+    # Блокируем save_file_lock, чтобы только один поток (autosave или админ)
+
+    # мог писать в файл одновременно.
+
+    with save_file_lock:
+
+
+
+        # --- 1. СОХРАНЕНИЕ ГЛОБАЛЬНЫХ ДАННЫХ (из копии) ---
+
+        GLOBAL_DATA_FILE = SAVE_FILE
+
+        try:
+
+            with open(GLOBAL_DATA_FILE, "w", encoding="utf-8") as f:
+
+                json.dump(global_data_to_save, f, ensure_ascii=False, indent=4)
+
+        except Exception as e:
+
+            print(f"ERROR saving global data to {GLOBAL_DATA_FILE}: {e}")
+
+
+
+        # --- 2. СОХРАНЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЕЙ (из копии) ---
+
+        TEMP_FILE = USER_DATA_FILE + ".tmp"
+
+        try:
+
+            with open(TEMP_FILE, "w", encoding="utf-8") as f:
+
+                # Итерируемся по КОПИИ (users_to_save), а не по data
+
+                for uid, user_data in users_to_save.items():
+
+                    # Добавляем user_id в сам объект
+
+                    user_data["user_id"] = str(uid)
+
+
+
+                    json_line = json.dumps(user_data, ensure_ascii=False)
+
+                    f.write(json_line + '\n')
+
+
+
+            os.replace(TEMP_FILE, USER_DATA_FILE)
+
+
+
+        except Exception as e:
+
+            print(f"ERROR saving user data to {USER_DATA_FILE}: {e}")
+
+            if os.path.exists(TEMP_FILE):
+
+                try:
+
+                    os.remove(TEMP_FILE)
+
+                except Exception as e_rm:
+
+                    print(f"ERROR removing temp file {TEMP_FILE}: {e_rm}")
+
+
+
+
+
+AUTOSAVE_INTERVAL = 20  # Сохранять каждые 20 секунд
+
+
+
+
+
+def autosave_loop():
+
+    """Периодически сохраняет все данные."""
+
+    print("[Autosave] Autosave thread started.")
+
+    while True:
+
+        time.sleep(AUTOSAVE_INTERVAL)
+
+        try:
+
+            # Просто вызываем нашу новую безопасную функцию
+
+            save_data()
+
+            # print(f"[Autosave] Data saved successfully.") # Можно раскомментировать для отладки
+
+        except Exception as e:
+
+            print(f"[Autosave] CRITICAL ERROR during autosave: {e}")
+
+
+
+
+
+def get_user_data(user_id, user_name="User"):
+
+    user_id = str(user_id)
+
+    with data_lock:
+
+        if "auras" not in data:
+
+            data["auras"] = {}
+
+        if user_id not in data["auras"]:
+
+            data["auras"][user_id] = {
+
+                "name": user_name,
+
+                "user_luck": 1.0,
+
+                "rolls": 0,
+
+                "rarest": None,
+
+                "auras": {},
+
+                "inventory": [],
+
+                "equipped": []
+
+            }
+
+        u = data["auras"].setdefault(user_id, {})
+
+        u.setdefault("user_id", user_id)
+
+        u.setdefault("name", user_name)
+
+        u.setdefault("user_luck", 1.0)  # Это базовая удача
+
+        u.setdefault("rolls", 0)
+
+        u.setdefault("rarest", None)
+
+        u.setdefault("auras", {})
+
+        u.setdefault("inventory", [])
+
+        u.setdefault("equipped", [])
+
+        u.setdefault("notify_day_night", True)
+
+        u.setdefault("notify_global", True)
+
+        u.setdefault("potion_end_time", None)
+
+        u.setdefault("potion_luck_bonus", 0.0)
+
+        u.setdefault("godlike_potion_active", 0)
+
+        u.setdefault("heavenly_potion_active", 0)
+
+        u.setdefault("bound_potion_active", 0)
+
+        u.setdefault("auto_roll_enabled", False)
+
+        u.setdefault("pending_potion_amount", None)
+
+        u.setdefault("auto_pin_rarity", None)
+
+        u.setdefault("forced_aura", None)
+
+        u.setdefault("gif_rarity_threshold", 1000000)
+
+        # лимбо
+
+        u.setdefault("limbo_unlocked", False)
+
+        u.setdefault("in_limbo", False)
+
+        u.setdefault("unknown_potion_end", None)
+
+        u.setdefault("limbo_msg_sent", False)
+
+        # другое
+
+
+
+        return u
+
+
+
+
+
+def get_calculated_luck(user):
+
+    """Рассчитывает ОБЩУЮ удачу. В Лимбо зелья не работают."""
+
+    base_luck = user.get("user_luck", 1.0)
+
+    item_bonus = 0.0
+
+
+
+    # Перчатки работают везде
+
+    equipped_item = next((item for item in user.get("equipped", []) if item in gear_items), None)
+
+    if equipped_item:
+
+        base_bonus = luck_bonuses.get(equipped_item, 0.0)
+
+        item_bonus = base_bonus
+
+
+
+        current_biome = BIOME_DATA["current_biome"]
+
+        # Логика бонусов предметов
+
+        if equipped_item == "[T2] Shining Star" and current_biome == "Starfall":
+
+            item_bonus = 6.0
+
+        elif equipped_item == "[T7] Ragnaröker" and current_biome in ["Windy", "Rainy", "Hell"]:
+
+            item_bonus = 1.5
+
+
+
+    # Логика зелий
+
+    potion_bonus = 0.0
+
+    # Зелья работают ТОЛЬКО если мы НЕ в Лимбо
+
+    if not user.get("in_limbo", False):
+
+        potion_end_time_str = user.get("potion_end_time")
+
+        if potion_end_time_str:
+
+            try:
+
+                potion_end_time = datetime.fromisoformat(potion_end_time_str)
+
+                if potion_end_time > datetime.now():
+
+                    potion_bonus = user.get("potion_luck_bonus", 0.0)
+
+            except:
+
+                pass
+
+
+
+    total_luck = base_luck + item_bonus + potion_bonus
+
+    return max(1.0, total_luck)  # Удача не может быть меньше 1
+
+
+
+
+
+def get_effective_luck(calculated_luck):
+
+    """Возвращает удачу с учетом активного события"""
+
+    if EVENT_DATA["event_active"] and EVENT_DATA["event_end_time"] and datetime.now() < EVENT_DATA["event_end_time"]:
+
+        return calculated_luck * EVENT_DATA["event_multiplier"]
+
+    return calculated_luck
+
+
+
+
+
+def get_biome_multiplier(aura_name):
+
+    """Возвращает множитель биома для конкретной ауры"""
+
+    current_biome = BIOME_DATA["current_biome"]
+
+
+
+    # Glitched ауры доступны ТОЛЬКО в Glitched биоме
+
+    if aura_name in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched":
+
+        return math.inf  # Сделать невозможным выпадение
+
+
+
+    # Dreamspace ауры доступны только в Glitched и Dreamspace биомах
+
+    if aura_name in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]:
+
+        return math.inf  # Сделать невозможным выпадение
+
+
+
+    biome_info = BIOMES[current_biome]
+
+
+
+    # Glitched биом включает все множители
+
+    if current_biome == "Glitched":
+
+        for biome_name, info in BIOMES.items():
+
+            if biome_name != "Normal" and aura_name in info["auras"]:
+
+                return info["multiplier"]
+
+        return 1
+
+
+
+    # Dreamspace не дает множителя
+
+    if current_biome == "Dreamspace":
+
+        return 1
+
+
+
+    # Для других биомов проверяем, относится ли аура к текущему биому
+
+    if aura_name in biome_info["auras"]:
+
+        return biome_info["multiplier"]
+
+
+
+    return 1
+
+
+
+
+
+def roll_aura(effective_luck, user):
+
+    # Определяем, в каком мы мире
+
+    in_limbo = user.get("in_limbo", False)
+
+
+
+    if in_limbo:
+
+        # === ЛОГИКА ЛИМБО: Rarity Threshold System ===
+
+        # 1. Сортируем ауры от Редких (High) к Частым (Low), исключая Nothing
+
+        sorted_limbo = sorted(
+
+            [(k, v) for k, v in limbo_auras.items() if k != "Nothing"],
+
+            key=lambda x: x[1],
+
+            reverse=True
+
+        )
+
+
+
+        current_biome = BIOME_DATA["current_biome"]
+
+
+
+        for aura, base_chance in sorted_limbo:
+
+            # Пропуск аур, не подходящих под биом (для Glitched и Dreamspace)
+
+            if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
+
+            if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
+
+
+
+            # --- ФИКС ДЛЯ NULL БИОМА ---
+
+            # Если снаружи Null биом, в Лимбо он не должен давать множитель x1000
+
+            if current_biome == "Null":
+
+                biome_multiplier = 1
+
+            else:
+
+                biome_multiplier = get_biome_multiplier(aura)
+
+            # ---------------------------
+
+
+
+            adjusted_chance = base_chance / biome_multiplier
+
+
+
+            # 1. ГАРАНТ
+
+            if effective_luck >= adjusted_chance:
+
+                return aura, adjusted_chance
+
+
+
+            # 2. ПОПЫТКА РОЛЛА
+
+            if random.uniform(0, adjusted_chance) <= effective_luck:
+
+                return aura, adjusted_chance
+
+
+
+        # 3. ЕСЛИ НИЧЕГО НЕ ВЫПАЛО В ЛИМБО
+
+        return "Nothing", 1
+
+
+
+    # === ОБЫЧНАЯ ЛОГИКА (ЕСЛИ НЕ В ЛИМБО) ===
+
+    candidates = []
+
+    total_weight = 0
+
+    current_biome = BIOME_DATA["current_biome"]
+
+
+
+    for aura, base_chance in auras.items():
+
+        if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
+
+        if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
+
+
+
+        biome_multiplier = get_biome_multiplier(aura)
+
+        adjusted_rarity = base_chance / biome_multiplier
+
+
+
+        # final_rarity - это то, с какой *реальной* сложностью ты роллишь
+
+        final_rarity = adjusted_rarity / effective_luck
+
+
+
+        if final_rarity < 0.9: continue
+
+
+
+        weight = 1.0 / final_rarity
+
+
+
+        # --- ИСПРАВЛЕНИЕ: Сохраняем adjusted_rarity, а не base_chance ---
+
+        candidates.append((aura, adjusted_rarity, weight))
+
+        total_weight += weight
+
+
+
+    if not candidates:
+
+        # --- ИСПРАВЛЕНИЕ: max -> min. Если все ауры "слишком легкие", роллим самую частую ---
+
+        best = min(auras.items(), key=lambda x: x[1])
+
+        # Возвращаем ее базовый шанс, так как для нее adjusted_rarity = base_chance
+
+        return best[0], best[1]
+
+
+
+    rnd = random.random() * total_weight
+
+    cumulative = 0
+
+
+
+    # --- ИСПРАВЛЕНИЕ: Получаем adjusted_rarity из списка ---
+
+    for aura, adjusted_rarity, weight in candidates:
+
+        cumulative += weight
+
+        if rnd <= cumulative:
+
+            # --- ИСПРАВЛЕНИЕ: Возвращаем adjusted_rarity ---
+
+            return aura, adjusted_rarity
+
+
+
+            # --- ИСПРАВЛЕНИЕ: Возвращаем adjusted_rarity для последнего кандидата ---
+
+    return candidates[-1][0], candidates[-1][1]
+
+
+
+
+
+def get_time_remaining():
+
+    """Возвращает оставшееся время события в формате HH:MM:SS"""
+
+    if not EVENT_DATA["event_active"] or not EVENT_DATA["event_end_time"]:
+
+        return "00:00:00"
+
+
+
+    remaining = EVENT_DATA["event_end_time"] - datetime.now()
+
+    if remaining.total_seconds() <= 0:
+
+        # Событие закончилось
+
+        EVENT_DATA["event_active"] = False
+
+        save_event_data()
+
+        return "00:00:00"
+
+
+
+    hours = int(remaining.total_seconds() // 3600)
+
+    minutes = int((remaining.total_seconds() % 3600) // 60)
+
+    seconds = int(remaining.total_seconds() % 60)
+
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+
+
+
+
+def get_biome_time_remaining():
+
+    """Возвращает оставшееся время биома в формате MM:SS"""
+
+    if not BIOME_DATA["biome_end_time"]:
+
+        return "∞"
+
+
+
+    remaining = BIOME_DATA["biome_end_time"] - datetime.now()
+
+    if remaining.total_seconds() <= 0:
+
+        # Биом закончился
+
+        BIOME_DATA["current_biome"] = "Normal"
+
+        BIOME_DATA["biome_end_time"] = None
+
+        save_biome_data()
+
+        return "00:00"
+
+
+
+    minutes = int(remaining.total_seconds() // 60)
+
+    seconds = int(remaining.total_seconds() % 60)
+
+    return f"{minutes:02d}:{seconds:02d}"
+
+
+
+
+
+def is_event_active():
+
+    """Проверяет, активно ли событие"""
+
+    if EVENT_DATA["event_active"] and EVENT_DATA["event_end_time"]:
+
+        if datetime.now() < EVENT_DATA["event_end_time"]:
+
+            return True
+
+        else:
+
+            # Событие закончилось
+
+            EVENT_DATA["event_active"] = False
+
+            save_event_data()
+
+    return False
+
+
+
+
+
+def check_biome_change():
+
+    """Проверяет и меняет биом если нужно"""
+
+    current_biome = BIOME_DATA["current_biome"]
+
+
+
+    # Если текущий биом еще активен, ничего не делаем
+
+    if BIOME_DATA["biome_end_time"] and datetime.now() < BIOME_DATA["biome_end_time"]:
+
+        return
+
+
+
+    # Если биом Normal, проверяем шанс на смену
+
+    if current_biome == "Normal":
+
+        for biome_name, biome_info in BIOMES.items():
+
+            if biome_name == "Normal":
+
+                continue
+
+
+
+            # Glitched имеет особый шанс (только при смене биома)
+
+            if biome_name == "Glitched":
+
+                if random.random() < biome_info["chance"]:
+
+                    set_biome(biome_name)
+
+                    return
+
+            else:
+
+                # Обычные биомы проверяются каждую секунду
+
+                if random.random() < biome_info["chance"]:
+
+                    set_biome(biome_name)
+
+                    return
+
+    else:
+
+        # Текущий биом закончился, возвращаемся к Normal
+
+        set_biome("Normal")
+
+
+
+
+
+def set_biome(biome_name):
+
+    """Устанавливает новый биом"""
+
+    old_biome = BIOME_DATA["current_biome"]
+
+    BIOME_DATA["current_biome"] = biome_name
+
+    if biome_name == "Normal":
+
+        BIOME_DATA["biome_end_time"] = None
+
+    else:
+
+        duration = BIOMES[biome_name]["duration"]
+
+        BIOME_DATA["biome_end_time"] = datetime.now() + timedelta(seconds=duration)
+
+
+
+    save_biome_data()
+
+
+
+    # Уведомляем всех пользователей о смене биома
+
+    if biome_name != "Normal":
+
+        biome_messages = {
+
+            "Windy": "A refreshing and cool wind passes through the world..",
+
+            "Snowy": "White snow and cold begin to cover the surroundings..",
+
+            "Rainy": "Strong winds and showers sweep through the world..",
+
+            "Sand Storm": "A harsh Sand Storm blocks your path...",
+
+            "Hell": "A strong and violent energy of chaos overtakes the world..",
+
+            "Starfall": "Beautiful and dreamy starlight pours into the world..",
+
+            "Corruption": "Poisonous pollution spreads throughout the world..",
+
+            "Null": "It's too dark here..",
+
+            "Dreamspace": "You begin to feel sleepy...",
+
+            "Glitched": "Unexpected error occurred. [Code 404]"
+
+        }
+
+
+
+        message = f"[{biome_name}]: {biome_messages.get(biome_name, '')}"
+
+        threading.Thread(target=lambda: notify_all_users(message, message_type="biome"), daemon=True).start()
+
+
+
+    # Уведомление о конце биома
+
+    elif old_biome != "Normal":
+
+        message = ""
+
+        if old_biome == "Dreamspace":
+
+            message = "[Dreamspace]: Waking up..."
+
+        elif old_biome == "Glitched":
+
+            message = "[Manager]: [Code 404] has resolved."
+
+
+
+        if message:
+
+            threading.Thread(target=lambda: notify_all_users(message, message_type="biome"), daemon=True).start()
+
+
+
+
+
+def biome_loop():
+
+    """Цикл смены биомов"""
+
+    while True:
+
+        check_biome_change()
+
+        time.sleep(1)
+
+
+
+
+
+def potion_spawn_loop():
+
+    """Цикл спавна зелий"""
+
+    global lucky_potion_active
+
+    while True:
+
+        time.sleep(60)  # Каждую минуту
+
+        if not lucky_potion_active:
+
+            if random.randint(1, 2) == 1:  # Шанс 1 к 2
+
+                lucky_potion_active = True
+
+
+
+
+
+def apply_potion_effect(user, amount):
+
+    """Применяет эффект зелья к пользователю"""
+
+    duration_seconds = amount * 60
+
+    bonus_luck = 1  # +100% = +1.0
+
+
+
+    current_end_time_str = user.get("potion_end_time")
+
+    now = datetime.now()
+
+
+
+    if current_end_time_str:
+
+        try:
+
+            current_end_time = datetime.fromisoformat(current_end_time_str)
+
+            if current_end_time > now:
+
+                # Зелье уже активно, добавляем время и удачу
+
+                new_end_time = current_end_time + timedelta(seconds=duration_seconds)
+
+                user["potion_end_time"] = new_end_time.isoformat()
+
+                return
+
+        except:
+
+            pass  # Если ошибка формата, просто установим новое
+
+
+
+    # Зелье неактивно или истекло
+
+    user["potion_end_time"] = (now + timedelta(seconds=duration_seconds)).isoformat()
+
+    user["potion_luck_bonus"] = bonus_luck
+
+
+
+
+
+def auto_roll_thread(user_id, chat_id):
+
+    while True:
+
+        # Определяем клавиатуру ОДИН РАЗ
+
+        disable_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        disable_markup.row(types.KeyboardButton("Disable Auto Roll"))
+
+
+
+        # 1. Проверяем, должен ли поток все еще работать
+
+        with data_lock:
+
+            user = get_user_data(user_id)
+
+            if not user.get("auto_roll_enabled", False):
+
+                break
+
+
+
+        # Переменные для хранения данных, чтобы использовать их ПОСЛЕ закрытия замка
+
+        msg_text = ""
+
+        gif_id_to_send = None
+
+        should_pin = False
+
+        global_msg_to_send = None
+
+
+
+        try:
+
+            # === НАЧАЛО БЛОКИРОВКИ ДАННЫХ ===
+
+            with data_lock:
+
+                user = get_user_data(user_id)
+
+
+
+                # Проверка на случай если выключили пока ждали лок
+
+                if not user.get("auto_roll_enabled", False):
+
+                    break
+
+
+
+                calculated_luck = get_calculated_luck(user)
+
+
+
+                # Обработка зелий (ИЗМЕНЕНО: В Лимбо бонусы = 0)
+
+                heavenly_bonus = 0
+
+                bound_bonus = 0
+
+                godlike_bonus = 0
+
+                potion_msg = ""
+
+
+
+                if not user.get("in_limbo", False):
+
+                    if user.get("heavenly_potion_active", 0) > 0:
+
+                        heavenly_bonus = 425000
+
+                        user["heavenly_potion_active"] -= 1
+
+                        potion_msg += f"\nHeavenly Potion left: {user['heavenly_potion_active']}"
+
+
+
+                    if user.get("bound_potion_active", 0) > 0:
+
+                        bound_bonus = 200000
+
+                        user["bound_potion_active"] -= 1
+
+                        potion_msg += f"\nPotion of Bound left: {user['bound_potion_active']}"
+
+
+
+                    if user.get("godlike_potion_active", 0) > 0:
+
+                        godlike_bonus = 1000000
+
+                        user["godlike_potion_active"] -= 1
+
+                        potion_msg += f"\nGodlike Potion left: {user['godlike_potion_active']}"
+
+
+
+                total_special_bonus = heavenly_bonus + bound_bonus + godlike_bonus
+
+                calculated_luck += total_special_bonus
+
+                effective_luck = get_effective_luck(calculated_luck)
+
+
+
+                # Ролл
+
+                forced_aura = user.get("forced_aura")
+
+                forced_reason = user.get("forced_aura_reason")  # <--- Получаем причину
+
+
+
+                if forced_aura:
+
+                    aura = forced_aura
+
+                    chance = auras.get(aura, limbo_auras.get(aura, 1000000))
+
+                    user["forced_aura"] = None
+
+                    user["forced_aura_reason"] = None  # <--- Очищаем причину
+
+                else:
+
+                    aura, chance = roll_aura(effective_luck, user)
+
+
+
+                # Обновление статистики
+
+                user["rolls"] += 1
+
+                user["auras"][aura] = user["auras"].get(aura, 0) + 1
+
+
+
+                current_val = auras.get(aura, limbo_auras.get(aura, 0))
+
+                rarest_val = 0
+
+                if user["rarest"]:
+
+                    rarest_val = auras.get(user["rarest"], limbo_auras.get(user["rarest"], 0))
+
+                if current_val > rarest_val:
+
+                    user["rarest"] = aura
+
+
+
+                # Подготовка данных для GIF (но не отправка!)
+
+                gif_threshold = user.get("gif_rarity_threshold", 1000000)
+
+                if aura in aura_gif_map and chance >= gif_threshold:
+
+                    val = aura_gif_map[aura]
+
+                    if val != "YOUR_ID_HERE":
+
+                        gif_id_to_send = val
+
+
+
+                # Подготовка данных для сообщения
+
+                display_luck = int(effective_luck) if effective_luck == int(effective_luck) else round(effective_luck,
+
+                                                                                                       2)
+
+
+
+                from_biome = ""
+
+                current_biome = BIOME_DATA["current_biome"]
+
+                glitched_auras = ["Oppression", "Glitch", "Fault"]
+
+                dreamspace_auras = ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]
+
+                base_chance = auras.get(aura, limbo_auras.get(aura, 1))
+
+
+
+                if current_biome == "Dreamspace" and aura in dreamspace_auras:
+
+                    from_biome = " [From Dreamspace!]"
+
+                elif current_biome == "Glitched":
+
+                    if aura in glitched_auras or aura in dreamspace_auras:
+
+                        from_biome = " [From Glitched!]"
+
+                    else:
+
+                        biome_multiplier = get_biome_multiplier(aura)
+
+                        if biome_multiplier > 1:
+
+                            adjusted_chance = base_chance / biome_multiplier
+
+                            if adjusted_chance < base_chance:
+
+                                from_biome = " [From Glitched!]"
+
+                elif current_biome != "Normal" and current_biome != "Dreamspace":
+
+                    biome_multiplier = get_biome_multiplier(aura)
+
+                    if biome_multiplier > 1:
+
+                        adjusted_chance = base_chance / biome_multiplier
+
+                        if adjusted_chance < base_chance:
+
+                            from_biome = f" [From {current_biome}!]"
+
+
+
+                # Генерация текста сообщения
+
+                if aura == "Nothing":
+
+                    msg_text = f"You rolled Nothing 1 in 1 🍀x{display_luck}\n\n « ⚪ Basic ⚪ »"
+
+                elif aura == "NYCTOPHOBIA":
+
+                    msg_text = f"👁️ You have experienced the literal nightmare. 👁️ 🍀x{display_luck}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+                elif aura == "Pixelation":
+
+                    msg_text = f"🎮👾 You have become PIXELATED!! 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+                elif aura == "Luminosity":
+
+                    msg_text = f"💫You have been devoured by the blinding light.💫 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+                elif aura == "Equinox":
+
+                    msg_text = f"⚫You have found [???????] between POSITIVE and NEGATIVE.⚪ 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+                elif aura == "⭐":
+
+                    msg_text = f"You rolled ⭐ 1 in 100 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+
+                elif aura == "⭐⭐":
+
+                    msg_text = f"You rolled ⭐⭐ 1 in 1000! 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+
+                elif aura == "⭐⭐⭐":
+
+                    msg_text = f"You rolled ⭐⭐⭐ 1 in 10000!! 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+
+                elif aura == "Glitch":
+
+                    msg_text = f"NO WAY! YOU ROLLED Glitch 1 IN 12210110 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+
+                elif aura == "Oppression":
+
+                    msg_text = f"YOU HAVE DISCOVERED Oppression WITH CHANCE OF 1 IN 220000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+
+                elif aura == "Dreammetric":
+
+                    msg_text = f"YOU HAVE DISCOVERED Dreammetric WITH CHANCE OF 1 IN 520000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+
+                else:
+
+                    chance_display = int(chance) if chance == int(chance) else chance
+
+                    if chance > 99_999_998:
+
+                        msg_text = f"YOU HAVE DISCOVERED {aura} WITH CHANCE OF 1 IN {chance_display} 🍀x{display_luck}{from_biome}\n\n« 🔴🔴 GLORIOUS 🔴🔴 »"
+
+                    elif chance > 9_999_999:
+
+                        msg_text = f"NO WAY! YOU ROLLED {aura} 1IN {chance_display}!!!! 🍀x{display_luck}{from_biome}\n\n« 🔵 EXALTED 🔵 »"
+
+                    elif chance > 999_999:
+
+                        msg_text = f"OMG! You rolled {aura} 1 in {chance_display}!!! 🍀x{display_luck}{from_biome}\n\n« 🟠 MYTHIC 🟠 »"
+
+                    elif chance > 99_998:
+
+                        msg_text = f"Wow! You rolled {aura} 1 in {chance_display}!!! 🍀x{display_luck}{from_biome}\n\n« 🟢 Legendary 🟢 »"
+
+                    elif chance > 10_000:
+
+                        msg_text = f"You rolled {aura} 1 in {chance_display}!! 🍀x{display_luck}{from_biome}\n\n« 🟡 Unique 🟡 »"
+
+                    elif chance > 1_000:
+
+                        msg_text = f"You rolled {aura} 1 in {chance_display}! 🍀x{display_luck}{from_biome}\n\n« 🟣 Epic 🟣 »"
+
+                    else:
+
+                        msg_text = f"You rolled {aura} 1 in {chance_display} 🍀x{display_luck}{from_biome}\n\n« ⚪ Basic ⚪ »"
+
+                msg_text += potion_msg
+
+
+
+                # Проверка на закрепление (Auto Pin)
+
+                pin_rarity = user.get("auto_pin_rarity")
+
+                if pin_rarity and chance > pin_rarity:
+
+                    should_pin = True
+
+
+
+                # --- Добавляем причину админа в личное сообщение ---
+
+                if forced_reason:
+
+                    msg_text += f"\n\n(Was given by admin: {forced_reason})"
+
+
+
+                # Подготовка Глобального сообщения
+
+                if chance > GLOBAL_THRESHOLD or aura == "Glitch":
+
+                    from_biome_global = ""
+
+                    # Повторяем логику биома для глобалки (или используем уже готовую логику выше)
+
+                    if current_biome == "Dreamspace" and aura in dreamspace_auras:
+
+                        from_biome_global = " [From Dreamspace!]"
+
+                    elif current_biome == "Glitched":
+
+                        if aura in glitched_auras or aura in dreamspace_auras:
+
+                            from_biome_global = " [From Glitched!]"
+
+                        else:
+
+                            if get_biome_multiplier(aura) > 1:  # Упрощенная проверка, так как уже считали выше
+
+                                from_biome_global = " [From Glitched!]"
+
+                    elif current_biome != "Normal" and current_biome != "Dreamspace":
+
+                        if get_biome_multiplier(aura) > 1:
+
+                            from_biome_global = f" [From {current_biome}!]"
+
+
+
+                    chance_display = int(chance) if chance == int(chance) else chance
+
+                    user_name = user.get("name", "User")
+
+                    user_rolls = user.get("rolls", 0)
+
+
+
+                    if aura == "Pixelation":
+
+                        global_msg_to_send = f"💫GLOBAL💫\n{user_name} Has Become PIXELATED!!\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+
+                    elif aura == "NYCTOPHOBIA":
+
+                        global_msg_to_send = f"💫GLOBAL💫\n{user_name} has experienced the literal nightmare.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+
+                    elif aura == "Luminosity":
+
+                        global_msg_to_send = f"💫GLOBAL💫\nThe blinding light has devoured {user_name}.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+
+                    elif aura == "Equinox":
+
+                        global_msg_to_send = f"💫GLOBAL💫\n{user_name} Has Found [???????] Between POSITIVE and NEGATIVE.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+
+                    elif aura == "Glitch":
+
+                        global_msg_to_send = f"💫GLOBAL💫\n{user_name} HAS ROLLED {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+
+                    else:
+
+                        global_msg_to_send = f"💫GLOBAL💫\n{user_name} Has rolled {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+
+
+
+            # === КОНЕЦ БЛОКИРОВКИ ДАННЫХ ===
+
+            # (Мы вышли из with data_lock, теперь другие юзеры могут пользоваться ботом, пока этот спит)
+
+
+
+            # 1. Отправка GIF (и сон)
+
+            if gif_id_to_send:
+
+                try:
+
+                    bot.send_animation(chat_id, gif_id_to_send, reply_markup=disable_markup)
+
+                    time.sleep(10)  # <--- ТЕПЕРЬ ЭТОТ СОН НЕ БЛОКИРУЕТ БОТА
+
+                except Exception as e:
+
+                    print(f"Error sending GIF: {e}")
+
+
+
+            # 2. Отправка сообщения о ролле
+
+            try:
+
+                sent_msg = bot.send_message(chat_id, msg_text, reply_markup=disable_markup)
+
+                # 3. Закрепление
+
+                if should_pin:
+
+                    try:
+
+                        bot.pin_chat_message(chat_id, sent_msg.message_id, disable_notification=True)
+
+                    except:
+
+                        pass
+
+            except Exception as e:
+
+                # Если не удалось отправить сообщение, возможно юзер заблочил бота, выключаем авторолл
+
+                print(f"Error sending msg to {user_id}: {e}")
+
+                # --- Добавляем причину админа в глобальное сообщение ---
+
+                if forced_reason and global_msg_to_send:
+
+                    global_msg_to_send += f"\n(Was given by admin: {forced_reason})"
+
+                with data_lock:
+
+                    u = get_user_data(user_id)
+
+                    u["auto_roll_enabled"] = False
+
+                    save_data()
+
+                break
+
+
+
+            # 4. Отправка глобального сообщения
+
+            if global_msg_to_send:
+
+                threading.Thread(target=lambda: notify_all_users(global_msg_to_send, message_type="global"),
+
+                                 daemon=True).start()
+
+
+
+        except Exception as e:
+
+            print(f"CRITICAL Error in auto-roll thread for {user_id}: {e}")
+
+            # Пытаемся выключить авторолл при критической ошибке
+
+            try:
+
+                with data_lock:
+
+                    u = get_user_data(user_id)
+
+                    u["auto_roll_enabled"] = False
+
+                    save_data()
+
+            except:
+
+                pass
+
+            break
+
+
+
+        time.sleep(1.25)
+
+
+
+
+
+def restart_auto_rollers():
+
+    print("Checking for active auto-rollers...")
+
+    with data_lock:
+
+        # Копируем данные, чтобы не держать лок во время запуска потоков
+
+        users_data = data.get("auras", {}).copy()
+
+
+
+    for uid, user_data in users_data.items():
+
+        if user_data.get("auto_roll_enabled", False):
+
+            print(f"Restarting auto-roll for user {uid}")
+
+            # ID пользователя в Telegram - это и есть ID чата для личных сообщений
+
+            chat_id = uid
+
+            threading.Thread(target=auto_roll_thread, args=(uid, chat_id), daemon=True).start()
+
+
+
+
+
+def main_menu(user_id=None):  # Добавь user_id, если его нет, или получай внутри
+
+    # (Чтобы это работало красиво, лучше передавать user_id в main_menu везде, где оно вызывается)
+
+    # Но для упрощения, можно получать данные внутри, если user_id известен
+
+
+
+    # --- НОВАЯ ЛОГИКА ---
+
+    in_limbo = False
+
+    limbo_unlocked = False  # По умолчанию
+
+    if user_id:
+
+        u = get_user_data(str(user_id))
+
+        in_limbo = u.get("in_limbo", False)
+
+        limbo_unlocked = u.get("limbo_unlocked", False)  # Получаем статус разблокировки
+
+    # --- КОНЕЦ НОВОЙ ЛОГИКИ ---
+
+
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+    markup.row(types.KeyboardButton("🎲 Roll"))
+
+
+
+    markup.row(types.KeyboardButton("💫 Auras"), types.KeyboardButton("📊 Stats"))
+
+    markup.row(types.KeyboardButton("🏆 Leaderboard"), types.KeyboardButton("📝 Change Logs"))
+
+    markup.row(types.KeyboardButton("⚙️ Workshop"), types.KeyboardButton("🎒 Inventory"))
+
+    markup.row(types.KeyboardButton("🧪 Potions"))
+
+    markup.row(types.KeyboardButton("⚙️ Settings"), types.KeyboardButton("📜 Credits"))
+
+
+
+    # --- ИЗМЕНЕННАЯ ЛОГИКА КНОПОК ---
+
+    if user_id:  # Проверяем, что user_id вообще есть
+
+        if in_limbo:
+
+            # Если ВНУТРИ Лимбо, показываем кнопку ВЫХОДА
+
+            markup.row(types.KeyboardButton("🌌 Exit The Limbo"))
+
+        elif limbo_unlocked:
+
+            # Если НЕ внутри, но Лимбо РАЗБЛОКИРОВАН, показываем кнопку ВХОДА
+
+            markup.row(types.KeyboardButton("🌌 Enter The Limbo"))
+
+    # --- КОНЕЦ ИЗМЕНЕННОЙ ЛОГИКИ ---
+
+
+
+    if lucky_potion_active and not in_limbo:  # <-- Зелья не спавнятся в Лимбо
+
+        markup.row(types.KeyboardButton("🍀 Lucky Potion spawned!"))
+
+
+
+    return markup
+
+
+
+
+
+def back_menu():
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+    markup.row(types.KeyboardButton("⬅️ Back"))
+
+    return markup
+
+
+
+
+
+user_pages = {}
+
+user_last_command = {}
+
+
+
+
+
+def paginate_list(items, page):
+
+    start = page * PAGE_SIZE
+
+    end = start + PAGE_SIZE
+
+    page_items = items[start:end]
+
+    has_next = len(items) > end
+
+    has_prev = page > 0
+
+    return page_items, has_prev, has_next
+
+
+
+
+
+def send_paginated_list(chat_id, uid, items):
+
+    page = user_pages.get(uid, 0)
+
+    page_items, has_prev, has_next = paginate_list(items, page)
+
+    text = "\n".join(page_items) or "Nothing to show."
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+    nav_buttons = []
+
+    if has_prev: nav_buttons.append(types.KeyboardButton("⬅️ Previous page"))
+
+    if has_next: nav_buttons.append(types.KeyboardButton("➡️ Next page"))
+
+    if nav_buttons: markup.row(*nav_buttons)
+
+    markup.row(types.KeyboardButton("⬅️ Back"))
+
+    bot.send_message(chat_id, text, reply_markup=markup)
+
+
+
+
+
+def redo_last_list(uid, chat_id):
+
+    cmd = user_last_command.get(uid)
+
+    if not cmd:
+
+        return
+
+    if cmd == "Auras":
+
+        user = get_user_data(uid)
+
+        aura_list = [
+
+            f"{a} ✨ x{user['auras'].get(a, 0)}" if a in user.get("auras", {}) else f"🔒 LOCKED"
+
+            for a in auras]
+
+        send_paginated_list(chat_id, uid, aura_list)
+
+    elif cmd == "LeaderboardRoll":
+
+        leaderboard = [(u.get("name", "User"), u.get("rolls", 0)) for u in data["auras"].values()]
+
+        leaderboard.sort(key=lambda x: x[1], reverse=True)
+
+        strings = [f"{i + 1}. {name} — {rolls} rolls" for i, (name, rolls) in enumerate(leaderboard)]
+
+        send_paginated_list(chat_id, uid, strings)
+
+    elif cmd == "LeaderboardRNG":
+
+        leaderboard = []
+
+        for u in data["auras"].values():
+
+            rarest_aura = u.get("rarest")
+
+            if rarest_aura and rarest_aura in auras:
+
+                leaderboard.append((u.get("name", "User"), rarest_aura, auras[rarest_aura]))
+
+        leaderboard.sort(key=lambda x: x[2], reverse=True)
+
+        strings = [f"{i + 1}. {name} — {aura}" for i, (name, aura, _) in enumerate(leaderboard)]
+
+        send_paginated_list(chat_id, uid, strings)
+
+
+
+
+
+# --- Start ---
+
+@bot.message_handler(commands=["start"])
+
+def start(msg):
+
+    uid = str(msg.from_user.id)
+
+    name = msg.from_user.first_name or "User"
+
+    get_user_data(uid, name)
+
+    save_data()
+
+    user_handle = name
+
+    if msg.from_user.username:
+
+        user_handle = f"@{msg.from_user.username}"
+
+
+
+    # Добавляем информацию о событии и биоме в приветственное сообщение
+
+    event_info = ""
+
+    if is_event_active():
+
+        event_info = f"\n\n🎉 X{EVENT_DATA['event_multiplier']} LUCK EVENT ACTIVE! 🎉\nTime left: {get_time_remaining()}"
+
+
+
+    biome_info = f"\nBIOME: {BIOME_DATA['current_biome']}"
+
+    if BIOME_DATA['current_biome'] != "Normal":
+
+        biome_info += f" (ends in: {get_biome_time_remaining()})"
+
+
+
+    bot.send_message(msg.chat.id,
+
+                     f"Welcome to Sol's RNG 🎰\nTime: {'DAYTIME ☀️' if is_day else 'NIGHTTIME 🌙'}{biome_info}{event_info}",
+
+                     reply_markup=main_menu(uid))
+
+
+
+
+
+# --- Day/Night Cycle ---
+
+is_day = True
+
+auras_default = auras.copy()
+
+
+
+
+
+def apply_day_chances():
+
+    """Сбрасывает ауры к дневным шансам."""
+
+    global auras
+
+    auras = auras_default.copy()
+
+    # День — Solar активнее, Lunar слабее
+
+    if "Solar" in auras:
+
+        auras["Solar"] = 5000
+
+    if "Solar : Solstice" in auras:
+
+        auras["Solar : Solstice"] = 500000
+
+    # Остальные возвращаем в дневные значения
+
+    if "Lunar" in auras:
+
+        auras["Lunar"] = 50000
+
+    if "Lunar : Full Moon" in auras:
+
+        auras["Lunar : Full Moon"] = 5000000
+
+    if "Twilight" in auras:
+
+        auras["Twilight"] = 6000000
+
+    if "Twilight : Iridescent Memory" in auras:
+
+        auras["Twilight : Iridescent Memory"] = 60000000
+
+    if "Twilight : Withering Grace" in auras:
+
+        auras["Twilight : Withering Grace"] = 180000000
+
+
+
+
+
+def apply_night_chances():
+
+    """Устанавливает ночные шансы."""
+
+    global auras
+
+    auras = auras_default.copy()
+
+    # Ночь — Lunar/Twilight активнее, Solar слабее
+
+    if "Lunar" in auras:
+
+        auras["Lunar"] = 5000
+
+    if "Lunar : Full Moon" in auras:
+
+        auras["Lunar : Full Moon"] = 500000
+
+    if "Twilight" in auras:
+
+        auras["Twilight"] = 600000
+
+    if "Twilight : Iridescent Memory" in auras:
+
+        auras["Twilight : Iridescent Memory"] = 6000000
+
+    if "Twilight : Withering Grace" in auras:
+
+        auras["Twilight : Withering Grace"] = 18000000
+
+    # Solar теряет силу ночью
+
+    if "Solar" in auras:
+
+        auras["Solar"] = 50000
+
+    if "Solar : Solstice" in auras:
+
+        auras["Solar : Solstice"] = 5000000
+
+
+
+
+
+def day_night_cycle():
+
+    global is_day
+
+    while True:
+
+        if is_day:
+
+            # Сейчас день → станет ночь
+
+            time.sleep(150)
+
+            is_day = False
+
+            apply_night_chances()
+
+            threading.Thread(target=lambda: notify_all_users("🌙 NIGHTTIME", message_type="day_night"),
+
+                             daemon=True).start()
+
+        else:
+
+            # Сейчас ночь → станет день
+
+            time.sleep(150)
+
+            is_day = True
+
+            apply_day_chances()
+
+            threading.Thread(target=lambda: notify_all_users("☀ DAYTIME", message_type="day_night"),
+
+                             daemon=True).start()
+
+
+
+
+
+threading.Thread(target=day_night_cycle, daemon=True).start()
+
+threading.Thread(target=biome_loop, daemon=True).start()
+
+threading.Thread(target=potion_spawn_loop, daemon=True).start()
+
+threading.Thread(target=autosave_loop, daemon=True).start()
+
+
+
+user_pages = {}
+
+user_last_command = {}
+
+
+
+
+
+def notify_all_users(message, message_type="default", pin=False):
+
+    """
+
+    Отправляет сообщение всем пользователям с учетом их настроек.
+
+    message_type: 'default', 'global', 'day_night', 'biome'
+
+    pin: Если True, сообщение будет закреплено
+
+    """
+
+    with data_lock:
+
+        users_data = data.get("auras", {}).copy()
+
+
+
+    for uid, user_data in users_data.items():
+
+        try:
+
+            if message_type == "day_night" and not user_data.get("notify_day_night", True):
+
+                continue  # Пропустить, если юзер отключил
+
+            if message_type == "global" and not user_data.get("notify_global", True):
+
+                continue  # Пропустить, если юзер отключил
+
+
+
+            # 'default' и 'biome' отправляются всегда
+
+            sent_msg = bot.send_message(uid, message)
+
+
+
+            if pin:
+
+                try:
+
+                    bot.pin_chat_message(uid, sent_msg.message_id, disable_notification=False)
+
+                except:
+
+                    pass
+
+        except:
+
+            continue
+
+
+
+
+
+threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
+
+
+
+
+
+@bot.message_handler(commands=["setluck"])
+
+def setluck(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+    parts = msg.text.split()
+
+    if len(parts) != 3:
+
+        bot.send_message(msg.chat.id, "Use: /setluck <user_id> <value>")
+
+        return
+
+    target, val = parts[1], parts[2]
+
+    try:
+
+        val = float(val)
+
+    except:
+
+        bot.send_message(msg.chat.id, "Invalid value.")
+
+        return
+
+    u = get_user_data(target)
+
+    u["user_luck"] = val  # Устанавливаем БАЗОВУЮ удачу
+
+    save_data()
+
+    bot.send_message(msg.chat.id, f"Base luck for {target} set to x{val}")
+
+
+
+
+
+# setAura command
+
+@bot.message_handler(commands=["setAura"])
+
+def set_aura_cmd(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+
+
+    command_parts = msg.text.split()
+
+
+
+    # Требуется 5 аргументов: /setAura <user_id> <Aura Name> <op> <amount>
+
+    if len(command_parts) < 5:
+
+        bot.send_message(msg.chat.id, "⚙️ Usage: /setAura <user_id> <aura_name> <+/-/=> <amount>")
+
+        return
+
+
+
+    target_uid = command_parts[1]
+
+
+
+    if not target_uid.isdigit():
+
+        bot.send_message(msg.chat.id, "❌ Invalid user ID. Must be a number.")
+
+        return
+
+
+
+    # Последние два аргумента - это оператор и количество
+
+    operation = command_parts[-2]
+
+    try:
+
+        amount = int(command_parts[-1])
+
+    except ValueError:
+
+        bot.send_message(msg.chat.id, "❌ Amount must be a number.")
+
+        return
+
+
+
+    # Название ауры - все между target_uid и оператором
+
+    aura_name = " ".join(command_parts[2:-2])
+
+
+
+    if not aura_name or (aura_name not in auras and aura_name not in limbo_auras):
+
+        bot.send_message(msg.chat.id, "❌ Invalid aura name or it does not exist.")
+
+        return
+
+
+
+    user = get_user_data(target_uid)
+
+
+
+    current_count = user.get("auras", {}).get(aura_name, 0)
+
+    new_count = current_count
+
+    action = ""
+
+
+
+    # === Логика операций ===
+
+    if operation == "=":
+
+        new_count = max(0, amount)
+
+        action = "set to"
+
+    elif operation == "+":
+
+        new_count = current_count + amount
+
+        action = "added"
+
+    elif operation == "-":
+
+        new_count = max(0, current_count - amount)
+
+        action = "removed"
+
+    else:
+
+        bot.send_message(msg.chat.id, "❌ Invalid operation. Use +, -, or =.")
+
+        return
+
+
+
+    user_auras = user.setdefault("auras", {})
+
+    user_auras[aura_name] = new_count
+
+
+
+    save_data()
+
+
+
+    target_name = user.get("name", f"User {target_uid}")
+
+
+
+    if operation == "=":
+
+        response_msg = f"✅ Aura '{aura_name}' for {target_name} ({target_uid}) successfully set to: **{new_count}**."
+
+    else:
+
+        response_msg = f"✅ Aura '{aura_name}' for {target_name} ({target_uid}): {amount} {action}.\nNew count: **{new_count}**."
+
+
+
+    bot.send_message(msg.chat.id, response_msg, parse_mode='Markdown')
+
+
+
+
+
+@bot.message_handler(commands=["giveMeAllAuras"])
+
+def give_me_all_auras_cmd(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+
+
+    parts = msg.text.split()
+
+    if len(parts) != 2:
+
+        bot.send_message(msg.chat.id, "⚙️ Usage: /giveMeAllAuras <amount>")
+
+        return
+
+
+
+    try:
+
+        amount = int(parts[1])
+
+        if amount <= 0:
+
+            raise ValueError
+
+    except ValueError:
+
+        bot.send_message(msg.chat.id, "❌ Amount must be a positive number.")
+
+        return
+
+
+
+    user = get_user_data(uid)
+
+    user["pending_dangerous_cmd"] = {"type": "all_auras", "amount": amount}
+
+    save_data()
+
+
+
+    warning_message = "⚠️WARNING: This command might break the balance of the game, are you sure to execute this?\nY/N"
+
+    bot.send_message(msg.chat.id, warning_message)
+
+
+
+
+
+@bot.message_handler(commands=["giveItem"])
+
+def give_item(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+
+        return
+
+
+
+    parts = msg.text.split()
+
+
+
+    if len(parts) < 3:
+
+        bot.send_message(msg.chat.id, "⚙️ Usage: /giveItem <user_id> <Item Name> [amount]")
+
+        return
+
+
+
+    target_uid = parts[1]
+
+    amount = 1
+
+    item_name = ""
+
+
+
+    if not target_uid.isdigit():
+
+        bot.send_message(msg.chat.id, "❌ Invalid user ID. Must be a number.")
+
+        return
+
+
+
+    try:
+
+        potential_amount = int(parts[-1])
+
+
+
+        if len(parts) >= 4:
+
+            amount = potential_amount
+
+            item_name = " ".join(parts[2:-1])
+
+        else:
+
+            item_name = parts[2]
+
+            amount = 1
+
+
+
+    except ValueError:
+
+        item_name = " ".join(parts[2:])
+
+        amount = 1
+
+
+
+    if amount <= 0:
+
+        bot.send_message(msg.chat.id, "❌ Amount must be positive.")
+
+        return
+
+
+
+    if not item_name:
+
+        bot.send_message(msg.chat.id, "❌ Item name cannot be empty.")
+
+        return
+
+
+
+    user = get_user_data(target_uid)
+
+
+
+    user_inventory = user.setdefault("inventory", [])
+
+
+
+    for _ in range(amount):
+
+        user_inventory.append(item_name)
+
+
+
+    save_data()
+
+
+
+    bot.send_message(msg.chat.id, f"✅ Added {amount}x {item_name} to user {target_uid}'s inventory.")
+
+
+
+
+
+# setMeAura command
+
+@bot.message_handler(commands=["setMeAura"])
+
+def set_me_aura(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+
+        return
+
+
+
+    command_parts = msg.text.split()
+
+
+
+    # Требуется минимум 4 аргумента: /setMeAura <Aura Name> <op> <amount>
+
+    if len(command_parts) < 4:
+
+        bot.send_message(msg.chat.id, "⚙️ Usage: /setMeAura <aura_name> <+/-/=> <amount>")
+
+        return
+
+
+
+    # Последние два аргумента - это оператор и количество
+
+    operation = command_parts[-2]
+
+    try:
+
+        amount = int(command_parts[-1])
+
+    except ValueError:
+
+        bot.send_message(msg.chat.id, "❌ Amount must be a number.")
+
+        return
+
+
+
+    # Название ауры - все между командой и оператором
+
+    aura_name = " ".join(command_parts[1:-2])
+
+
+
+    if not aura_name or (aura_name not in auras and aura_name not in limbo_auras):
+
+        bot.send_message(msg.chat.id, "❌ Invalid aura name or it does not exist.")
+
+        return
+
+
+
+    user = get_user_data(uid)
+
+
+
+    current_count = user.get("auras", {}).get(aura_name, 0)
+
+    new_count = current_count
+
+    action = ""
+
+
+
+    # === Логика операций ===
+
+    if operation == "=":
+
+        new_count = max(0, amount)  # Установка, не даем уйти в минус
+
+        action = "set to"
+
+    elif operation == "+":
+
+        new_count = current_count + amount
+
+        action = "added"
+
+    elif operation == "-":
+
+        new_count = max(0, current_count - amount)  # Вычитание, не даем уйти в минус
+
+        action = "removed"
+
+    else:
+
+        bot.send_message(msg.chat.id, "❌ Invalid operation. Use +, -, or =.")
+
+        return
+
+
+
+    user_auras = user.setdefault("auras", {})
+
+    user_auras[aura_name] = new_count
+
+
+
+    save_data()
+
+
+
+    response_msg = f"✅ Aura '{aura_name}' for you: {amount} {action}.\nNew count: **{new_count}**."
+
+    bot.send_message(msg.chat.id, response_msg, parse_mode='Markdown')
+
+
+
+
+
+# Give me item command
+
+@bot.message_handler(commands=["giveMeItem"])
+
+def give_me_item(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+
+        return
+
+
+
+    # Парсим команду. Пример: /giveMeItem [T1] Luck Glove 5
+
+    parts = msg.text.split()
+
+    if len(parts) < 3:
+
+        bot.send_message(msg.chat.id, "⚙️ Usage: /giveMeItem <item_name> <amount>")
+
+        return
+
+
+
+    try:
+
+        # Последняя часть - это количество
+
+        amount = int(parts[-1])
+
+        # Все, что между командой и количеством - это название предмета
+
+        item_name = " ".join(parts[1:-1])
+
+
+
+        if amount <= 0:
+
+            bot.send_message(msg.chat.id, "❌ Amount must be positive.")
+
+            return
+
+
+
+    except ValueError:
+
+        bot.send_message(msg.chat.id, "❌ Invalid amount. Must be a number at the end.")
+
+        return
+
+    except Exception:
+
+        bot.send_message(msg.chat.id, "❌ Error parsing command. Usage: /giveMeItem <item_name> <amount>")
+
+        return
+
+
+
+    # Получаем данные пользователя
+
+    user = get_user_data(uid, msg.from_user.first_name or "Admin")
+
+
+
+    # Добавляем предмет в инвентарь (который является списком)
+
+    user.setdefault("inventory", [])
+
+    for _ in range(amount):
+
+        user["inventory"].append(item_name)
+
+
+
+    # Сохраняем
+
+    save_data()
+
+
+
+    bot.send_message(msg.chat.id, f"✅ Added {amount}x {item_name} to your inventory.")
+
+
+
+
+
+# --- ADMIN COMMAND: /giveItem ---
+
+@bot.message_handler(commands=["giveItem"])
+
+def give_item(msg):
+
+    uid = str(msg.from_user.id)
+
+    # Проверка прав администратора
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+
+        return
+
+
+
+    # Формат: /giveItem 12345 "[T1] Luck Glove" 3
+
+    parts = msg.text.split()
+
+
+
+    # Проверка минимального количества аргументов
+
+    if len(parts) < 3:
+
+        bot.send_message(msg.chat.id, "⚙️ Usage: /giveItem <user_id> <Item Name> [amount]")
+
+        return
+
+
+
+    target_uid = parts[1]
+
+    amount = 1
+
+    item_name = ""
+
+
+
+    # Проверка на валидность ID
+
+    if not target_uid.isdigit():
+
+        bot.send_message(msg.chat.id, "❌ Invalid user ID. Must be a number.")
+
+        return
+
+
+
+    # --- Парсинг имени и количества ---
+
+    try:
+
+        # Пытаемся определить, является ли последний аргумент количеством
+
+        potential_amount = int(parts[-1])
+
+
+
+        # Если аргументов >= 4, и последний — число, то это количество
+
+        if len(parts) >= 4:
+
+            amount = potential_amount
+
+            item_name = " ".join(parts[2:-1])  # Имя - все, кроме ID и количества
+
+        else:
+
+            # Если аргументов всего 3, то последний - это имя. Количество = 1.
+
+            item_name = parts[2]
+
+            amount = 1
+
+
+
+    except ValueError:
+
+        # Если последний аргумент не число, то это часть имени предмета. Количество = 1.
+
+        item_name = " ".join(parts[2:])
+
+        amount = 1
+
+
+
+    if amount <= 0:
+
+        bot.send_message(msg.chat.id, "❌ Amount must be positive.")
+
+        return
+
+
+
+    if not item_name:
+
+        bot.send_message(msg.chat.id, "❌ Item name cannot be empty.")
+
+        return
+
+
+
+    # --- Выдача предмета ---
+
+    user = get_user_data(target_uid)
+
+
+
+    # Получаем/создаем инвентарь пользователя
+
+    user_inventory = user.setdefault("inventory", [])
+
+
+
+    # Добавляем предметы в инвентарь
+
+    for _ in range(amount):
+
+        user_inventory.append(item_name)
+
+
+
+    # Сохраняем данные
+
+    save_data()
+
+
+
+    bot.send_message(msg.chat.id, f"✅ Added {amount}x {item_name} to user {target_uid}'s inventory.")
+
+
+
+
+
+@bot.message_handler(commands=["setRolls"])
+
+def set_rolls_cmd(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+
+
+    parts = msg.text.split()
+
+    if len(parts) != 4:
+
+        bot.send_message(msg.chat.id, "⚙️ Usage: /setRolls <user_id> <+/-/=> <amount>")
+
+        return
+
+
+
+    target_uid = parts[1]
+
+    operation = parts[2]
+
+
+
+    try:
+
+        amount = int(parts[3])
+
+    except ValueError:
+
+        bot.send_message(msg.chat.id, "❌ Amount must be a number.")
+
+        return
+
+
+
+    # Проверка, что target_uid существует и является числом
+
+    if not target_uid.isdigit():
+
+        bot.send_message(msg.chat.id, "❌ User ID must be numeric.")
+
+        return
+
+
+
+    user = get_user_data(target_uid)  # Получаем данные. Если юзера нет, get_user_data вернет новый (с rolls=0)
+
+
+
+    current_rolls = user.get("rolls", 0)
+
+    new_rolls = current_rolls
+
+
+
+    # === Логика операций ===
+
+    if operation == "=":
+
+        new_rolls = max(0, amount)  # Не даем уйти в минус
+
+        action = "set to"
+
+    elif operation == "+":
+
+        new_rolls = max(0, current_rolls + amount)
+
+        action = "added"
+
+    elif operation == "-":
+
+        new_rolls = max(0, current_rolls - amount)
+
+        action = "removed"
+
+    else:
+
+        bot.send_message(msg.chat.id, "❌ Invalid operation. Use +, -, or =.")
+
+        return
+
+
+
+    # === Сохранение и ответ ===
+
+    user["rolls"] = new_rolls
+
+    save_data()
+
+
+
+    # Получаем имя для ответа (если оно есть)
+
+    target_name = user.get("name", f"User {target_uid}")
+
+
+
+    if operation == "=":
+
+        response_msg = f"✅ Rolls for {target_name} ({target_uid}) successfully set to: **{new_rolls}**."
+
+    else:
+
+        response_msg = f"✅ Rolls for {target_name} ({target_uid}): {amount} {action}.\nNew roll count: **{new_rolls}**."
+
+
+
+    bot.send_message(msg.chat.id, response_msg, parse_mode='Markdown')
+
+
+
+
+
+@bot.message_handler(commands=["addAuraQueue"])
+
+def add_aura_queue(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+
+        return
+
+
+
+    parts = msg.text.split(maxsplit=2)
+
+    if len(parts) < 3:
+
+        bot.send_message(msg.chat.id, "⚙️ Usage: /addAuraQueue <user_id> <aura_name>")
+
+        return
+
+
+
+    try:
+
+        target_uid = parts[1]
+
+        aura_name = parts[2]
+
+    except Exception:
+
+        bot.send_message(msg.chat.id, "❌ Error parsing command. Usage: /addAuraQueue <user_id> <aura_name>")
+
+        return
+
+
+
+    if aura_name not in auras:
+
+        bot.send_message(msg.chat.id, f"❌ Aura '{aura_name}' not found.")
+
+        return
+
+
+
+    user = get_user_data(target_uid)
+
+    user["forced_aura"] = aura_name
+
+    save_data()
+
+
+
+    bot.send_message(msg.chat.id, f"✅ User {target_uid} will roll {aura_name} on their next roll.")
+
+
+
+
+
+@bot.message_handler(commands=["setmyluck"])
+
+def set_my_luck(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+
+        return
+
+
+
+    parts = msg.text.split()
+
+    if len(parts) != 2:
+
+        bot.send_message(msg.chat.id, "⚙️ Используй: /setmyluck <value>")
+
+        return
+
+
+
+    try:
+
+        value = float(parts[1])
+
+    except ValueError:
+
+        bot.send_message(msg.chat.id, "❌ Некорректное число.")
+
+        return
+
+
+
+    user = get_user_data(uid, msg.from_user.first_name or "Admin")
+
+    user["user_luck"] = value  # Устанавливаем БАЗОВУЮ удачу
+
+    save_data()
+
+
+
+    bot.send_message(msg.chat.id, f"🍀 Your base luck has been changed to {value}")
+
+
+
+
+
+@bot.message_handler(commands=["sayPin"])
+
+def say_pin_cmd(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+    if len(msg.text.split()) < 2:
+
+        bot.send_message(msg.chat.id, "Usage: /sayPin <message>")
+
+        return
+
+    message = msg.text.split(" ", 1)[1]
+
+    # Запускаем в потоке с параметром pin=True
+
+    threading.Thread(target=lambda: notify_all_users(message, message_type="global", pin=True), daemon=True).start()
+
+    bot.send_message(msg.chat.id, "✅ Sent and Pinned to all users.")
+
+
+
+
+
+@bot.message_handler(commands=["addAuraQueueReason"])
+
+def add_aura_queue_reason(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+
+        return
+
+
+
+    # Парсинг: /addAuraQueueReason <uid> <Aura Name> "Reason"
+
+    # или просто текст причины в конце
+
+    parts = msg.text.split(maxsplit=2)
+
+
+
+    if len(parts) < 3:
+
+        bot.send_message(msg.chat.id, "⚙️ Usage: /addAuraQueueReason <user_id> <aura_name> <reason>")
+
+        return
+
+
+
+    target_uid = parts[1]
+
+    rest_text = parts[2]  # Здесь "Aura Name Reason"
+
+
+
+    found_aura = None
+
+    reason_text = ""
+
+
+
+    # Пытаемся найти ауру в начале строки (сортируем по длине, чтобы найти "Solar : Solstice" раньше "Solar")
+
+    sorted_auras = sorted(auras.keys(), key=len, reverse=True)
+
+
+
+    for aura in sorted_auras:
+
+        if rest_text.startswith(aura):
+
+            found_aura = aura
+
+            # Отрезаем имя ауры от остального текста
+
+            possible_reason = rest_text[len(aura):].strip()
+
+            # Убираем кавычки, если админ их поставил
+
+            if possible_reason.startswith('"') and possible_reason.endswith('"'):
+
+                possible_reason = possible_reason[1:-1]
+
+            reason_text = possible_reason
+
+            break
+
+
+
+    if not found_aura:
+
+        # Если не нашли перебором, пробуем простое разделение по последнему пробелу (как запасной вариант)
+
+        bot.send_message(msg.chat.id,
+
+                         f"❌ Could not identify aura in: '{rest_text}'. Make sure the aura name is correct.")
+
+        return
+
+
+
+    if not reason_text:
+
+        bot.send_message(msg.chat.id, "❌ You must provide a reason.")
+
+        return
+
+
+
+    user = get_user_data(target_uid)
+
+    user["forced_aura"] = found_aura
+
+    user["forced_aura_reason"] = reason_text  # Сохраняем причину
+
+    save_data()
+
+
+
+    bot.send_message(msg.chat.id, f"✅ User {target_uid} will roll {found_aura} (Reason: {reason_text}).")
+
+
+
+
+
+@bot.message_handler(commands=["say"])
+
+def say_cmd(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+    if len(msg.text.split()) < 2:
+
+        bot.send_message(msg.chat.id, "Usage: /say <message>")
+
+        return
+
+    message = msg.text.split(" ", 1)[1]
+
+    notify_all_users(message, message_type="global")
+
+    bot.send_message(msg.chat.id, "✅ Sent to all users.")
+
+
+
+
+
+# Новые админские команды для управления событием
+
+@bot.message_handler(commands=["luckEventStop"])
+
+def luck_event_stop(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+
+
+    EVENT_DATA["event_active"] = False
+
+    save_event_data()
+
+
+
+    bot.send_message(msg.chat.id, "✅ Luck event stopped!")
+
+    notify_all_users("🔴 LUCK EVENT STOPPED!\nYour luck is now back to normal.", message_type="default")
+
+
+
+
+
+@bot.message_handler(commands=["luckEventStart"])
+
+def luck_event_start(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+
+
+    # Проверяем, установлены ли настройки события
+
+    if not EVENT_DATA.get("event_duration"):
+
+        bot.send_message(msg.chat.id, "❌ No event settings found. Use /luckEventChange first to configure the event.")
+
+        return
+
+
+
+    # Включаем событие и устанавливаем время окончания
+
+    EVENT_DATA["event_active"] = True
+
+    EVENT_DATA["event_end_time"] = datetime.now() + timedelta(seconds=EVENT_DATA["event_duration"])
+
+    save_event_data()
+
+
+
+    bot.send_message(msg.chat.id,
+
+                     f"✅ X{EVENT_DATA['event_multiplier']} LUCK EVENT STARTED!\nDuration: {get_time_remaining()}")
+
+    notify_all_users(
+
+        f"🎉 X{EVENT_DATA['event_multiplier']} LUCK EVENT STARTED! 🎉\nTime left: {get_time_remaining()}\nYour luck is now multiplied by {EVENT_DATA['event_multiplier']}!",
+
+        message_type="default")
+
+
+
+
+
+@bot.message_handler(commands=["luckEventChange"])
+
+def luck_event_change(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+
+
+    parts = msg.text.split()
+
+    if len(parts) != 3:
+
+        bot.send_message(msg.chat.id, "Usage: /luckEventChange <multiplier> <HH:MM:SS>")
+
+        return
+
+
+
+    try:
+
+        multiplier = float(parts[1])
+
+        time_parts = parts[2].split(":")
+
+        if len(time_parts) != 3:
+
+            raise ValueError("Invalid time format")
+
+
+
+        hours = int(time_parts[0])
+
+        minutes = int(time_parts[1])
+
+        seconds = int(time_parts[2])
+
+
+
+        total_seconds = hours * 3600 + minutes * 60 + seconds
+
+
+
+    except:
+
+        bot.send_message(msg.chat.id, "❌ Invalid parameters. Use: /luckEventChange <multiplier> <HH:MM:SS>")
+
+        return
+
+
+
+    # Сохраняем настройки, но НЕ включаем событие и НЕ устанавливаем время окончания
+
+    EVENT_DATA["event_multiplier"] = multiplier
+
+    EVENT_DATA["event_duration"] = total_seconds  # Сохраняем длительность, но не время окончания
+
+    # Событие остается выключенным, пока не будет запущено через /luckEventStart
+
+    EVENT_DATA["event_active"] = False
+
+    EVENT_DATA["event_end_time"] = None  # Время окончания будет установлено при старте
+
+    save_event_data()
+
+
+
+    bot.send_message(msg.chat.id,
+
+                     f"✅ Luck event settings saved! Multiplier: x{multiplier}, Duration: {parts[2]}\n⚠️ Event is NOT active yet. Use /luckEventStart to start it.")
+
+
+
+
+
+# Админские команды для управления биомами
+
+@bot.message_handler(commands=["setbiome"])
+
+def set_biome_cmd(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+
+
+    parts = msg.text.split()
+
+    if len(parts) != 2:
+
+        bot.send_message(msg.chat.id, "Usage: /setbiome <biome_name>")
+
+        return
+
+
+
+    biome_name = parts[1]
+
+    if biome_name not in BIOMES:
+
+        bot.send_message(msg.chat.id, f"❌ Unknown biome. Available: {', '.join(BIOMES.keys())}")
+
+        return
+
+
+
+    set_biome(biome_name)
+
+    bot.send_message(msg.chat.id, f"✅ Biome set to: {biome_name}")
+
+
+
+
+
+# Админская команда для выдачи ингредиентов (бывшая gearReq)
+
+@bot.message_handler(commands=["itemReq"])
+
+def item_req_cmd(msg):
+
+    uid = str(msg.from_user.id)
+
+    if uid not in admin_ids:
+
+        bot.send_message(msg.chat.id, "❌ No permission.")
+
+        return
+
+
+
+    parts = msg.text.split(maxsplit=1)
+
+    if len(parts) != 2:
+
+        bot.send_message(msg.chat.id, "Usage: /itemReq <item_name>")
+
+        return
+
+
+
+    item_name = parts[1]
+
+    user = get_user_data(uid, msg.from_user.first_name or "Admin")
+
+
+
+    # Список ВСЕХ предметов, которые могут быть ингредиентами (чтобы отличать их от аур)
+
+    ingredient_items = [
+
+        "[T1] Solar Device", "[T3] Exo Gauntlet", "[T3] Windstorm Device",
+
+        "[T5] Galactic Device", "[T6] Hologrammer", "[T9] Neurolyzer",
+
+        "Lucky Potion", "Hades Godly Potion", "Zeus Godly Potion", "Unknown Potion"
+
+    ]
+
+
+
+    # Определяем требования для каждого предмета
+
+    requirements = {
+
+        "[T1] 🧤 Luck Glove": {"Common": 50, "Uncommon": 35, "Rare": 10, "Crystallised": 3, "Sapphire": 1},
+
+        "[T1] 🔥 Desire Glove": {"Rage": 20, "Ruby": 10, "Diaboli": 4, "Bleeding": 2},
+
+        "[T1] ☀️ Solar Device": {"Solar": 1, "Rare": 100, "Divinus": 50, "Uncommon": 300},
+
+        "[T2] ⭐ Shining Star": {"Starlight": 2, "Star Rider": 2, "Wind": 50},
+
+        "[T3] 💠 Exo Gauntlet": {"Gilded": 20, "Precious": 10, "Magnetic": 7, "Sidereum": 3, "Undead": 1, "Exotic": 1},
+
+        "[T3] 🌪️ Windstorm Device": {"Wind": 90, "Stormal": 2, "Aquatic": 2, "Sidereum": 14, "Precious": 28},
+
+        "[T4] ❄️ Subzero Device": {"Permafrost": 3, "Aquatic": 1, "Glacier": 20},
+
+        "[T5] 🌌 Galactic Device": {"Galaxy": 1, "Sapphire": 320, "Solar": 30, "Magnetic": 100, "Comet": 4,
+
+                                   "Diaboli": 150, "[T1] Solar Device": 2},
+
+        "[T5] 🌋 Volcanic Device": {"Hades": 1, "Rage : Heated": 30, "Diaboli": 200, "Rage": 3000, "Bleeding": 133,
+
+                                   "[T1] Solar Device": 3, "[T3] Windstorm Device": 1},
+
+        "[T6] 🔮 Exoflex Device": {"Arcane": 5, "Jade": 15, "Exotic": 80, "Undead": 67, "Sidereum": 500,
+
+                                  "Starlight": 140, "Aquamarine": 2000, "Rare": 70000, "[T3] Exo Gauntlet": 1},
+
+        "[T6] 🌈 Hologrammer": {"Virtual": 5, "Magnetic : Reverse Polarity": 5, "Twilight": 6, "Kyawthuite": 5,
+
+                               "Comet": 60, "Starlight": 100, "Rage : Heated": 250, "Player": 1000, "Magnetic": 1350,
+
+                               "Diaboli": 5000, "Forbidden": 8000},
+
+        "[T7] ⚡ Ragnaröker": {"Zeus": 7, "Hades": 7, "Poseidon": 7, "Star Rider": 175, "Solar": 300, "Lunar": 300,
+
+                              "Rage : Heated": 400, "Lost Soul": 600, "Sidereum": 1000, "Ash": 4000, "Diaboli": 7000,
+
+                              "Rage": 50000},
+
+        "[T8] ✨ Starshaper": {"[T5] Galactic Device": 2, "[T1] Solar Device": 30, "Starscourge": 4, "Hyper-Volt": 6,
+
+                              "Galaxy": 6, "Comet": 270, "Star Rider": 600, "Solar": 3000, "Lunar": 3000,
+
+                              "Sidereum": 5000, "Magnetic": 10000},
+
+        "[T9] 🔬 Neurolyzer": {"[T6] Hologrammer": 1, "Chromatic": 5, "Origin": 12, "Virtual": 30, "Twilight": 18,
+
+                              "Bounded : Unbound": 50, "Exotic": 800, "Starlight": 1200, "Flushed": 5000,
+
+                              "Lost Soul": 7500},
+
+        "[T10] 🌀 Genesis Drive": {"[T9] Neurolyzer": 1, "Chromatic : Genesis": 2, "Matrix": 5, "Chromatic": 10,
+
+                                  "Hyper-Volt": 30, "Origin": 30, "Virtual": 100, "Bounded": 600, "Aether": 600,
+
+                                  "Exotic": 1000, "WATT": 7500, "Powered": 10000},
+
+
+
+        # Рецепты зелий
+
+        "Heavenly Potion": {"Celestial": 3, "Lucky Potion": 70, "Divinus : Angel": 2, "Powered": 5, "Quartz": 15},
+
+        "Potion of Bound": {"Bounded": 2, "Permafrost": 5, "Lucky Potion": 35, "Lost Soul": 15},
+
+        "Fortune Potion I": {"Lucky Potion": 10},
+
+        "Fortune Potion II": {"Lucky Potion": 20},
+
+        "Fortune Potion III": {"Lucky Potion": 30},
+
+        "Jewellery Potion": {"Lucky Potion": 23, "Aquamarine": 3, "Sapphire": 3, "Gilded": 3, "Emerald": 3, "Ruby": 3,
+
+                             "Topaz": 3},
+
+        "Zombie Potion": {"Lucky Potion": 17, "Undead": 3, "Bleeding": 3},
+
+        "Hades Godly Potion": {"Lucky Potion": 50, "Hades": 1, "Diaboli": 15, "Bleeding": 12},
+
+        "Zeus Godly Potion": {"Lucky Potion": 40, "Zeus": 1, "Stormal": 4, "Wind": 30},
+
+        "Godlike Potion": {"Zeus Godly Potion": 2, "Hades Godly Potion": 1, "Lucky Potion": 250},
+
+        "Unknown Potion": {"Undefined": 20, "Shift lock": 15, "Nihility": 10}
+
+    }
+
+
+
+    if item_name not in requirements:
+
+        bot.send_message(msg.chat.id, f"❌ Item '{item_name}' not found.")
+
+        return
+
+
+
+    # Выдаем все ингредиенты
+
+    reqs = requirements[item_name]
+
+    for ingredient_name, amount in reqs.items():
+
+        # Проверяем, ПРЕДМЕТ ли это (сравнивая со списком ingredient_items)
+
+        if ingredient_name in ingredient_items:
+
+            # Добавляем предмет в инвентарь
+
+            if "inventory" not in user:
+
+                user["inventory"] = []
+
+
+
+            # Добавляем недостающее кол-во
+
+            current_count = sum(1 for item in user["inventory"] if item == ingredient_name)
+
+            needed = amount - current_count
+
+            if needed > 0:
+
+                for _ in range(needed):
+
+                    user["inventory"].append(ingredient_name)
+
+        else:
+
+            # Это аура, добавляем ее
+
+            user["auras"][ingredient_name] = user["auras"].get(ingredient_name, 0) + amount
+
+
+
+    save_data()
+
+    bot.send_message(msg.chat.id, f"✅ All ingredients for {item_name} have been added to your inventory and auras!")
+
+
+
+
+
+def apply_timed_potion(user, new_bonus, new_duration_seconds):
+
+    """
+
+    Применяет эффект временного зелья.
+
+    Логика:
+
+    1. Если активно зелье с БОЛЬШЕЙ удачей, просто добавляем время к СТАРОМУ зелью.
+
+    2. Если активно зелье с МЕНЬШЕЙ или РАВНОЙ удачей, перезаписываем удачу и УСТАНАВЛИВАЕМ новое время.
+
+    3. Если зелье неактивно, просто устанавливаем.
+
+    """
+
+    current_end_time_str = user.get("potion_end_time")
+
+    now = datetime.now()
+
+
+
+    if current_end_time_str:
+
+        try:
+
+            current_end_time = datetime.fromisoformat(current_end_time_str)
+
+            if current_end_time > now:
+
+                # Зелье уже активно
+
+                current_bonus = user.get("potion_luck_bonus", 0.0)
+
+
+
+                if new_bonus > current_bonus:
+
+                    # Новое зелье ЛУЧШЕ - перезаписываем
+
+                    user["potion_luck_bonus"] = new_bonus
+
+                    user["potion_end_time"] = (now + timedelta(seconds=new_duration_seconds)).isoformat()
+
+                    return f"New potion is stronger! Applied +{new_bonus} luck for {new_duration_seconds // 60} min."
+
+                else:
+
+                    # Новое зелье ХУЖЕ или такое же - просто добавляем время к СУЩЕСТВУЮЩЕМУ
+
+                    new_end_time = current_end_time + timedelta(seconds=new_duration_seconds)
+
+                    user["potion_end_time"] = new_end_time.isoformat()
+
+                    return f"Potion time extended. Active bonus remains: +{current_bonus} luck."
+
+
+
+        except:
+
+            pass  # Ошибка формата, просто установим новое
+
+
+
+    # Зелье неактивно или истекло
+
+    user["potion_end_time"] = (now + timedelta(seconds=new_duration_seconds)).isoformat()
+
+    user["potion_luck_bonus"] = new_bonus
+
+    return f"Potion applied! +{new_bonus} luck for {new_duration_seconds // 60} min."
+
+
+
+
+
+def process_manual_roll(msg):
+
+    """
+
+    Обрабатывает ОДИН ручной ролл в отдельном потоке.
+
+    Логика разделена: вычисления под замком, отправка (и сон) без замка.
+
+    """
+
+    uid = str(msg.from_user.id)
+
+    name = msg.from_user.first_name or "User"
+
+
+
+    # Переменные для использования вне замка
+
+    msg_text = ""
+
+    gif_id_to_send = None
+
+    should_pin = False
+
+    global_msg_to_send = None
+
+
+
+    # === НАЧАЛО БЛОКИРОВКИ ===
+
+    with data_lock:
+
+        user = get_user_data(uid, name)
+
+
+
+        # Логика зелий (ИЗМЕНЕНО: В Лимбо бонусы = 0)
+
+        heavenly_bonus = 0
+
+        bound_bonus = 0
+
+        godlike_bonus = 0
+
+        potion_msg = ""
+
+
+
+        # Проверяем, НЕ в лимбо ли мы. Если в Лимбо — бонусы не применяются.
+
+        if not user.get("in_limbo", False):
+
+            if user.get("heavenly_potion_active", 0) > 0:
+
+                heavenly_bonus = 425000
+
+                user["heavenly_potion_active"] -= 1
+
+                potion_msg += f"\nHeavenly Potion left: {user['heavenly_potion_active']}"
+
+
+
+            if user.get("bound_potion_active", 0) > 0:
+
+                bound_bonus = 200000
+
+                user["bound_potion_active"] -= 1
+
+                potion_msg += f"\nPotion of Bound left: {user['bound_potion_active']}"
+
+
+
+            if user.get("godlike_potion_active", 0) > 0:
+
+                godlike_bonus = 1000000
+
+                user["godlike_potion_active"] -= 1
+
+                potion_msg += f"\nGodlike Potion left: {user['godlike_potion_active']}"
+
+        else:
+
+            # Если мы в Лимбо, но зелья активны, можно (опционально) писать, что они отключены
+
+            # Но по ТЗ просто не применяем их.
+
+            pass
+
+
+
+        total_special_bonus = heavenly_bonus + bound_bonus + godlike_bonus
+
+        calculated_luck = get_calculated_luck(user) + total_special_bonus
+
+        effective_luck = get_effective_luck(calculated_luck)
+
+
+
+        # Ролл
+
+        forced_aura = user.get("forced_aura")
+
+        if forced_aura:
+
+            aura = forced_aura
+
+            chance = auras.get(aura, limbo_auras.get(aura, 1000000))
+
+            user["forced_aura"] = None
+
+        else:
+
+            aura, chance = roll_aura(effective_luck, user)
+
+
+
+            # Обновление данных
+
+        user["rolls"] += 1
+
+
+
+        # Лимбо сообщение (просто помечаем флагом, отправим позже если надо,
+
+        # но здесь проще оставить проверку статуса)
+
+        limbo_unlock_msg = False
+
+        if user["rolls"] > 99999 and not user.get("limbo_msg_sent", False):
+
+            user["limbo_msg_sent"] = True
+
+            limbo_unlock_msg = True
+
+
+
+        user["auras"][aura] = user["auras"].get(aura, 0) + 1
+
+        current_val = auras.get(aura, limbo_auras.get(aura, 0))
+
+        rarest_val = 0
+
+        if user["rarest"]:
+
+            rarest_val = auras.get(user["rarest"], limbo_auras.get(user["rarest"], 0))
+
+        if current_val > rarest_val:
+
+            user["rarest"] = aura
+
+
+
+        save_data()  # Быстрое сохранение копии
+
+
+
+        # Подготовка GIF
+
+        gif_threshold = user.get("gif_rarity_threshold", 1000000)
+
+        if aura in aura_gif_map and chance >= gif_threshold:
+
+            val = aura_gif_map[aura]
+
+            if val != "YOUR_ID_HERE":
+
+                gif_id_to_send = val
+
+
+
+        display_luck = int(effective_luck) if effective_luck == int(effective_luck) else round(effective_luck, 2)
+
+
+
+        # From Biome
+
+        from_biome = ""
+
+        current_biome = BIOME_DATA["current_biome"]
+
+        glitched_auras = ["Oppression", "Glitch", "Fault"]
+
+        dreamspace_auras = ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]
+
+        base_chance = auras.get(aura, limbo_auras.get(aura, 1))
+
+
+
+        if current_biome == "Dreamspace" and aura in dreamspace_auras:
+
+            from_biome = " [From Dreamspace!]"
+
+        elif current_biome == "Glitched":
+
+            if aura in glitched_auras or aura in dreamspace_auras:
+
+                from_biome = " [From Glitched!]"
+
+            else:
+
+                biome_multiplier = get_biome_multiplier(aura)
+
+                if biome_multiplier > 1:
+
+                    adjusted_chance = base_chance / biome_multiplier
+
+                    if adjusted_chance < base_chance:
+
+                        from_biome = " [From Glitched!]"
+
+        elif current_biome != "Normal" and current_biome != "Dreamspace":
+
+            if get_biome_multiplier(aura) > 1:
+
+                from_biome = f" [From {current_biome}!]"
+
+
+
+        # Текст сообщения
+
+        if aura == "Nothing":
+
+            msg_text = f"You rolled Nothing 1 in 1 🍀x{display_luck}\n\n « ⚪ Basic ⚪ »"
+
+        elif aura == "NYCTOPHOBIA":
+
+            msg_text = f"👁️ You have experienced the literal nightmare. 👁️ 🍀x{display_luck}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+        elif aura == "Pixelation":
+
+            msg_text = f"🎮👾 You have become PIXELATED!! 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+        elif aura == "Luminosity":
+
+            msg_text = f"💫You have been devoured by the blinding light.💫 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+        elif aura == "Equinox":
+
+            msg_text = f"⚫You have found [???????] between POSITIVE and NEGATIVE.⚪ 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+        elif aura == "Glitch":
+
+            msg_text = f"NO WAY! YOU ROLLED Glitch 1 IN 12210110 🍀x{display_luck}{from_biome}\n\n« ⚪⚫ CHALLENGED ⚪⚫ »"
+
+        elif aura == "Oppression":
+
+            msg_text = f"YOU HAVE DISCOVERED Oppression WITH CHANCE OF 1 IN 220000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
+
+        elif aura == "Dreammetric":
+
+            msg_text = f"YOU HAVE DISCOVERED Dreammetric WITH CHANCE OF 1 IN 520000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
+
+        else:
+
+            chance_display = int(chance) if chance == int(chance) else chance
+
+            if chance > 99_999_998:
+
+                msg_text = f"YOU HAVE DISCOVERED {aura} WITH CHANCE OF 1 IN {chance_display} 🍀x{display_luck}{from_biome}\n\n« 🔴🔴 GLORIOUS 🔴🔴 »"
+
+            elif chance > 9_999_999:
+
+                msg_text = f"NO WAY! YOU ROLLED {aura} 1IN {chance_display}!!!! 🍀x{display_luck}{from_biome}\n\n« 🔵 EXALTED 🔵 »"
+
+            elif chance > 999_999:
+
+                msg_text = f"OMG! You rolled {aura} 1 in {chance_display}!!! 🍀x{display_luck}{from_biome}\n\n« 🟠 MYTHIC 🟠 »"
+
+            elif chance > 99_998:
+
+                msg_text = f"Wow! You rolled {aura} 1 in {chance_display}!!! 🍀x{display_luck}{from_biome}\n\n« 🟢 Legendary 🟢 »"
+
+            elif chance > 10_000:
+
+                msg_text = f"You rolled {aura} 1 in {chance_display}!! 🍀x{display_luck}{from_biome}\n\n« 🟡 Unique 🟡 »"
+
+            elif chance > 1_000:
+
+                msg_text = f"You rolled {aura} 1 in {chance_display}! 🍀x{display_luck}{from_biome}\n\n« 🟣 Epic 🟣 »"
+
+            else:
+
+                msg_text = f"You rolled {aura} 1 in {chance_display} 🍀x{display_luck}{from_biome}\n\n« ⚪ Basic ⚪ »"
+
+        msg_text += potion_msg
+
+
+
+        # Pin
+
+        pin_rarity = user.get("auto_pin_rarity")
+
+        if pin_rarity and chance > pin_rarity:
+
+            should_pin = True
+
+
+
+        # Global
+
+        if chance > GLOBAL_THRESHOLD or aura == "Glitch":
+
+            from_biome_global = ""
+
+            # Упрощаем логику для глобалки, берем то что уже посчитали
+
+            if "Dreamspace" in from_biome:
+
+                from_biome_global = " [From Dreamspace!]"
+
+            elif "Glitched" in from_biome:
+
+                from_biome_global = " [From Glitched!]"
+
+            elif from_biome:
+
+                from_biome_global = from_biome
+
+
+
+            chance_display = int(chance) if chance == int(chance) else chance
+
+
+
+            if aura == "Pixelation":
+
+                global_msg_to_send = f"💫GLOBAL💫\n{name} Has Become PIXELATED!!\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+            elif aura == "NYCTOPHOBIA":
+
+                global_msg_to_send = f"💫GLOBAL💫\n{name} has experienced the literal nightmare.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+            elif aura == "Luminosity":
+
+                global_msg_to_send = f"💫GLOBAL💫\nThe blinding light has devoured {name}.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+            elif aura == "Equinox":
+
+                global_msg_to_send = f"💫GLOBAL💫\n{name} Has Found [???????] Between POSITIVE and NEGATIVE.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+            elif aura == "Glitch":
+
+                global_msg_to_send = f"💫GLOBAL💫\n{name} HAS ROLLED {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+            else:
+
+                global_msg_to_send = f"💫GLOBAL💫\n{name} Has rolled {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+
+
+    # === КОНЕЦ БЛОКИРОВКИ ===
+
+
+
+    # Теперь можно безопасно спать и отправлять
+
+
+
+    # GIF
+
+    if gif_id_to_send:
+
+        try:
+
+            bot.send_animation(msg.chat.id, gif_id_to_send)
+
+            time.sleep(12)  # Не блокирует других
+
+        except Exception as e:
+
+            print(f"Failed to send GIF for {aura}: {e}")
+
+
+
+    # Сообщение Лимбо анлок
+
+    if limbo_unlock_msg:
+
+        try:
+
+            unlock_msg = bot.send_message(msg.chat.id,
+
+                                          "👁️ ...\nYou have unlocked mysterious potion in your potion list...")
+
+            bot.pin_chat_message(msg.chat.id, unlock_msg.message_id)
+
+        except:
+
+            pass
+
+
+
+    # Главное сообщение
+
+    try:
+
+        roll_message = bot.send_message(msg.chat.id, msg_text, reply_markup=main_menu(uid))
+
+        if should_pin:
+
+            try:
+
+                bot.pin_chat_message(msg.chat.id, roll_message.message_id, disable_notification=True)
+
+            except Exception as e:
+
+                print(f"Failed to pin message for {uid}: {e}")
+
+    except Exception as e:
+
+        pass
+
+
+
+    # Global
+
+    if global_msg_to_send:
+
+        threading.Thread(target=lambda: notify_all_users(global_msg_to_send, message_type="global"),
+
+                         daemon=True).start()
+
+    return
+
+
+
+
+
+@bot.message_handler(func=lambda message: str(message.from_user.id) in admin_ids and
+
+                                          get_user_data(str(message.from_user.id)).get("pending_dangerous_cmd"))
+
+def handle_dangerous_cmd_confirm(msg):
+
+    global auras, limbo_auras, items_data
+
+    uid = str(msg.from_user.id)
+
+    user = get_user_data(uid)
+
+    cmd_data = user.get("pending_dangerous_cmd", {})
+
+
+
+    text = msg.text.strip().upper()
+
+
+
+    del user["pending_dangerous_cmd"]  # Удаляем pending-состояние сразу
+
+    save_data()
+
+
+
+    if text == "Y":
+
+        cmd_type = cmd_data.get("type")
+
+        amount = cmd_data.get("amount", 1)
+
+
+
+        bot.send_message(msg.chat.id, f"✅ Executing command: {cmd_type.replace('_', ' ').title()}...")
+
+        #
+
+
+
+        if cmd_type == "all_auras":
+
+            # Итерируемся по всем аурам (auras и limbo_auras)
+
+            with data_lock:
+
+                user_auras = user.setdefault("auras", {})
+
+                all_aura_names = list(auras.keys()) + list(limbo_auras.keys())
+
+                for aura_name in all_aura_names:
+
+                    user_auras[aura_name] = user_auras.get(aura_name, 0) + amount
+
+
+
+            bot.send_message(msg.chat.id, f"✨ You have received {amount} of all available auras!")
+
+
+
+        save_data()
+
+        bot.send_message(msg.chat.id, "Done.", reply_markup=main_menu())
+
+
+
+    else:  # N или любой другой ответ
+
+        bot.send_message(msg.chat.id, "❌ Command cancelled.", reply_markup=main_menu())
+
+
+
+
+
+@bot.message_handler(func=lambda m: True)
+
+def handle(msg):
+
+    global lucky_potion_active  # Нужно для обработки нажатия
+
+
+
+    # 1. СНАЧАЛА ПОЛУЧАЕМ ДАННЫЕ (Это должно быть самым первым!)
+
+    text = msg.text.strip()
+
+    uid = str(msg.from_user.id)
+
+    name = msg.from_user.first_name or "User"
+
+    user = get_user_data(uid, name)  # Получаем пользователя
+
+
+
+    # 2. Блокировка команд, если Auto Roll включен (Это тоже должно быть в начале)
+
+    if user.get("auto_roll_enabled", False) and text != "Disable Auto Roll":
+
+        return
+
+
+
+    # --- ТЕПЕРЬ ВСТАВЛЯЕМ ЛОГИКУ ЛИМБО (Когда переменные уже существуют) ---
+
+
+
+    # 1. Триггер "???"
+
+    if text == "???":
+
+        # Проверяем бафф
+
+        buff_active = False
+
+        unknown_end_str = user.get("unknown_potion_end")
+
+        if unknown_end_str:
+
+            try:
+
+                if datetime.fromisoformat(unknown_end_str) > datetime.now():
+
+                    buff_active = True
+
+            except:
+
+                pass
+
+
+
+        # Проверяем биом Null
+
+        if buff_active and BIOME_DATA["current_biome"] == "Null" and not user.get("in_limbo"):
+
+            # ENTER SEQUENCE
+
+            phrases = ["FINE", "YOU'RE", "WORTHY", "TO", "ENTER", "THE LIMBO."]
+
+            for phrase in phrases:
+
+                bot.send_message(msg.chat.id, phrase)
+
+                time.sleep(0.5)
+
+
+
+            user["in_limbo"] = True
+
+            user["limbo_unlocked"] = True
+
+            # ЗАМОРОЗКА ВРЕМЕНИ: Сохраняем время входа
+
+            user["limbo_pause_start"] = datetime.now().isoformat()
+
+
+
+            save_data()
+
+            bot.send_message(msg.chat.id, "🌌 You are now in The Limbo.", reply_markup=main_menu(uid))
+
+            return
+
+        elif not buff_active and BIOME_DATA["current_biome"] == "Null":
+
+            # Если просто пишешь в Null без баффа - ничего или загадка
+
+            pass
+
+
+
+    # 2. Вход в Лимбо (Кнопка)
+
+    if text == "🌌 Enter The Limbo":
+
+        if not user.get("limbo_unlocked", False):
+
+            bot.send_message(msg.chat.id, "YOU'RE NOT WORTHY TO PASS.", reply_markup=back_menu())
+
+            return
+
+
+
+        user["in_limbo"] = True
+
+        # ЗАМОРОЗКА ВРЕМЕНИ: Сохраняем время входа
+
+        user["limbo_pause_start"] = datetime.now().isoformat()
+
+
+
+        save_data()
+
+        bot.send_message(msg.chat.id, "Welcome back to the void.", reply_markup=main_menu(uid))
+
+        return
+
+
+
+    # 3. Выход из Лимбо (Кнопка)
+
+    if text == "🌌 Exit The Limbo":
+
+        if not user.get("in_limbo", False):
+
+            bot.send_message(msg.chat.id, "YOU'RE NOT WORTHY TO PASS.", reply_markup=back_menu())
+
+            return
+
+
+
+        user["in_limbo"] = False
+
+
+
+        # РАЗМОРОЗКА ВРЕМЕНИ
+
+        # Сдвигаем время окончания зелья на то время, что мы пробыли в Лимбо
+
+        pause_start_str = user.get("limbo_pause_start")
+
+        if pause_start_str:
+
+            try:
+
+                pause_start = datetime.fromisoformat(pause_start_str)
+
+                now = datetime.now()
+
+                # Вычисляем, сколько нас не было (дельта)
+
+                time_in_limbo = now - pause_start
+
+
+
+                # Сдвигаем таймер зелья удачи (Lucky Potion и др.)
+
+                potion_end_str = user.get("potion_end_time")
+
+                if potion_end_str:
+
+                    old_end = datetime.fromisoformat(potion_end_str)
+
+                    # Если зелье еще было активно ИЛИ если оно было "заморожено"
+
+                    # (Мы просто тупо прибавляем время простоя к дате окончания)
+
+                    new_end = old_end + time_in_limbo
+
+                    user["potion_end_time"] = new_end.isoformat()
+
+            except Exception as e:
+
+                print(f"Error calculating time shift: {e}")
+
+
+
+            # Очищаем время входа
+
+            user["limbo_pause_start"] = None
+
+
+
+        save_data()
+
+        bot.send_message(msg.chat.id, "Returning to reality...\nTime flows again.", reply_markup=main_menu(uid))
+
+        return
+
+
+
+    # --- НОВЫЙ БЛОК: Обработка 'Use amount' для зелий ---
+
+    pending_potion = user.get("pending_potion_amount")
+
+    if pending_potion:
+
+        potion_map = {
+
+            "lucky": "Lucky Potion",
+
+            "godlike": "Godlike Potion",
+
+            "heavenly": "Heavenly Potion",
+
+            "bound": "Potion of Bound",
+
+            # --- ДОБАВЛЕНО ---
+
+            "fortune_1": "Fortune Potion I",
+
+            "fortune_2": "Fortune Potion II",
+
+            "fortune_3": "Fortune Potion III",
+
+            "jewellery": "Jewellery Potion",
+
+            "zombie": "Zombie Potion",
+
+            "hades_godly": "Hades Godly Potion",
+
+            "zeus_godly": "Zeus Godly Potion"
+
+        }
+
+        potion_name = potion_map.get(pending_potion)
+
+
+
+        try:
+
+            amount = int(text)
+
+            if amount <= 0:
+
+                raise ValueError("Amount must be positive.")
+
+
+
+            potion_count = user.get("inventory", []).count(potion_name)
+
+
+
+            if amount > potion_count:
+
+                bot.send_message(msg.chat.id, f"❌ You don't have that much {potion_name}", reply_markup=back_menu())
+
+                user["pending_potion_amount"] = None
+
+                save_data()
+
+                return
+
+
+
+            # Списываем зелья
+
+            current_inventory = user.get("inventory", [])
+
+            new_inventory = []
+
+            removed_count = 0
+
+            for item in current_inventory:
+
+                if item == potion_name and removed_count < amount:
+
+                    removed_count += 1
+
+                else:
+
+                    new_inventory.append(item)
+
+            user["inventory"] = new_inventory
+
+
+
+            # Применяем эффект
+
+            response_msg = ""
+
+            if pending_potion == "lucky":
+
+                # +1 luck, 1 min (60s) per potion
+
+                response_msg = apply_timed_potion(user, 1.0, 60 * amount)
+
+                bot.send_message(msg.chat.id, f"Used {amount} Lucky Potions. {response_msg}", reply_markup=back_menu())
+
+
+
+            # --- НОВЫЕ ВРЕМЕННЫЕ ЗЕЛЬЯ ---
+
+            elif pending_potion == "fortune_1":
+
+                # +2 luck, 5 min (300s) per potion
+
+                response_msg = apply_timed_potion(user, 2.0, 300 * amount)
+
+                bot.send_message(msg.chat.id, f"Used {amount} Fortune Potion I. {response_msg}",
+
+                                 reply_markup=back_menu())
+
+            elif pending_potion == "fortune_2":
+
+                # +3.5 luck, 5 min (300s) per potion
+
+                response_msg = apply_timed_potion(user, 3.5, 300 * amount)
+
+                bot.send_message(msg.chat.id, f"Used {amount} Fortune Potion II. {response_msg}",
+
+                                 reply_markup=back_menu())
+
+            elif pending_potion == "fortune_3":
+
+                # +5 luck, 5 min (300s) per potion
+
+                response_msg = apply_timed_potion(user, 5.0, 300 * amount)
+
+                bot.send_message(msg.chat.id, f"Used {amount} Fortune Potion III. {response_msg}",
+
+                                 reply_markup=back_menu())
+
+            elif pending_potion == "jewellery":
+
+                # +6 luck, 10 min (600s) per potion
+
+                response_msg = apply_timed_potion(user, 6.0, 600 * amount)
+
+                bot.send_message(msg.chat.id, f"Used {amount} Jewellery Potion. {response_msg}",
+
+                                 reply_markup=back_menu())
+
+            elif pending_potion == "zombie":
+
+                # +8 luck, 10 min (600s) per potion
+
+                response_msg = apply_timed_potion(user, 8.0, 600 * amount)
+
+                bot.send_message(msg.chat.id, f"Used {amount} Zombie Potion. {response_msg}", reply_markup=back_menu())
+
+            elif pending_potion == "hades_godly":
+
+                # +12 luck, 4 hours (14400s) per potion
+
+                response_msg = apply_timed_potion(user, 12.0, 14400 * amount)
+
+                bot.send_message(msg.chat.id, f"Used {amount} Hades Godly Potion. {response_msg}",
+
+                                 reply_markup=back_menu())
+
+            elif pending_potion == "zeus_godly":
+
+                # +10 luck, 4 hours (14400s) per potion
+
+                response_msg = apply_timed_potion(user, 10.0, 14400 * amount)
+
+                bot.send_message(msg.chat.id, f"Used {amount} Zeus Godly Potion. {response_msg}",
+
+                                 reply_markup=back_menu())
+
+
+
+            # --- ЗЕЛЬЯ НА РОЛЛЫ ---
+
+            elif pending_potion == "godlike":
+
+                user["godlike_potion_active"] = user.get("godlike_potion_active", 0) + amount
+
+                bot.send_message(msg.chat.id, f"You used {amount} Godlike Potions. +1000000 luck for {amount} rolls.",
+
+                                 reply_markup=back_menu())
+
+            elif pending_potion == "heavenly":
+
+                user["heavenly_potion_active"] = user.get("heavenly_potion_active", 0) + amount
+
+                bot.send_message(msg.chat.id, f"You used {amount} Heavenly Potions. +425000 luck for {amount} rolls.",
+
+                                 reply_markup=back_menu())
+
+            elif pending_potion == "bound":
+
+                user["bound_potion_active"] = user.get("bound_potion_active", 0) + amount
+
+                bot.send_message(msg.chat.id, f"You used {amount} Potions of Bound. +200000 luck for {amount} rolls.",
+
+                                 reply_markup=back_menu())
+
+
+
+            user["pending_potion_amount"] = None
+
+            save_data()
+
+
+
+        except ValueError:
+
+            bot.send_message(msg.chat.id, "❌ Invalid amount. Please enter a number.", reply_markup=back_menu())
+
+        user["pending_potion_amount"] = None  # Сбрасываем, чтобы избежать цикла
+
+        save_data()
+
+
+
+        return  # Завершаем обработку, так как это было число для зелья
+
+    # --- КОНЕЦ НОВОГО БЛОКА ---
+
+
+
+    # --- НОВЫЙ БЛОК: Обработка "Auto Pin Rarity" ---
+
+    if user_last_command.get(uid) == "set_auto_pin":
+
+        try:
+
+            rarity_threshold = int(text)
+
+            if rarity_threshold <= 0:
+
+                user["auto_pin_rarity"] = None
+
+                bot.send_message(msg.chat.id, "Auto-pin disabled.", reply_markup=main_menu(uid))
+
+            else:
+
+                user["auto_pin_rarity"] = rarity_threshold
+
+                bot.send_message(msg.chat.id, f"✅ Auto-pin enabled for rarities > 1 in {rarity_threshold}",
+
+                                 reply_markup=main_menu(uid))
+
+
+
+            user_last_command[uid] = None
+
+            save_data()
+
+
+
+        except ValueError:
+
+            bot.send_message(msg.chat.id, "❌ Invalid number. Enter rarity (e.g., 1000000) or 0 to disable.",
+
+                             reply_markup=types.ReplyKeyboardRemove())
+
+            # Не сбрасываем user_last_command, ждем правильного ввода
+
+
+
+        return  # Завершаем обработку
+
+    # --- КОНЕЦ НОВОГО БЛОКА ---
+
+
+
+    # --- НОВЫЙ БЛОК: Обработка "Gif Rarity" ---
+
+    if user_last_command.get(uid) == "set_gif_rarity":
+
+        try:
+
+            rarity_threshold = int(text)
+
+            if rarity_threshold < 1000000:  # Если ввели 0 или число < 1M
+
+                # Устанавливаем очень большое число, чтобы гифки не показывались
+
+                user["gif_rarity_threshold"] = 999999999999999
+
+                bot.send_message(msg.chat.id, "Gif cutscenes disabled.", reply_markup=main_menu(uid))
+
+            else:
+
+                user["gif_rarity_threshold"] = rarity_threshold
+
+                bot.send_message(msg.chat.id, f"✅ Gif cutscenes will show for rarities > 1 in {rarity_threshold}",
+
+                                 reply_markup=main_menu(uid))
+
+
+
+            user_last_command[uid] = None
+
+            save_data()
+
+
+
+        except ValueError:
+
+            bot.send_message(msg.chat.id, "❌ Invalid number. Enter rarity (e.g., 1000000) or 0 to disable.",
+
+                             reply_markup=types.ReplyKeyboardRemove())
+
+            # Не сбрасываем user_last_command, ждем правильного ввода
+
+
+
+        return  # Завершаем обработку
+
+    # --- КОНЕЦ НОВОГО БЛОКА ---
+
+
+
+    # --- БЛОКИРОВКА ЗЕЛИЙ В ЛИМБО ---
+
+    # Список команд использования зелий
+
+    use_commands = ["Use", "Use All", "Use amount", "Use Unknown"]
+
+
+
+    # Если пользователь пытается нажать Use...
+
+    if text in use_commands and user.get("in_limbo", False):
+
+        # Проверяем, что это именно обычные зелья (контекст через user_last_command)
+
+        cmd = user_last_command.get(uid)
+
+        # Разрешаем Unknown Potion (оно для лимбо), запрещаем остальные
+
+        if cmd != "use_unknown_potion":
+
+            bot.send_message(msg.chat.id, "It doesn't seem to be working right now...", reply_markup=back_menu())
+
+            return
+
+
+
+    # Если пользователь пишет число для Use Amount в Лимбо
+
+    if user.get("pending_potion_amount") and user.get("in_limbo", False):
+
+        user["pending_potion_amount"] = None  # Сбрасываем
+
+        save_data()
+
+        bot.send_message(msg.chat.id, "It doesn't seem to be working right now...", reply_markup=back_menu())
+
+        return
+
+    # --------------------------------
+
+
+
+    # --- Обработка нажатия кнопки "Use amount" ---
+
+    if text == "Use amount":
+
+        last_cmd = user_last_command.get(uid)
+
+        potion_to_set = None
+
+        potion_name = ""
+
+
+
+        if last_cmd == "use_potion":
+
+            potion_to_set = "lucky"
+
+            potion_name = "Lucky Potion"
+
+        elif last_cmd == "use_godlike_potion":
+
+            potion_to_set = "godlike"
+
+            potion_name = "Godlike Potion"
+
+        elif last_cmd == "use_heavenly_potion":
+
+            potion_to_set = "heavenly"
+
+            potion_name = "Heavenly Potion"
+
+        elif last_cmd == "use_bound_potion":
+
+            potion_to_set = "bound"
+
+            potion_name = "Potion of Bound"
+
+        elif last_cmd == "use_fortune_potion_1":
+
+            potion_to_set = "fortune_1"
+
+            potion_name = "Fortune Potion I"
+
+        elif last_cmd == "use_fortune_potion_2":
+
+            potion_to_set = "fortune_2"
+
+            potion_name = "Fortune Potion II"
+
+        elif last_cmd == "use_fortune_potion_3":
+
+            potion_to_set = "fortune_3"
+
+            potion_name = "Fortune Potion III"
+
+        elif last_cmd == "use_jewellery_potion":
+
+            potion_to_set = "jewellery"
+
+            potion_name = "Jewellery Potion"
+
+        elif last_cmd == "use_zombie_potion":
+
+            potion_to_set = "zombie"
+
+            potion_name = "Zombie Potion"
+
+        elif last_cmd == "use_hades_godly_potion":
+
+            potion_to_set = "hades_godly"
+
+            potion_name = "Hades Godly Potion"
+
+        elif last_cmd == "use_zeus_godly_potion":
+
+            potion_to_set = "zeus_godly"
+
+            potion_name = "Zeus Godly Potion"
+
+
+
+        if potion_to_set:
+
+            user["pending_potion_amount"] = potion_to_set
+
+            save_data()
+
+            # Отправляем сообщение с кастомной клавиатурой, чтобы убрать кнопки
+
+            bot.send_message(msg.chat.id, f"How much {potion_name} do you want to use?",
+
+                             reply_markup=types.ReplyKeyboardRemove())
+
+            return
+
+    # --- КОНЕЦ БЛОКА "Use amount" ---
+
+
+
+    # НО! Для операций крафта мы будем ПОВТОРНО получать пользователя ВНУТРИ блокировки
+
+
+
+    if text == "🎲 Roll":
+
+        threading.Thread(target=process_manual_roll, args=(msg,), daemon=True).start()
+
+        return
+
+        # --- НОВЫЙ БЛОК: Проверка и применение спец-зелий ---
+
+        heavenly_bonus = 0
+
+        bound_bonus = 0
+
+        potion_msg = ""
+
+
+
+        if user.get("heavenly_potion_active", 0) > 0:
+
+            heavenly_bonus = 425000
+
+            user["heavenly_potion_active"] -= 1
+
+            potion_msg += f"\nHeavenly Potion left: {user['heavenly_potion_active']}"
+
+
+
+        if user.get("bound_potion_active", 0) > 0:
+
+            bound_bonus = 200000
+
+            user["bound_potion_active"] -= 1
+
+            potion_msg += f"\nPotion of Bound left: {user['bound_potion_active']}"
+
+
+
+        total_special_bonus = heavenly_bonus + bound_bonus
+
+        # --- КОНЕЦ НОВОГО БЛОКА ---
+
+
+
+        calculated_luck = get_calculated_luck(user) + total_special_bonus
+
+        effective_luck = get_effective_luck(calculated_luck)
+
+
+
+        # --- НОВЫЙ БЛОК: Проверка на принудительную ауру ---
+
+        forced_aura = user.get("forced_aura")
+
+        if forced_aura:
+
+            aura = forced_aura
+
+            chance = auras.get(aura, 1000000)  # Получаем базовый шанс для отображения
+
+            user["forced_aura"] = None  # Очищаем, т.к. на 1 ролл
+
+            # save_data() будет вызван ниже
+
+        else:
+
+            aura, chance = roll_aura(effective_luck, user)
+
+        # --- КОНЕЦ НОВОГО БЛОКА ---
+
+
+
+        # --- НОВЫЙ БЛОК: GIF ДЛЯ РЕДКИХ АУР ---
+
+        # Проверяем, есть ли аура в нашем словаре И ее шанс >= 1M
+
+        gif_threshold = user.get("gif_rarity_threshold", 1000000)
+
+        if aura in aura_gif_map and chance >= gif_threshold:
+
+            try:
+
+                # Получаем ID гифки, СВЯЗАННЫЙ с этой аурой
+
+                gif_id = aura_gif_map[aura]
+
+
+
+                if gif_id != "YOUR_ID_HERE":  # Проверка, что вы заполнили ID
+
+                    bot.send_animation(msg.chat.id, gif_id)
+
+                    time.sleep(12)
+
+                else:
+
+                    print(f"GIF not set for aura: {aura}")
+
+
+
+            except Exception as e:
+
+                print(f"Failed to send GIF for {aura}: {e}")
+
+        # --- КОНЕЦ НОВОГО БЛОКА ---
+
+
+
+        user["rolls"] += 1
+
+        user["auras"][aura] = user["auras"].get(aura, 0) + 1
+
+        if not user["rarest"] or auras[aura] > auras[user["rarest"]]:
+
+            user["rarest"] = aura
+
+        save_data()
+
+
+
+        display_luck = int(effective_luck) if effective_luck == int(effective_luck) else round(effective_luck, 2)
+
+
+
+        # --- ИЗМЕНЕНИЕ 3: Новая логика для 'From Glitched' ---
+
+        from_biome = ""
+
+        current_biome = BIOME_DATA["current_biome"]
+
+
+
+        glitched_auras = ["Oppression", "Glitch", "Fault"]
+
+        dreamspace_auras = ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]
+
+
+
+        if current_biome == "Dreamspace" and aura in dreamspace_auras:
+
+            from_biome = " [From Dreamspace!]"
+
+        elif current_biome == "Glitched":
+
+            if aura in glitched_auras or aura in dreamspace_auras:
+
+                from_biome = " [From Glitched!]"
+
+            else:
+
+                base_chance = auras[aura]
+
+                biome_multiplier = get_biome_multiplier(aura)
+
+                if biome_multiplier > 1:
+
+                    adjusted_chance = base_chance / biome_multiplier
+
+                    if adjusted_chance < base_chance:
+
+                        from_biome = " [From Glitched!]"
+
+        elif current_biome != "Normal" and current_biome != "Dreamspace":  # Убран 'Glitched'
+
+            base_chance = auras[aura]
+
+            biome_multiplier = get_biome_multiplier(aura)
+
+            if biome_multiplier > 1:
+
+                adjusted_chance = base_chance / biome_multiplier
+
+                if adjusted_chance < base_chance:
+
+                    from_biome = f" [From {current_biome}!]"
+
+        # --- Конец ИЗМЕНЕНИЯ 3 ---
+
+
+
+        if aura == "Nothing":
+
+            msg_text = f"You rolled Nothing 1 in 0 🍀x{display_luck}\n\n « ⚪ Basic ⚪ »"
+
+        elif aura == "NYCTOPHOBIA":
+
+            msg_text = f"👁️ You have experienced the literal nightmare. 👁️ 🍀x{display_luck}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+        elif aura == "Pixelation":
+
+            msg_text = f"🎮👾 You have become PIXELATED!! 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+        elif aura == "Luminosity":
+
+            msg_text = f"💫You have been devoured by the blinding light.💫 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+        elif aura == "Equinox":
+
+            msg_text = f"⚫You have found [???????] between POSITIVE and NEGATIVE.⚪ 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+
+        elif aura == "Glitch":
+
+            msg_text = f"NO WAY! YOU ROLLED Glitch 1 IN 12210110 🍀x{display_luck}{from_biome}\n\n« ⚪⚫ CHALLENGED ⚪⚫ »"
+
+        elif aura == "Oppression":
+
+            msg_text = f"YOU HAVE DISCOVERED Oppression WITH CHANCE OF 1 IN 220000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
+
+        elif aura == "Dreammetric":
+
+            msg_text = f"YOU HAVE DISCOVERED Dreammetric WITH CHANCE OF 1 IN 520000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
+
+        else:
+
+            chance_display = int(chance) if chance == int(chance) else chance
+
+            if chance > 99_999_998:
+
+                msg_text = f"YOU HAVE DISCOVERED {aura} WITH CHANCE OF 1 IN {chance_display} 🍀x{display_luck}{from_biome}\n\n« 🔴🔴 GLORIOUS 🔴🔴 »"
+
+            elif chance > 9_999_999:
+
+                msg_text = f"NO WAY! YOU ROLLED {aura} 1IN {chance_display}!!!! 🍀x{display_luck}{from_biome}\n\n« 🔵 EXALTED 🔵 »"
+
+            elif chance > 999_999:
+
+                msg_text = f"OMG! You rolled {aura} 1 in {chance_display}!!! 🍀x{display_luck}{from_biome}\n\n« 🟠 MYTHIC 🟠 »"
+
+            elif chance > 99_998:
+
+                msg_text = f"Wow! You rolled {aura} 1 in {chance_display}!!! 🍀x{display_luck}{from_biome}\n\n« 🟢 Legendary 🟢 »"
+
+            elif chance > 10_000:
+
+                msg_text = f"You rolled {aura} 1 in {chance_display}!! 🍀x{display_luck}{from_biome}\n\n« 🟡 Unique 🟡 »"
+
+            elif chance > 1_000:
+
+                msg_text = f"You rolled {aura} 1 in {chance_display}! 🍀x{display_luck}{from_biome}\n\n« 🟣 Epic 🟣 »"
+
+            else:
+
+                msg_text = f"You rolled {aura} 1 in {chance_display} 🍀x{display_luck}{from_biome}\n\n« ⚪ Basic ⚪ »"
+
+        msg_text += potion_msg
+
+        # Отправляем сообщение и сохраняем его
+
+        roll_message = bot.send_message(msg.chat.id, msg_text, reply_markup=main_menu(uid))
+
+
+
+        # Проверяем, нужно ли закрепить
+
+        pin_rarity = user.get("auto_pin_rarity")
+
+        if pin_rarity and chance > pin_rarity:
+
+            try:
+
+                bot.pin_chat_message(msg.chat.id, roll_message.message_id, disable_notification=True)
+
+            except Exception as e:
+
+                print(f"Failed to pin message for {uid}: {e}")  # Ошибка, если у бота нет прав
+
+
+
+        if chance > GLOBAL_THRESHOLD or aura == "Glitch":
+
+            # --- ИЗМЕНЕНИЕ 3 (Глобальное): Новая логика для 'From Glitched' ---
+
+            from_biome_global = ""
+
+            current_biome = BIOME_DATA["current_biome"]
+
+
+
+            glitched_auras = ["Oppression", "Glitch", "Fault"]
+
+            dreamspace_auras = ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]
+
+
+
+            if current_biome == "Dreamspace" and aura in dreamspace_auras:
+
+                from_biome_global = " [From Dreamspace!]"
+
+            elif current_biome == "Glitched":
+
+                if aura in glitched_auras or aura in dreamspace_auras:
+
+                    from_biome_global = " [From Glitched!]"
+
+                else:
+
+                    base_chance = auras[aura]
+
+                    biome_multiplier = get_biome_multiplier(aura)
+
+                    if biome_multiplier > 1:
+
+                        adjusted_chance = base_chance / biome_multiplier
+
+                        if adjusted_chance < base_chance:
+
+                            from_biome_global = " [From Glitched!]"
+
+            elif current_biome != "Normal" and current_biome != "Dreamspace":
+
+                base_chance = auras[aura]
+
+                biome_multiplier = get_biome_multiplier(aura)
+
+                if biome_multiplier > 1:
+
+                    adjusted_chance = base_chance / biome_multiplier
+
+                    if adjusted_chance < base_chance:
+
+                        from_biome_global = f" [From {current_biome}!]"
+
+            # --- Конец ИЗМЕНЕНИЯ 3 (Глобальное) ---
+
+
+
+            chance_display = int(chance) if chance == int(chance) else chance
+
+            if aura == "Pixelation":
+
+                g = f"💫GLOBAL💫\n{name} Has Become PIXELATED!!\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+            elif aura == "NYCTOPHOBIA":
+
+                g = f"💫GLOBAL💫\n{user_name} has experienced the literal nightmare.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+
+            elif aura == "Luminosity":
+
+                g = f"💫GLOBAL💫\nThe blinding light has devoured {name}.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+            elif aura == "Equinox":
+
+                g = f"💫GLOBAL💫\n{name} Has Found [???????] Between POSITIVE and NEGATIVE.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+            elif aura == "Glitch":
+
+                g = f"💫GLOBAL💫\n{name} HAS ROLLED {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+            else:
+
+                g = f"💫GLOBAL💫\n{name} Has rolled {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+
+            threading.Thread(target=lambda: notify_all_users(g, message_type="global"), daemon=True).start()
+
+        return
+
+
+
+    # --- Auras ---
+
+    elif text == "💫 Auras":
+
+        user_last_command[uid] = "Auras"
+
+        user_pages[uid] = 0
+
+
+
+        user_auras_owned = user.get("auras", {})
+
+
+
+        # 1. Проверяем, есть ли у пользователя ХОТЯ БЫ ОДНА аура из limbo_auras
+
+        has_at_least_one_limbo_aura = False
+
+        for limbo_aura_name in limbo_auras.keys():
+
+            if limbo_aura_name in user_auras_owned and user_auras_owned[limbo_aura_name] > 0:
+
+                has_at_least_one_limbo_aura = True
+
+                break
+
+
+
+        aura_list = []
+
+
+
+        # 2. Если у него есть хотя бы одна, показываем ВСЕ ауры Лимбо (разблокированные и нет)
+
+        if has_at_least_one_limbo_aura:
+
+            aura_list.append("--- 🌌 Limbo Auras ---")
+
+            for a_name in limbo_auras.keys():
+
+                if a_name in user_auras_owned and user_auras_owned.get(a_name, 0) > 0:
+
+                    aura_list.append(f"{a_name} ✨ x{user_auras_owned.get(a_name, 0)}")
+
+                else:
+
+                    # Показываем LOCKED только если есть хотя бы одна аура лимбо
+
+                    aura_list.append(f"🔒 LOCKED")
+
+            aura_list.append("---------------------")
+
+
+
+        # 3. Добавляем обычные ауры
+
+        # Используем auras_default, чтобы список был полным, а не зависел от дня/ночи
+
+        main_aura_dict = auras_default if 'auras_default' in globals() else auras
+
+
+
+        for a_name in main_aura_dict.keys():
+
+            if a_name in user_auras_owned and user_auras_owned.get(a_name, 0) > 0:
+
+                aura_list.append(f"{a_name} ✨ x{user_auras_owned.get(a_name, 0)}")
+
+            else:
+
+                aura_list.append(f"🔒 LOCKED")
+
+
+
+        send_paginated_list(msg.chat.id, uid, aura_list)
+
+        return
+
+
+
+    # --- Stats ---
+
+    elif text == "📊 Stats":
+
+        rare = user["rarest"] or "None"
+
+
+
+        # Если в Лимбо - удача от зелий не работает, берем только базу + предметы
+
+        # (get_calculated_luck уже учитывает это, если ты заменил auto_roll и manual_roll,
+
+        # но для красивого отображения делаем так:)
+
+
+
+        if user.get("in_limbo", False):
+
+            # В Лимбо удача считается без учета зелий
+
+            # (функция get_calculated_luck у тебя уже имеет проверку "if not in_limbo" для зелий, так что тут ок)
+
+            pass
+
+
+
+        calculated_luck = get_calculated_luck(user)
+
+        effective_luck = get_effective_luck(calculated_luck)
+
+        display_luck = int(effective_luck) if effective_luck == int(effective_luck) else round(effective_luck, 2)
+
+
+
+        # Добавляем информацию о событии и биоме
+
+        event_info = ""
+
+        if is_event_active():
+
+            event_info = f"\n\n🎉 X{EVENT_DATA['event_multiplier']} LUCK EVENT\nTIME LEFT: {get_time_remaining()}"
+
+
+
+        biome_info = f"\n🌍 BIOME: {BIOME_DATA['current_biome']}"
+
+        if BIOME_DATA['current_biome'] != "Normal":
+
+            biome_info += f" (ends in: {get_biome_time_remaining()})"
+
+
+
+        # Информация о зельях
+
+        active_effects = ""
+
+        in_limbo = user.get("in_limbo", False)
+
+
+
+        # 1. Временные зелья
+
+        potion_end_time_str = user.get("potion_end_time")
+
+        if potion_end_time_str:
+
+            try:
+
+                potion_end_time = datetime.fromisoformat(potion_end_time_str)
+
+                now = datetime.now()
+
+
+
+                # ЛОГИКА ОТОБРАЖЕНИЯ
+
+                if in_limbo:
+
+                    # Если в Лимбо, считаем время относительно момента ЗАМОРОЗКИ
+
+                    pause_start_str = user.get("limbo_pause_start")
+
+                    if pause_start_str:
+
+                        pause_start = datetime.fromisoformat(pause_start_str)
+
+                        # Сколько оставалось на момент входа?
+
+                        if potion_end_time > pause_start:
+
+                            remaining = potion_end_time - pause_start
+
+                            minutes = int(remaining.total_seconds() // 60)
+
+                            seconds = int(remaining.total_seconds() % 60)
+
+                            potion_bonus = user.get("potion_luck_bonus", 0.0)
+
+                            display_bonus = int(potion_bonus) if potion_bonus == int(potion_bonus) else potion_bonus
+
+
+
+                            active_effects += f"\n\n🧪 Timed Potion (+{display_bonus} luck) [DISABLED]\n  TIME LEFT: {minutes:02d}:{seconds:02d} (Paused)"
+
+                else:
+
+                    # Обычный режим
+
+                    if potion_end_time > now:
+
+                        remaining = potion_end_time - now
+
+                        minutes = int(remaining.total_seconds() // 60)
+
+                        seconds = int(remaining.total_seconds() % 60)
+
+                        potion_bonus = user.get("potion_luck_bonus", 0.0)
+
+                        display_bonus = int(potion_bonus) if potion_bonus == int(potion_bonus) else potion_bonus
+
+                        active_effects += f"\n\n🧪 Timed Potion (+{display_bonus} luck)\n  TIME LEFT: {minutes:02d}:{seconds:02d}"
+
+                    else:
+
+                        # Зелье истекло, очищаем
+
+                        user["potion_end_time"] = None
+
+                        user["potion_luck_bonus"] = 0.0
+
+                        save_data()
+
+            except:
+
+                pass
+
+
+
+        # 2. Зелья на роллы
+
+        roll_potion_effects = []
+
+        godlike_rolls = user.get("godlike_potion_active", 0)
+
+        heavenly_rolls = user.get("heavenly_potion_active", 0)
+
+        bound_rolls = user.get("bound_potion_active", 0)
+
+
+
+        # Статус [DISABLED] если в Лимбо
+
+        disabled_tag = " [DISABLED]" if in_limbo else ""
+
+
+
+        if godlike_rolls > 0:
+
+            roll_potion_effects.append(f"  • Godlike (+1000000 luck){disabled_tag}: {godlike_rolls} rolls")
+
+        if heavenly_rolls > 0:
+
+            roll_potion_effects.append(f"  • Heavenly (+425000 luck){disabled_tag}: {heavenly_rolls} rolls")
+
+        if bound_rolls > 0:
+
+            roll_potion_effects.append(f"  • Bound (+200000 luck){disabled_tag}: {bound_rolls} rolls")
+
+
+
+        if roll_potion_effects:
+
+            active_effects += "\n\n⚡ Roll-Based Potions:"
+
+            active_effects += "\n" + "\n".join(roll_potion_effects)
+
+
+
+        bot.send_message(msg.chat.id,
+
+                         f"🎲 Rolls: {user['rolls']}\n💎 Rarest: {rare}\n🍀 Luck: x{display_luck}{biome_info}{event_info}{active_effects}",
+
+                         reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Leaderboard ---
+
+    elif text == "🏆 Leaderboard":
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("🏅 Roll Leaderboard"))
+
+        markup.row(types.KeyboardButton("💎 RNG Leaderboard"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+        bot.send_message(msg.chat.id, "Choose leaderboard:", reply_markup=markup)
+
+        return
+
+
+
+    elif text == "🏅 Roll Leaderboard":
+
+        leaderboard = [(u.get("name", "User"), u.get("rolls", 0)) for u in data["auras"].values()]
+
+        leaderboard.sort(key=lambda x: x[1], reverse=True)
+
+        leaderboard_strings = [f"{i + 1}. {name} — {rolls} rolls" for i, (name, rolls) in enumerate(leaderboard)]
+
+        user_last_command[uid] = "LeaderboardRoll"
+
+        user_pages[uid] = 0
+
+        send_paginated_list(msg.chat.id, uid, leaderboard_strings)
+
+        return
+
+
+
+    elif text == "💎 RNG Leaderboard":
+
+        leaderboard = []
+
+        for u in data["auras"].values():
+
+            rarest_aura = u.get("rarest")
+
+            if rarest_aura and rarest_aura in auras_default:
+
+                leaderboard.append((u.get("name", "User"), rarest_aura, auras_default[rarest_aura]))
+
+        leaderboard.sort(key=lambda x: x[2], reverse=True)
+
+        leaderboard_strings = [f"{i + 1}. {name} — {aura}" for i, (name, aura, _) in enumerate(leaderboard)]
+
+        user_last_command[uid] = "LeaderboardRNG"
+
+        user_pages[uid] = 0
+
+        send_paginated_list(msg.chat.id, uid, leaderboard_strings)
+
+        return
+
+
+
+    # --- Change Logs ---
+
+    elif text == "📝 Change Logs":
+
+        changelogs_text = """
+
+-=- Change Logs 0.9 -=-
+
+--- • Added New dimension (The Limbo) • ---
+
+--- • Added 8 new potions (FP123,JP,ZP,ZGP,HGP,GP) • ---
+
+--- • Changed luck system (More accurate to original Sols) • ---
+
+--- • Nerfed all gloves • ---
+
+"""
+
+        bot.send_message(msg.chat.id, changelogs_text, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Credits ---
+
+    elif text == "📜 Credits":
+
+        credits_text = """
+
+-=- CREDITS -=-
+
+@underrosta - Owner 👑, Developer 🛠  
+
+@DimdumXD - CoOwner 👑, Developer 🛠, Tester 🧪
+
+
+
+@CtsGmd - Tester 🧪
+
+@ener1337 - Tester 🧪
+
+@ra1n1337 - Tester 🧪
+
+
+
+Original Idea - Sol's RNG Team
+
+
+
+По всем вопросам по боту писать: @underrosta или @DimdumXD
+
+"""
+
+        bot.send_message(msg.chat.id, credits_text, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Potions Menu ---
+
+    elif text == "🧪 Potions":
+
+        # 1. СНАЧАЛА СОЗДАЕМ MARKUP
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+
+
+        # 2. Добавляем стандартные зелья
+
+        markup.row(types.KeyboardButton("[🧪] Heavenly Potion"))
+
+        markup.row(types.KeyboardButton("[🧪] Potion of Bound"))
+
+        markup.row(types.KeyboardButton("[🧪] Fortune Potion I"), types.KeyboardButton("[🧪] Fortune Potion II"),
+
+                   types.KeyboardButton("[🧪] Fortune Potion III"))
+
+        markup.row(types.KeyboardButton("[🧪] Jewellery Potion"), types.KeyboardButton("[🧪] Zombie Potion"))
+
+        markup.row(types.KeyboardButton("[🧪] Hades Godly Potion"), types.KeyboardButton("[🧪] Zeus Godly Potion"))
+
+        markup.row(types.KeyboardButton("[🧪] Godlike Potion"))
+
+
+
+        # 3. ТЕПЕРЬ Добавляем Unknown Potion (если условия выполнены)
+
+        # В твоем коде было 99999, в тесте ты просил 9 для проверки. Оставляю 99999 как в изначальном ТЗ.
+
+        # Если хочешь для теста 9, замени 99999 на 9.
+
+        if user.get("rolls", 0) > 99999:
+
+            if not user.get("limbo_unlocked", False):
+
+                markup.row(types.KeyboardButton("[❔] Unknown Potion"))
+
+            # Если unlocked, можно не показывать или добавить кнопку "Owned"
+
+
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+
+
+        bot.send_message(msg.chat.id, "All available potions to craft:", reply_markup=markup)
+
+        return
+
+
+
+    # unknown potion recipe
+
+    elif text == "[❔] Unknown Potion":
+
+        if user.get("rolls", 0) < 9:
+
+            bot.send_message(msg.chat.id, "❌Err404: Access denied.", reply_markup=back_menu())
+
+            return
+
+        if user.get("limbo_unlocked", False):
+
+            bot.send_message(msg.chat.id, "You have already unlocked the secrets.", reply_markup=back_menu())
+
+            return
+
+
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[❔] Unknown Potion\nAllows you to enter forbidden places...\n\nRequirements:\nx20 Undefined\nx15 Shift lock\nx10 Nihility\n\n(One-time craft. Permanent unlock.)",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft Unknown").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_unknown_potion"
+
+        return
+
+
+
+    # --- Heavenly Potion Recipe ---
+
+    elif text == "[🧪] Heavenly Potion":
+
+        # Эта проверка нужна, чтобы отличить нажатие в меню "Potions" от нажатия в "Inventory"
+
+        if user_last_command.get(uid) != "use_heavenly_potion":
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                "Heavenly Potion\n+42500000% (+425000) luck for 1 roll\n\nRequirements:\n"
+
+                "x3 Celestial\nx70 Lucky Potion\nx2 Divinus : Angel\nx5 Powered\nx15 Quartz",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+            )
+
+            user_last_command[uid] = "craft_heavenly_potion"
+
+            return
+
+
+
+    # --- Potion of Bound Recipe ---
+
+    elif text == "[🧪] Potion of Bound":
+
+        # Аналогичная проверка
+
+        if user_last_command.get(uid) != "use_bound_potion":
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                "Potion of Bound\n+20000000% (+200000) luck for 1 roll\n\nRequirements:\n"
+
+                "x2 Bounded\nx5 Permafrost\nx35 Lucky Potion\nx15 Lost Soul",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+            )
+
+            user_last_command[uid] = "craft_potion_of_bound"
+
+            return
+
+
+
+    # --- Fortune Potion I Recipe ---
+
+    elif text == "[🧪] Fortune Potion I":
+
+        if user_last_command.get(uid) != "use_fortune_potion_1":
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                "Fortune Potion I\n+200% (+2) luck for 5 minutes\n\nRequirements:\n"
+
+                "x10 Lucky Potion",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+            )
+
+            user_last_command[uid] = "craft_fortune_potion_1"
+
+            return
+
+
+
+    # --- Fortune Potion II Recipe ---
+
+    elif text == "[🧪] Fortune Potion II":
+
+        if user_last_command.get(uid) != "use_fortune_potion_2":
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                "Fortune Potion II\n+350% (+3.5) luck for 5 minutes\n\nRequirements:\n"
+
+                "x20 Lucky Potion",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+            )
+
+            user_last_command[uid] = "craft_fortune_potion_2"
+
+            return
+
+
+
+    # --- Fortune Potion III Recipe ---
+
+    elif text == "[🧪] Fortune Potion III":
+
+        if user_last_command.get(uid) != "use_fortune_potion_3":
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                "Fortune Potion III\n+500% (+5) luck for 5 minutes\n\nRequirements:\n"
+
+                "x30 Lucky Potion",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+            )
+
+            user_last_command[uid] = "craft_fortune_potion_3"
+
+            return
+
+
+
+    # --- Jewellery Potion Recipe ---
+
+    elif text == "[🧪] Jewellery Potion":
+
+        if user_last_command.get(uid) != "use_jewellery_potion":
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                "Jewellery Potion\n+600% (+6) luck for 10 minutes\n\nRequirements:\n"
+
+                "x23 Lucky Potion\nx3 Aquamarine\nx3 Sapphire\nx3 Gilded\nx3 Emerald\nx3 Ruby\nx3 Topaz",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+            )
+
+            user_last_command[uid] = "craft_jewellery_potion"
+
+            return
+
+
+
+    # --- Zombie Potion Recipe ---
+
+    elif text == "[🧪] Zombie Potion":
+
+        if user_last_command.get(uid) != "use_zombie_potion":
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                "Zombie Potion\n+800% (+8) luck for 10 minutes\n\nRequirements:\n"
+
+                "x17 Lucky Potion\nx3 Undead\nx3 Bleeding",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+            )
+
+            user_last_command[uid] = "craft_zombie_potion"
+
+            return
+
+
+
+    # --- Hades Godly Potion Recipe ---
+
+    elif text == "[🧪] Hades Godly Potion":
+
+        if user_last_command.get(uid) != "use_hades_godly_potion":
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                "Hades Godly Potion\n+1200% (+12) luck for 4 hours\n\nRequirements:\n"
+
+                "x50 Lucky Potion\nx1 Hades\nx15 Diaboli\nx12 Bleeding",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+            )
+
+            user_last_command[uid] = "craft_hades_godly_potion"
+
+            return
+
+
+
+    # --- Zeus Godly Potion Recipe ---
+
+    elif text == "[🧪] Zeus Godly Potion":
+
+        if user_last_command.get(uid) != "use_zeus_godly_potion":
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                "Zeus Godly Potion\n+1000% (+10) luck for 4 hours\n\nRequirements:\n"
+
+                "x40 Lucky Potion\nx1 Zeus\nx4 Stormal\nx30 Wind",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+            )
+
+            user_last_command[uid] = "craft_zeus_godly_potion"
+
+            return
+
+
+
+    # --- Godlike Potion Recipe ---
+
+    elif text == "[🧪] Godlike Potion":
+
+        if user_last_command.get(uid) != "use_godlike_potion":
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                "Godlike Potion\n+100000000% (+1000000) luck for 1 roll\n\nRequirements:\n"
+
+                "x2 Zeus Godly Potion\nx1 Hades Godly Potion\nx250 Lucky Potion",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+            )
+
+            user_last_command[uid] = "craft_godlike_potion"
+
+            return
+
+
+
+    # craft unknown potion
+
+    if text == "🛠 Craft Unknown" and user_last_command.get(uid) == "craft_unknown_potion":
+
+        if user.get("limbo_unlocked", False):
+
+            bot.send_message(msg.chat.id, "Already unlocked.", reply_markup=back_menu())
+
+            return
+
+
+
+        can_craft = True
+
+        reqs = {"Undefined": 20, "Shift lock": 15, "Nihility": 10}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                for a, amt in reqs.items():
+
+                    user["auras"][a] -= amt
+
+
+
+                user["limbo_unlocked"] = True  # НАВСЕГДА
+
+                # Добавляем предмет в инвентарь для использования
+
+                user.setdefault("inventory", []).append("Unknown Potion")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "👁️ You have crafted the Unknown Potion.", reply_markup=back_menu())
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ You are not ready yet...", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- CRAFT Heavenly Potion ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_heavenly_potion":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Celestial": 3, "Divinus : Angel": 2, "Powered": 5, "Quartz": 15}
+
+        item_reqs = {"Lucky Potion": 70}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+
+
+            # 1. Проверяем ауры
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            # 2. Проверяем предметы
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+
+
+            # 3. Крафт
+
+            if can_craft:
+
+                # Списываем ауры
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+
+
+                # Списываем предметы (Lucky Potion)
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                # Идем в обратном порядке, чтобы удаление не сбивало индексы (хотя тут просто по имени)
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+
+
+                # Добавляем новое зелье
+
+                user.setdefault("inventory", []).append("Heavenly Potion")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted Heavenly Potion.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- CRAFT Potion of Bound ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_potion_of_bound":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Bounded": 2, "Permafrost": 5, "Lost Soul": 15}
+
+        item_reqs = {"Lucky Potion": 35}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+
+
+                user.setdefault("inventory", []).append("Potion of Bound")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted Potion of Bound.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+        # --- CRAFT Fortune Potion I ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_fortune_potion_1":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {}
+
+        item_reqs = {"Lucky Potion": 10}
+
+        new_item_name = "Fortune Potion I"
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+                user.setdefault("inventory", []).append(new_item_name)
+
+                save_data()
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, f"✅ Successfully crafted {new_item_name}.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- CRAFT Fortune Potion II ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_fortune_potion_2":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {}
+
+        item_reqs = {"Lucky Potion": 20}
+
+        new_item_name = "Fortune Potion II"
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+                user.setdefault("inventory", []).append(new_item_name)
+
+                save_data()
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, f"✅ Successfully crafted {new_item_name}.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- CRAFT Fortune Potion III ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_fortune_potion_3":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {}
+
+        item_reqs = {"Lucky Potion": 30}
+
+        new_item_name = "Fortune Potion III"
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+                user.setdefault("inventory", []).append(new_item_name)
+
+                save_data()
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, f"✅ Successfully crafted {new_item_name}.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- CRAFT Jewellery Potion ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_jewellery_potion":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Aquamarine": 3, "Sapphire": 3, "Gilded": 3, "Emerald": 3, "Ruby": 3, "Topaz": 3}
+
+        item_reqs = {"Lucky Potion": 23}
+
+        new_item_name = "Jewellery Potion"
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+                user.setdefault("inventory", []).append(new_item_name)
+
+                save_data()
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, f"✅ Successfully crafted {new_item_name}.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- CRAFT Zombie Potion ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_zombie_potion":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Undead": 3, "Bleeding": 3}
+
+        item_reqs = {"Lucky Potion": 17}
+
+        new_item_name = "Zombie Potion"
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+                user.setdefault("inventory", []).append(new_item_name)
+
+                save_data()
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, f"✅ Successfully crafted {new_item_name}.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- CRAFT Hades Godly Potion ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_hades_godly_potion":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Hades": 1, "Diaboli": 15, "Bleeding": 12}
+
+        item_reqs = {"Lucky Potion": 50}
+
+        new_item_name = "Hades Godly Potion"
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+                user.setdefault("inventory", []).append(new_item_name)
+
+                save_data()
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, f"✅ Successfully crafted {new_item_name}.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- CRAFT Zeus Godly Potion ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_zeus_godly_potion":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Zeus": 1, "Stormal": 4, "Wind": 30}
+
+        item_reqs = {"Lucky Potion": 40}
+
+        new_item_name = "Zeus Godly Potion"
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+                user.setdefault("inventory", []).append(new_item_name)
+
+                save_data()
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, f"✅ Successfully crafted {new_item_name}.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- CRAFT Godlike Potion ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_godlike_potion":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {}
+
+        item_reqs = {"Zeus Godly Potion": 2, "Hades Godly Potion": 1, "Lucky Potion": 250}
+
+        new_item_name = "Godlike Potion"
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+                user.setdefault("inventory", []).append(new_item_name)
+
+                save_data()
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, f"✅ Successfully crafted {new_item_name}.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+
+
+    # --- Settings ---
+
+    elif text == "⚙️ Settings":
+
+        dn_status = "ON" if user.get("notify_day_night", True) else "OFF"
+
+        global_status = "ON" if user.get("notify_global", True) else "OFF"
+
+
+
+        pin_rarity = user.get("auto_pin_rarity")
+
+        pin_status = f"({pin_rarity})" if pin_rarity else "(OFF)"
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton(f"DAY/NIGHT Notifications ({dn_status})"))
+
+        markup.row(types.KeyboardButton(f"Global Messages ({global_status})"))
+
+        markup.row(types.KeyboardButton(f"Auto Pin Rarities {pin_status}"))
+
+        gif_rarity = user.get('gif_rarity_threshold', 1000000)
+
+        # Если порог < 1M, считаем что гифки выключены
+
+        gif_status = f"({gif_rarity})" if gif_rarity >= 1000000 else "(OFF)"
+
+        markup.row(types.KeyboardButton(f"Gif rarity cutscenes {gif_status}"))
+
+
+
+        # Новая логика для кнопки Auto Roll
+
+        rolls = user.get("rolls", 0)
+
+        if rolls > 9999:
+
+            # Если Auto Roll уже включен, показываем только статус ON
+
+            if user.get("auto_roll_enabled", False):
+
+                markup.row(types.KeyboardButton("Auto Roll (ON)"))
+
+            else:
+
+                markup.row(types.KeyboardButton("Auto Roll (OFF)"))
+
+        else:
+
+            markup.row(types.KeyboardButton("Auto Roll (10000 Rolls Required)"))
+
+
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+        bot.send_message(msg.chat.id, "User Settings:", reply_markup=markup)
+
+        return
+
+
+
+    elif text == "Auto Roll (10000 Rolls Required)":
+
+        bot.send_message(msg.chat.id, "10000 Rolls Required for this option!", reply_markup=main_menu(uid))
+
+        return
+
+
+
+    elif text == "Auto Roll (OFF)":
+
+        # У пользователя >9к роллов, и он хочет включить
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Enable Auto Roll"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+        bot.send_message(msg.chat.id, "Do you want to enable Auto Roll?", reply_markup=markup)
+
+        return
+
+
+
+    elif text == "Auto Roll (ON)":
+
+        # У пользователя >9к роллов, и он хочет выключить
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Disable Auto Roll"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+        bot.send_message(msg.chat.id, "Auto Roll is active. Do you want to disable it?", reply_markup=markup)
+
+        return
+
+
+
+    elif text == "Enable Auto Roll":
+
+        if user.get("rolls", 0) < 9:  # Двойная проверка
+
+            bot.send_message(msg.chat.id, "10000 Rolls Required for this option!", reply_markup=main_menu(uid))
+
+            return
+
+
+
+        user["auto_roll_enabled"] = True
+
+        save_data()
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Disable Auto Roll"))
+
+        bot.send_message(msg.chat.id, "Auto Roll enabled. Starting...", reply_markup=markup)
+
+
+
+        # Запускаем поток для этого пользователя
+
+        threading.Thread(target=auto_roll_thread, args=(uid, msg.chat.id), daemon=True).start()
+
+        return
+
+
+
+    elif text == "Disable Auto Roll":
+
+        user["auto_roll_enabled"] = False
+
+        save_data()
+
+        bot.send_message(msg.chat.id, "Auto Roll disabled.", reply_markup=main_menu(uid))
+
+        return
+
+
+
+    elif text.startswith("Auto Pin Rarities"):
+
+        user_last_command[uid] = "set_auto_pin"
+
+        save_data()
+
+        bot.send_message(msg.chat.id, "Enter the rarity you want to auto pin (e.g., 1000000).\nEnter 0 to disable.",
+
+                         reply_markup=types.ReplyKeyboardRemove())
+
+        return
+
+
+
+    elif text.startswith("Gif rarity cutscenes"):
+
+        user_last_command[uid] = "set_gif_rarity"
+
+        save_data()
+
+        bot.send_message(msg.chat.id,
+
+                         "Enter the minimum rarity that you want to see cutscenes from (e.g., 1000000).\nEnter lower than 1000000 or a large number (like 999999999999) to disable all cutscenes.",
+
+                         reply_markup=types.ReplyKeyboardRemove())
+
+        return
+
+
+
+    elif text.startswith("DAY/NIGHT Notifications"):
+
+        user = get_user_data(uid, name)
+
+        current_status = user.get("notify_day_night", True)
+
+        user["notify_day_night"] = not current_status  # Переключаем
+
+        save_data()
+
+
+
+        # Обновляем меню, чтобы показать новое состояние
+
+        dn_status = "ON" if user["notify_day_night"] else "OFF"
+
+        global_status = "ON" if user.get("notify_global", True) else "OFF"
+
+        pin_rarity = user.get("auto_pin_rarity")
+
+        pin_status = f"({pin_rarity})" if pin_rarity else "(OFF)"
+
+        gif_rarity = user.get('gif_rarity_threshold', 1000000)
+
+        gif_status = f"({gif_rarity})" if gif_rarity >= 1000000 else "(OFF)"  # <--- Добавим это для фичи №5
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton(f"DAY/NIGHT Notifications ({dn_status})"))
+
+        markup.row(types.KeyboardButton(f"Global Messages ({global_status})"))
+
+        markup.row(types.KeyboardButton(f"Auto Pin Rarities {pin_status}"))
+
+        markup.row(types.KeyboardButton(f"Gif rarity cutscenes {gif_status}"))  # <--- Добавим это для фичи №5
+
+
+
+        rolls = user.get("rolls", 0)
+
+        if rolls > 9999:
+
+            if user.get("auto_roll_enabled", False):
+
+                markup.row(types.KeyboardButton("Auto Roll (ON)"))
+
+            else:
+
+                markup.row(types.KeyboardButton("Auto Roll (OFF)"))
+
+        else:
+
+            markup.row(types.KeyboardButton("Auto Roll (25000 Rolls Required)"))
+
+
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+        bot.send_message(msg.chat.id, f"DAY/NIGHT Notifications set to {dn_status}", reply_markup=markup)
+
+        return
+
+
+
+    elif text.startswith("Global Messages"):
+
+        user = get_user_data(uid, name)
+
+        current_status = user.get("notify_global", True)
+
+        user["notify_global"] = not current_status  # Переключаем
+
+        save_data()
+
+
+
+        # Обновляем меню, чтобы показать новое состояние
+
+        dn_status = "ON" if user.get("notify_day_night", True) else "OFF"
+
+        global_status = "ON" if user["notify_global"] else "OFF"
+
+        pin_rarity = user.get("auto_pin_rarity")
+
+        pin_status = f"({pin_rarity})" if pin_rarity else "(OFF)"
+
+        gif_rarity = user.get('gif_rarity_threshold', 1000000)
+
+        gif_status = f"({gif_rarity})" if gif_rarity >= 1000000 else "(OFF)"  # <--- Добавим это для фичи №5
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton(f"DAY/NIGHT Notifications ({dn_status})"))
+
+        markup.row(types.KeyboardButton(f"Global Messages ({global_status})"))
+
+        markup.row(types.KeyboardButton(f"Auto Pin Rarities {pin_status}"))
+
+        markup.row(types.KeyboardButton(f"Gif rarity cutscenes {gif_status}"))  # <--- Добавим это для фичи №5
+
+
+
+        rolls = user.get("rolls", 0)
+
+        if rolls > 9999:
+
+            if user.get("auto_roll_enabled", False):
+
+                markup.row(types.KeyboardButton("Auto Roll (ON)"))
+
+            else:
+
+                markup.row(types.KeyboardButton("Auto Roll (OFF)"))
+
+        else:
+
+            markup.row(types.KeyboardButton("Auto Roll (25000 Rolls Required)"))
+
+
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+        bot.send_message(msg.chat.id, f"Global Messages set to {global_status}", reply_markup=markup)
+
+        return
+
+
+
+        # --- Back / Pagination ---
+
+    elif text == "⬅️ Back":
+
+        event_info = ""
+
+        if is_event_active():
+
+            event_info = f"\n\n🎉 X{EVENT_DATA['event_multiplier']} LUCK EVENT ACTIVE! 🎉\nTime left: {get_time_remaining()}"
+
+
+
+        biome_info = f"\nBIOME: {BIOME_DATA['current_biome']}"
+
+        if BIOME_DATA['current_biome'] != "Normal":
+
+            biome_info += f" (ends in: {get_biome_time_remaining()})"
+
+
+
+        bot.send_message(msg.chat.id,
+
+                         f"Sol's RNG 🎰\nTime: {'DAYTIME ☀️' if is_day else 'NIGHTTIME 🌙'}{biome_info}{event_info}",
+
+                         reply_markup=main_menu(uid)
+
+                         )
+
+        return
+
+    elif text == "⬅️ Previous page":
+
+        if uid in user_pages and user_pages[uid] > 0:
+
+            user_pages[uid] -= 1
+
+            redo_last_list(uid, msg.chat.id)
+
+        return
+
+    elif text == "➡️ Next page":
+
+        user_pages[uid] = user_pages.get(uid, 0) + 1
+
+        redo_last_list(uid, msg.chat.id)
+
+        return
+
+
+
+    # --- Lucky Potion Claim ---
+
+    elif text == "🍀 Lucky Potion spawned!":
+
+        if lucky_potion_active:
+
+            lucky_potion_active = False  # Забираем зелье
+
+            user.setdefault("inventory", [])
+
+            user["inventory"].append("Lucky Potion")
+
+            save_data()
+
+            bot.send_message(msg.chat.id, "🍀 Lucky Potion added to your Inventory.", reply_markup=main_menu(uid))
+
+        else:
+
+            bot.send_message(msg.chat.id, "There is no Lucky Potion around here...", reply_markup=main_menu(uid))
+
+        return
+
+
+
+    # --- WORKSHOP ---
+
+    if text == "⚙️ Workshop":
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        # Все предметы всегда доступны для крафта
+
+        items_tiers = [
+
+            "[T1] 🧤 Luck Glove",
+
+            "[T1] 🔥 Desire Glove",
+
+            "[T1] ☀️ Solar Device",
+
+            "[T2] ⭐ Shining Star",
+
+            "[T3] 💠 Exo Gauntlet",
+
+            "[T3] 🌪️ Windstorm Device",
+
+            "[T4] ❄️ Subzero Device",
+
+            "[T5] 🌌 Galactic Device",
+
+            "[T5] 🌋 Volcanic Device",
+
+            "[T6] 🔮 Exoflex Device",
+
+            "[T6] 🌈 Hologrammer",
+
+            "[T7] ⚡ Ragnaröker",
+
+            "[T8] ✨ Starshaper",
+
+            "[T9] 🔬 Neurolyzer",
+
+            "[T10] 🌀 Genesis Drive"
+
+        ]
+
+
+
+        for item in items_tiers:
+
+            markup.row(item)
+
+        markup.row("⬅️ Back")
+
+        bot.send_message(msg.chat.id, "Welcome to the workshop! What do you wish to craft?", reply_markup=markup)
+
+        return
+
+
+
+    # --- LUCK GLOVE ---
+
+    if text == "[T1] 🧤 Luck Glove":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T1] 🧤 Luck Glove\n+80% (+0.8) luck\n\nRequirements:\n"
+
+            "x50 Common\nx35 Uncommon\nx10 Rare\nx3 Crystallised\nx1 Sapphire",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_luckglove"
+
+        return
+
+
+
+    # --- ИЗМЕНЕНИЕ 2: Блокировка крафта ---
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_luckglove":
+
+        can_craft = True
+
+        reqs = {"Common": 50, "Uncommon": 35, "Rare": 10, "Crystallised": 3, "Sapphire": 1}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)  # Повторно получаем пользователя
+
+            for a, amt in reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                for a, amt in reqs.items():
+
+                    user["auras"][a] -= amt
+
+                user.setdefault("inventory", []).append("[T1] Luck Glove")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T1] 🧤 Luck Glove.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ Not enough materials.", reply_markup=back_menu())
+
+        return
+
+    # --- Конец ИЗМЕНЕНИЯ 2 ---
+
+
+
+    # --- DESIRE GLOVE ---
+
+    if text == "[T1] 🔥 Desire Glove":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T1] 🔥 Desire Glove\n+140% (+1.4) luck\n\nRequirements:\n"
+
+            "x20 Rage\nx10 Ruby\nx4 Diaboli\nx2 Bleeding",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_desireglove"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_desireglove":
+
+        can_craft = True
+
+        reqs = {"Rage": 20, "Ruby": 10, "Diaboli": 4, "Bleeding": 2}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                for a, amt in reqs.items():
+
+                    user["auras"][a] -= amt
+
+                user.setdefault("inventory", []).append("[T1] Desire Glove")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T1] 🔥 Desire Glove.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ Not enough materials.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- SOLAR DEVICE ---
+
+    if text == "[T1] ☀️ Solar Device":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T1] ☀️ Solar Device\n+230% (+2.3) luck\n\nRequirements:\n"
+
+            "x1 Solar\nx100 Rare\nx50 Divinus\nx300 Uncommon",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_solardevice"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_solardevice":
+
+        can_craft = True
+
+        reqs = {"Solar": 1, "Rare": 100, "Divinus": 50, "Uncommon": 300}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                for a, amt in reqs.items():
+
+                    user["auras"][a] -= amt
+
+                user.setdefault("inventory", []).append("[T1] Solar Device")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T1] ☀️ Solar Device.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ Not enough materials.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- SHINING STAR ---
+
+    if text == "[T2] ⭐ Shining Star":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T2] ⭐ Shining Star\n+200% luck (when Starfall biome: +600%)\n\nRequirements:\n"
+
+            "x2 Starlight\nx2 Star Rider\nx50 Wind",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_shiningstar"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_shiningstar":
+
+        can_craft = True
+
+        reqs = {"Starlight": 2, "Star Rider": 2, "Wind": 50}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                for a, amt in reqs.items():
+
+                    user["auras"][a] -= amt
+
+                user.setdefault("inventory", []).append("[T2] Shining Star")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T2] ⭐ Shining Star.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ Not enough materials.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- EXO GAUNTLET ---
+
+    if text == "[T3] 💠 Exo Gauntlet":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T3] 💠 Exo Gauntlet\n+350% (+3.5) luck\n\nRequirements:\n"
+
+            "x20 Gilded\nx10 Precious\nx7 Magnetic\nx3 Sidereum\nx1 Undead\nx1 Exotic",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_exogauntlet"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_exogauntlet":
+
+        can_craft = True
+
+        reqs = {"Gilded": 20, "Precious": 10, "Magnetic": 7, "Sidereum": 3, "Undead": 1, "Exotic": 1}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                for a, amt in reqs.items():
+
+                    user["auras"][a] -= amt
+
+                user.setdefault("inventory", []).append("[T3] Exo Gauntlet")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T3] 💠 Exo Gauntlet.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ Not enough materials.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- WINDSTORM DEVICE ---
+
+    if text == "[T3] 🌪️ Windstorm Device":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T3] 🌪️ Windstorm Device\n+450% (+4.5) luck\n\nRequirements:\n"
+
+            "x90 Wind\nx2 Stormal\nx2 Aquatic\nx14 Sidereum\nx28 Precious",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_windstormdevice"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_windstormdevice":
+
+        can_craft = True
+
+        reqs = {"Wind": 90, "Stormal": 2, "Aquatic": 2, "Sidereum": 14, "Precious": 28}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                for a, amt in reqs.items():
+
+                    user["auras"][a] -= amt
+
+                user.setdefault("inventory", []).append("[T3] Windstorm Device")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T3] 🌪️ Windstorm Device.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ Not enough materials.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- SUBZERO DEVICE ---
+
+    if text == "[T4] ❄️ Subzero Device":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T4] ❄️ Subzero Device\n+500% (+5) luck\n\nRequirements:\n"
+
+            "x3 Permafrost\nx1 Aquatic\nx20 Glacier",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_subzerodevice"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_subzerodevice":
+
+        can_craft = True
+
+        reqs = {"Permafrost": 3, "Aquatic": 1, "Glacier": 20}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                for a, amt in reqs.items():
+
+                    user["auras"][a] -= amt
+
+                user.setdefault("inventory", []).append("[T4] Subzero Device")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T4] ❄️ Subzero Device.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ Not enough materials.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- GALACTIC DEVICE ---
+
+    if text == "[T5] 🌌 Galactic Device":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T5] 🌌 Galactic Device\n+680% (+6.8) luck\n\nRequirements:\n"
+
+            "x1 Galaxy\nx320 Sapphire\nx30 Solar\nx100 Magnetic\nx4 Comet\nx150 Diaboli\nx2 [T1] Solar Device",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_galacticdevice"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_galacticdevice":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Galaxy": 1, "Sapphire": 320, "Solar": 30, "Magnetic": 100, "Comet": 4, "Diaboli": 150}
+
+        item_reqs = {"[T1] Solar Device": 2}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+
+
+            # 1. Check auras
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            # 2. Check items
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+
+
+            # 3. Act
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+
+
+                user.setdefault("inventory", []).append("[T5] Galactic Device")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T5] 🌌 Galactic Device.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- VOLCANIC DEVICE ---
+
+    if text == "[T5] 🌋 Volcanic Device":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T5] 🌋 Volcanic Device\n+725% (+7.25) luck\n\nRequirements:\n"
+
+            "x1 Hades\nx30 Rage : Heated\nx200 Diaboli\nx3000 Rage\nx133 Bleeding\nx3 [T1] Solar Device\nx1 [T3] Windstorm Device",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_volcanicdevice"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_volcanicdevice":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Hades": 1, "Rage : Heated": 30, "Diaboli": 200, "Rage": 3000, "Bleeding": 133}
+
+        item_reqs = {"[T1] Solar Device": 3, "[T3] Windstorm Device": 1}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+
+
+                user.setdefault("inventory", []).append("[T5] Volcanic Device")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T5] 🌋 Volcanic Device.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- EXOFLEX DEVICE ---
+
+    if text == "[T6] 🔮 Exoflex Device":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T6] 🔮 Exoflex Device\n+92х% (+9.2) luck\n\nRequirements:\n"
+
+            "x5 Arcane\nx15 Jade\nx80 Exotic\nx67 Undead\nx500 Sidereum\nx140 Starlight\nx2000 Aquamarine\nx70000 Rare\nx1 [T3] Exo Gauntlet",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_exoflexdevice"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_exoflexdevice":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Arcane": 5, "Jade": 15, "Exotic": 80, "Undead": 67, "Sidereum": 500, "Starlight": 140,
+
+                     "Aquamarine": 2000, "Rare": 70000}
+
+        item_reqs = {"[T3] Exo Gauntlet": 1}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+
+
+                user.setdefault("inventory", []).append("[T6] Exoflex Device")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T6] 🔮 Exoflex Device.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- HOLOGRAMMER ---
+
+    if text == "[T6] 🌈 Hologrammer":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T6] 🌈 Hologrammer\n+1000% (+10) luck\n\nRequirements:\n"
+
+            "x5 Virtual\nx5 Magnetic : Reverse Polarity\nx6 Twilight\nx5 Kyawthuite\nx60 Comet\nx100 Starlight\nx250 Rage : Heated\nx1000 Player\nx1350 Magnetic\nx5000 Diaboli\nx8000 Forbidden",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_hologrammer"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_hologrammer":
+
+        can_craft = True
+
+        reqs = {"Virtual": 5, "Magnetic : Reverse Polarity": 5, "Twilight": 6, "Kyawthuite": 5, "Comet": 60,
+
+                "Starlight": 100, "Rage : Heated": 250, "Player": 1000, "Magnetic": 1350, "Diaboli": 5000,
+
+                "Forbidden": 8000}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                for a, amt in reqs.items():
+
+                    user["auras"][a] -= amt
+
+                user.setdefault("inventory", []).append("[T6] Hologrammer")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T6] 🌈 Hologrammer.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ Not enough materials.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- RAGNARÖKER ---
+
+    if text == "[T7] ⚡ Ragnaröker":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T7] ⚡ Ragnaröker\n+1350% (+13.5) luck (extra +150% in Windy, Rainy or Hell)\n\nRequirements:\n"
+
+            "x7 Zeus\nx7 Hades\nx7 Poseidon\nx175 Star Rider\nx300 Solar\nx300 Lunar\nx400 Rage : Heated\nx600 Lost Soul\nx1000 Sidereum\nx4000 Ash\nx7000 Diaboli\nx50000 Rage",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_ragnaroker"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_ragnaroker":
+
+        can_craft = True
+
+        reqs = {"Zeus": 7, "Hades": 7, "Poseidon": 7, "Star Rider": 175, "Solar": 300, "Lunar": 300,
+
+                "Rage : Heated": 400, "Lost Soul": 600, "Sidereum": 1000, "Ash": 4000, "Diaboli": 7000, "Rage": 50000}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+            for a, amt in reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                for a, amt in reqs.items():
+
+                    user["auras"][a] -= amt
+
+                user.setdefault("inventory", []).append("[T7] Ragnaröker")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T7] ⚡ Ragnaröker.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ Not enough materials.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- STARSHAPER ---
+
+    if text == "[T8] ✨ Starshaper":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T8] ✨ Starshaper\n+2750% (+27.5) luck\n\nRequirements:\n"
+
+            "x2 [T5] Galactic Device\nx30 [T1] Solar Device\nx4 Starscourge\nx6 Hyper-Volt\nx6 Galaxy\nx270 Comet\nx600 Star Rider\nx3000 Solar\nx3000 Lunar\nx5000 Sidereum\nx10000 Magnetic",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_starshaper"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_starshaper":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Starscourge": 4, "Hyper-Volt": 6, "Galaxy": 6, "Comet": 270, "Star Rider": 600, "Solar": 3000,
+
+                     "Lunar": 3000, "Sidereum": 5000, "Magnetic": 10000}
+
+        item_reqs = {"[T5] Galactic Device": 2, "[T1] Solar Device": 30}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+
+
+                user.setdefault("inventory", []).append("[T8] Starshaper")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T8] ✨ Starshaper.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- NEUROLYZER ---
+
+    if text == "[T9] 🔬 Neurolyzer":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T9] 🔬 Neurolyzer\n+4525% (+45.25) luck\n\nRequirements:\n"
+
+            "x1 [T6] Hologrammer\nx5 Chromatic\nx12 Origin\nx30 Virtual\nx18 Twilight\nx50 Bounded : Unbound\nx800 Exotic\nx1200 Starlight\nx5000 Flushed\nx7500 Lost Soul",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_neurolyzer"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_neurolyzer":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Chromatic": 5, "Origin": 12, "Virtual": 30, "Twilight": 18, "Bounded : Unbound": 50,
+
+                     "Exotic": 800, "Starlight": 1200, "Flushed": 5000, "Lost Soul": 7500}
+
+        item_reqs = {"[T6] Hologrammer": 1}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+
+
+                user.setdefault("inventory", []).append("[T9] Neurolyzer")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T9] 🔬 Neurolyzer.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- GENESIS DRIVE ---
+
+    if text == "[T10] 🌀 Genesis Drive":
+
+        bot.send_message(
+
+            msg.chat.id,
+
+            "[T10] 🌀 Genesis Drive\n+6500% (+65) luck\n\nRequirements:\n"
+
+            "x1 [T9] Neurolyzer\nx2 Chromatic : Genesis\nx5 Matrix\nx10 Chromatic\nx30 Hyper-Volt\nx30 Origin\nx100 Virtual\nx600 Bounded\nx600 Aether\nx1000 Exotic\nx7500 WATT\nx10000 Powered",
+
+            reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")
+
+        )
+
+        user_last_command[uid] = "craft_genesisdrive"
+
+        return
+
+
+
+    if text == "🛠 Craft" and user_last_command.get(uid) == "craft_genesisdrive":
+
+        can_craft = True
+
+        fail_message = "❌ Not enough materials."
+
+        aura_reqs = {"Chromatic : Genesis": 2, "Matrix": 5, "Chromatic": 10, "Hyper-Volt": 30, "Origin": 30,
+
+                     "Virtual": 100, "Bounded": 600, "Aether": 600, "Exotic": 1000, "WATT": 7500, "Powered": 10000}
+
+        item_reqs = {"[T9] Neurolyzer": 1}
+
+
+
+        with data_lock:
+
+            user = get_user_data(uid, name)
+
+
+
+            for a, amt in aura_reqs.items():
+
+                if user.get("auras", {}).get(a, 0) < amt:
+
+                    can_craft = False
+
+                    break
+
+
+
+            if can_craft:
+
+                inventory_count = {}
+
+                for item in user.get("inventory", []):
+
+                    inventory_count[item] = inventory_count.get(item, 0) + 1
+
+
+
+                for item, amt in item_reqs.items():
+
+                    if inventory_count.get(item, 0) < amt:
+
+                        can_craft = False
+
+                        fail_message = f"❌ Not enough {item}."
+
+                        break
+
+
+
+            if can_craft:
+
+                for a, amt in aura_reqs.items():
+
+                    user["auras"][a] -= amt
+
+
+
+                current_inventory = user.get("inventory", [])
+
+                new_inventory = []
+
+                items_to_remove = item_reqs.copy()
+
+                for item in current_inventory:
+
+                    if item in items_to_remove and items_to_remove[item] > 0:
+
+                        items_to_remove[item] -= 1
+
+                    else:
+
+                        new_inventory.append(item)
+
+                user["inventory"] = new_inventory
+
+
+
+                user.setdefault("inventory", []).append("[T10] Genesis Drive")
+
+                save_data()
+
+
+
+        if can_craft:
+
+            bot.send_message(msg.chat.id, "✅ Successfully crafted [T10] 🌀 Genesis Drive.",
+
+                             reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("⬅️ Back"))
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, fail_message, reply_markup=back_menu())
+
+        return
+
+
+
+    # --- INVENTORY ---
+
+    if text == "🎒 Inventory":
+
+        inv = user.get("inventory", [])
+
+        if not inv:
+
+            bot.send_message(msg.chat.id, "You don't have anything in your inventory.", reply_markup=back_menu())
+
+            return
+
+
+
+        # Сортируем инвентарь по тирам
+
+        tier_order = {"[T1]": 1, "[T2]": 2, "[T3]": 3, "[T4]": 4, "[T5]": 5, "[T6]": 6, "[T7]": 7, "[T8]": 8, "[T9]": 9,
+
+                      "[T10]": 10}
+
+
+
+        def get_tier(item):
+
+            for tier in tier_order:
+
+                if item.startswith(tier):
+
+                    return tier_order[tier]
+
+            return 0  # Для зелий и других не-тир предметов
+
+
+
+        sorted_gear = sorted([item for item in inv if item in gear_items], key=get_tier)
+
+        potion_count = inv.count("Lucky Potion")
+
+        heavenly_potion_count = inv.count("Heavenly Potion")
+
+        bound_potion_count = inv.count("Potion of Bound")
+
+        fortune_1_count = inv.count("Fortune Potion I")
+
+        fortune_2_count = inv.count("Fortune Potion II")
+
+        fortune_3_count = inv.count("Fortune Potion III")
+
+        jewellery_count = inv.count("Jewellery Potion")
+
+        zombie_count = inv.count("Zombie Potion")
+
+        hades_godly_count = inv.count("Hades Godly Potion")
+
+        zeus_godly_count = inv.count("Zeus Godly Potion")
+
+        godlike_count = inv.count("Godlike Potion")
+
+
+
+        # Считаем количество каждого предмета
+
+        item_counts = {}
+
+        for item in sorted_gear:
+
+            item_counts[item] = item_counts.get(item, 0) + 1
+
+
+
+        msg_inv = "Your inventory:\n"
+
+        if item_counts:
+
+            msg_inv += "\n".join([f"{item} x{count}" for item, count in item_counts.items()])
+
+
+
+        if potion_count > 0:
+
+            item_counts["Lucky Potion"] = potion_count
+
+            msg_inv += f"\n\nLucky Potion x{potion_count}"
+
+        if heavenly_potion_count > 0:
+
+            item_counts["Heavenly Potion"] = heavenly_potion_count
+
+            msg_inv += f"\nHeavenly Potion x{heavenly_potion_count}"
+
+        if bound_potion_count > 0:
+
+            item_counts["Potion of Bound"] = bound_potion_count
+
+            msg_inv += f"\nPotion of Bound x{bound_potion_count}"
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+
+
+        # Добавляем кнопки для каждого уникального предмета
+
+        unique_gear = list(item_counts.keys())
+
+        if "Lucky Potion" in unique_gear:
+
+            unique_gear.remove("Lucky Potion")
+
+        if "Heavenly Potion" in unique_gear:
+
+            unique_gear.remove("Heavenly Potion")
+
+        if "Potion of Bound" in unique_gear:
+
+            unique_gear.remove("Potion of Bound")
+
+        if fortune_1_count > 0:
+
+            item_counts["Fortune Potion I"] = fortune_1_count
+
+            msg_inv += f"\nFortune Potion I x{fortune_1_count}"
+
+        if fortune_2_count > 0:
+
+            item_counts["Fortune Potion II"] = fortune_2_count
+
+            msg_inv += f"\nFortune Potion II x{fortune_2_count}"
+
+        if fortune_3_count > 0:
+
+            item_counts["Fortune Potion III"] = fortune_3_count
+
+            msg_inv += f"\nFortune Potion III x{fortune_3_count}"
+
+        if jewellery_count > 0:
+
+            item_counts["Jewellery Potion"] = jewellery_count
+
+            msg_inv += f"\nJewellery Potion x{jewellery_count}"
+
+        if zombie_count > 0:
+
+            item_counts["Zombie Potion"] = zombie_count
+
+            msg_inv += f"\nZombie Potion x{zombie_count}"
+
+        if hades_godly_count > 0:
+
+            item_counts["Hades Godly Potion"] = hades_godly_count
+
+            msg_inv += f"\nHades Godly Potion x{hades_godly_count}"
+
+        if zeus_godly_count > 0:
+
+            item_counts["Zeus Godly Potion"] = zeus_godly_count
+
+            msg_inv += f"\nZeus Godly Potion x{zeus_godly_count}"
+
+        if godlike_count > 0:
+
+            item_counts["Godlike Potion"] = godlike_count
+
+            msg_inv += f"\nGodlike Potion x{godlike_count}"
+
+
+
+        new_potions_list = [
+
+            "Fortune Potion I", "Fortune Potion II", "Fortune Potion III",
+
+            "Jewellery Potion", "Zombie Potion", "Hades Godly Potion",
+
+            "Zeus Godly Potion", "Godlike Potion"
+
+        ]
+
+        for potion_name in new_potions_list:
+
+            if potion_name in unique_gear:
+
+                unique_gear.remove(potion_name)
+
+
+
+        for i in range(0, len(unique_gear), 2):
+
+            row = unique_gear[i:i + 2]
+
+            markup.row(*row)
+
+
+
+        if potion_count > 0:
+
+            markup.row(types.KeyboardButton("Lucky Potion"))
+
+        if heavenly_potion_count > 0:
+
+            markup.row(types.KeyboardButton("Heavenly Potion"))
+
+        if bound_potion_count > 0:
+
+            markup.row(types.KeyboardButton("Potion of Bound"))
+
+        if fortune_1_count > 0:
+
+            markup.row(types.KeyboardButton("Fortune Potion I"))
+
+        if fortune_2_count > 0:
+
+            markup.row(types.KeyboardButton("Fortune Potion II"))
+
+        if fortune_3_count > 0:
+
+            markup.row(types.KeyboardButton("Fortune Potion III"))
+
+        if jewellery_count > 0:
+
+            markup.row(types.KeyboardButton("Jewellery Potion"))
+
+        if zombie_count > 0:
+
+            markup.row(types.KeyboardButton("Zombie Potion"))
+
+        if hades_godly_count > 0:
+
+            markup.row(types.KeyboardButton("Hades Godly Potion"))
+
+        if zeus_godly_count > 0:
+
+            markup.row(types.KeyboardButton("Zeus Godly Potion"))
+
+        if godlike_count > 0:
+
+            markup.row(types.KeyboardButton("Godlike Potion"))
+
+
+
+        unknown_count = inv.count("Unknown Potion")
+
+        if unknown_count > 0:
+
+            msg_inv += f"\n\n[❔] Unknown Potion x{unknown_count}"
+
+            markup.row(types.KeyboardButton("Unknown Potion"))
+
+
+
+        markup.row("⬅️ Back")
+
+        bot.send_message(msg.chat.id, msg_inv, reply_markup=markup)
+
+        return
+
+
+
+    # --- Обработка нажатия на Unknown Potion в инвентаре ---
+
+    if text == "Unknown Potion":
+
+        # Проверяем наличие
+
+        if "Unknown Potion" not in user.get("inventory", []):
+
+            bot.send_message(msg.chat.id, "You don't have this item.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True).row("Use Unknown").row("⬅️ Back")
+
+        bot.send_message(msg.chat.id, "Do you want to use Unknown Potion?", reply_markup=markup)
+
+        user_last_command[uid] = "use_unknown_potion"
+
+        return
+
+
+
+    # --- Обработка кнопки Use Unknown ---
+
+    if text == "Use Unknown" and user_last_command.get(uid) == "use_unknown_potion":
+
+        # ПОВТОРНАЯ Проверка наличия перед использованием
+
+        if "Unknown Potion" in user.get("inventory", []):
+
+            # Проверяем, не активен ли уже бафф
+
+            unknown_end_str = user.get("unknown_potion_end")
+
+            if unknown_end_str:
+
+                try:
+
+                    if datetime.fromisoformat(unknown_end_str) > datetime.now():
+
+                        bot.send_message(msg.chat.id, "You already feel strange...", reply_markup=back_menu())
+
+                        return
+
+                except:
+
+                    pass
+
+
+
+            # Активируем бафф
+
+            user["unknown_potion_end"] = (datetime.now() + timedelta(minutes=2)).isoformat()
+
+            save_data()
+
+            bot.send_message(msg.chat.id, "You drink the potion...\nYou feel detached from reality for 2 minutes.",
+
+                             reply_markup=back_menu())
+
+        else:
+
+            bot.send_message(msg.chat.id, "❌ You don't have the Unknown Potion!", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Lucky Potion ---
+
+    if text == "Lucky Potion":
+
+        potion_count = user.get("inventory", []).count("Lucky Potion")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any Lucky Potions.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))  # <--- НОВАЯ КНОПКА
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+        bot.send_message(msg.chat.id, "Lucky Potion\n+100% luck for 1 minute", reply_markup=markup)
+
+        user_last_command[uid] = "use_potion"  # Это для "Use" и "Use All"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_potion":
+
+        if "Lucky Potion" in user.get("inventory", []):
+
+            user["inventory"].remove("Lucky Potion")
+
+            apply_potion_effect(user, 1)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, "You used 1 Lucky Potion. +1 Luck for 1 minute.", reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_potion":
+
+        potion_count = user.get("inventory", []).count("Lucky Potion")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Lucky Potion"]
+
+            apply_potion_effect(user, potion_count)
+
+            save_data()
+
+            bot.send_message(msg.chat.id,
+
+                             f"You used {potion_count} Lucky Potions. +1 Luck for {potion_count} minutes.",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Heavenly Potion (from Inventory) ---
+
+    if text == "Heavenly Potion":
+
+        potion_count = user.get("inventory", []).count("Heavenly Potion")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any Heavenly Potions.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))  # <--- НОВАЯ КНОПКА
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+        bot.send_message(msg.chat.id, "Heavenly Potion\n+42500000% (+425000) luck for 1 roll", reply_markup=markup)
+
+        user_last_command[uid] = "use_heavenly_potion"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_heavenly_potion":
+
+        if "Heavenly Potion" in user.get("inventory", []):
+
+            user["inventory"].remove("Heavenly Potion")
+
+            user["heavenly_potion_active"] = user.get("heavenly_potion_active", 0) + 1
+
+            save_data()
+
+            bot.send_message(msg.chat.id, "You used 1 Heavenly Potion. +425000 luck for 1 roll.",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_heavenly_potion":
+
+        potion_count = user.get("inventory", []).count("Heavenly Potion")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Heavenly Potion"]
+
+            user["heavenly_potion_active"] = user.get("heavenly_potion_active", 0) + potion_count
+
+            save_data()
+
+            bot.send_message(msg.chat.id,
+
+                             f"You used {potion_count} Heavenly Potions. +425000 luck for {potion_count} rolls.",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Potion of Bound (from Inventory) ---
+
+    if text == "Potion of Bound":
+
+        potion_count = user.get("inventory", []).count("Potion of Bound")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any Potions of Bound.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))  # <--- НОВАЯ КНОПКА
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+        bot.send_message(msg.chat.id, "Potion of Bound\n+20000000% (+200000) luck for 1 roll", reply_markup=markup)
+
+        user_last_command[uid] = "use_bound_potion"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_bound_potion":
+
+        if "Potion of Bound" in user.get("inventory", []):
+
+            user["inventory"].remove("Potion of Bound")
+
+            user["bound_potion_active"] = user.get("bound_potion_active", 0) + 1
+
+            save_data()
+
+            bot.send_message(msg.chat.id, "You used 1 Potion of Bound. +200000 luck for 1 roll.",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_bound_potion":
+
+        potion_count = user.get("inventory", []).count("Potion of Bound")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Potion of Bound"]
+
+            user["bound_potion_active"] = user.get("bound_potion_active", 0) + potion_count
+
+            save_data()
+
+            bot.send_message(msg.chat.id,
+
+                             f"You used {potion_count} Potions of Bound. +200000 luck for {potion_count} rolls.",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Fortune Potion I (from Inventory) ---
+
+    if text == "Fortune Potion I":
+
+        potion_count = user.get("inventory", []).count("Fortune Potion I")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+
+
+        bot.send_message(msg.chat.id, "Fortune Potion I\n+200% (+2) luck for 5 minutes", reply_markup=markup)
+
+        user_last_command[uid] = "use_fortune_potion_1"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_fortune_potion_1":
+
+        if "Fortune Potion I" in user.get("inventory", []):
+
+            user["inventory"].remove("Fortune Potion I")
+
+            # +2 luck for 5 minutes (300 seconds)
+
+            response_msg = apply_timed_potion(user, 2.0, 300)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_fortune_potion_1":
+
+        potion_count = user.get("inventory", []).count("Fortune Potion I")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Fortune Potion I"]
+
+            # +2 luck, 5 min (300s) per potion
+
+            response_msg = apply_timed_potion(user, 2.0, 300 * potion_count)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, f"Used {potion_count} Fortune Potion I. {response_msg}",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Fortune Potion II (from Inventory) ---
+
+    if text == "Fortune Potion II":
+
+        potion_count = user.get("inventory", []).count("Fortune Potion II")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+
+
+        bot.send_message(msg.chat.id, "Fortune Potion II\n+350% (+3.5) luck for 5 minutes", reply_markup=markup)
+
+        user_last_command[uid] = "use_fortune_potion_2"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_fortune_potion_2":
+
+        if "Fortune Potion II" in user.get("inventory", []):
+
+            user["inventory"].remove("Fortune Potion II")
+
+            # +3.5 luck for 5 minutes (300 seconds)
+
+            response_msg = apply_timed_potion(user, 3.5, 300)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_fortune_potion_2":
+
+        potion_count = user.get("inventory", []).count("Fortune Potion II")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Fortune Potion II"]
+
+            response_msg = apply_timed_potion(user, 3.5, 300 * potion_count)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, f"Used {potion_count} Fortune Potion II. {response_msg}",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Fortune Potion III (from Inventory) ---
+
+    if text == "Fortune Potion III":
+
+        potion_count = user.get("inventory", []).count("Fortune Potion III")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+
+
+        bot.send_message(msg.chat.id, "Fortune Potion III\n+500% (+5) luck for 5 minutes", reply_markup=markup)
+
+        user_last_command[uid] = "use_fortune_potion_3"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_fortune_potion_3":
+
+        if "Fortune Potion III" in user.get("inventory", []):
+
+            user["inventory"].remove("Fortune Potion III")
+
+            # +5 luck for 5 minutes (300 seconds)
+
+            response_msg = apply_timed_potion(user, 5.0, 300)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_fortune_potion_3":
+
+        potion_count = user.get("inventory", []).count("Fortune Potion III")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Fortune Potion III"]
+
+            response_msg = apply_timed_potion(user, 5.0, 300 * potion_count)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, f"Used {potion_count} Fortune Potion III. {response_msg}",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Jewellery Potion (from Inventory) ---
+
+    if text == "Jewellery Potion":
+
+        potion_count = user.get("inventory", []).count("Jewellery Potion")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+
+
+        bot.send_message(msg.chat.id, "Jewellery Potion\n+600% (+6) luck for 10 minutes", reply_markup=markup)
+
+        user_last_command[uid] = "use_jewellery_potion"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_jewellery_potion":
+
+        if "Jewellery Potion" in user.get("inventory", []):
+
+            user["inventory"].remove("Jewellery Potion")
+
+            # +6 luck for 10 minutes (600 seconds)
+
+            response_msg = apply_timed_potion(user, 6.0, 600)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_jewellery_potion":
+
+        potion_count = user.get("inventory", []).count("Jewellery Potion")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Jewellery Potion"]
+
+            response_msg = apply_timed_potion(user, 6.0, 600 * potion_count)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, f"Used {potion_count} Jewellery Potion. {response_msg}",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Zombie Potion (from Inventory) ---
+
+    if text == "Zombie Potion":
+
+        potion_count = user.get("inventory", []).count("Zombie Potion")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+
+
+        bot.send_message(msg.chat.id, "Zombie Potion\n+800% (+8) luck for 10 minutes", reply_markup=markup)
+
+        user_last_command[uid] = "use_zombie_potion"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_zombie_potion":
+
+        if "Zombie Potion" in user.get("inventory", []):
+
+            user["inventory"].remove("Zombie Potion")
+
+            # +8 luck for 10 minutes (600 seconds)
+
+            response_msg = apply_timed_potion(user, 8.0, 600)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_zombie_potion":
+
+        potion_count = user.get("inventory", []).count("Zombie Potion")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Zombie Potion"]
+
+            response_msg = apply_timed_potion(user, 8.0, 600 * potion_count)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, f"Used {potion_count} Zombie Potion. {response_msg}",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Hades Godly Potion (from Inventory) ---
+
+    if text == "Hades Godly Potion":
+
+        potion_count = user.get("inventory", []).count("Hades Godly Potion")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+
+
+        bot.send_message(msg.chat.id, "Hades Godly Potion\n+1200% (+12) luck for 4 hours", reply_markup=markup)
+
+        user_last_command[uid] = "use_hades_godly_potion"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_hades_godly_potion":
+
+        if "Hades Godly Potion" in user.get("inventory", []):
+
+            user["inventory"].remove("Hades Godly Potion")
+
+            # +12 luck for 4 hours (14400 seconds)
+
+            response_msg = apply_timed_potion(user, 12.0, 14400)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_hades_godly_potion":
+
+        potion_count = user.get("inventory", []).count("Hades Godly Potion")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Hades Godly Potion"]
+
+            response_msg = apply_timed_potion(user, 12.0, 14400 * potion_count)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, f"Used {potion_count} Hades Godly Potion. {response_msg}",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Zeus Godly Potion (from Inventory) ---
+
+    if text == "Zeus Godly Potion":
+
+        potion_count = user.get("inventory", []).count("Zeus Godly Potion")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+
+
+        bot.send_message(msg.chat.id, "Zeus Godly Potion\n+1000% (+10) luck for 4 hours", reply_markup=markup)
+
+        user_last_command[uid] = "use_zeus_godly_potion"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_zeus_godly_potion":
+
+        if "Zeus Godly Potion" in user.get("inventory", []):
+
+            user["inventory"].remove("Zeus Godly Potion")
+
+            # +10 luck for 4 hours (14400 seconds)
+
+            response_msg = apply_timed_potion(user, 10.0, 14400)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_zeus_godly_potion":
+
+        potion_count = user.get("inventory", []).count("Zeus Godly Potion")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Zeus Godly Potion"]
+
+            response_msg = apply_timed_potion(user, 10.0, 14400 * potion_count)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, f"Used {potion_count} Zeus Godly Potion. {response_msg}",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- Godlike Potion (from Inventory) ---
+
+    if text == "Godlike Potion":
+
+        potion_count = user.get("inventory", []).count("Godlike Potion")
+
+        if potion_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have any Godlike Potions.", reply_markup=back_menu())
+
+            return
+
+
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+        markup.row(types.KeyboardButton("Use"))
+
+        if potion_count > 1:
+
+            markup.row(types.KeyboardButton("Use All"))
+
+            markup.row(types.KeyboardButton("Use amount"))
+
+        markup.row(types.KeyboardButton("⬅️ Back"))
+
+        bot.send_message(msg.chat.id, "Godlike Potion\n+100000000% (+1000000) luck for 1 roll", reply_markup=markup)
+
+        user_last_command[uid] = "use_godlike_potion"
+
+        return
+
+
+
+    if text == "Use" and user_last_command.get(uid) == "use_godlike_potion":
+
+        if "Godlike Potion" in user.get("inventory", []):
+
+            user["inventory"].remove("Godlike Potion")
+
+            user["godlike_potion_active"] = user.get("godlike_potion_active", 0) + 1
+
+            save_data()
+
+            bot.send_message(msg.chat.id, "You used 1 Godlike Potion. +1000000 luck for 1 roll.",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    if text == "Use All" and user_last_command.get(uid) == "use_godlike_potion":
+
+        potion_count = user.get("inventory", []).count("Godlike Potion")
+
+        if potion_count > 0:
+
+            user["inventory"] = [item for item in user["inventory"] if item != "Godlike Potion"]
+
+            user["godlike_potion_active"] = user.get("godlike_potion_active", 0) + potion_count
+
+            save_data()
+
+            bot.send_message(msg.chat.id,
+
+                             f"You used {potion_count} Godlike Potions. +1000000 luck for {potion_count} rolls.",
+
+                             reply_markup=back_menu())
+
+            user_last_command[uid] = None
+
+        else:
+
+            bot.send_message(msg.chat.id, "You don't have any potions.", reply_markup=back_menu())
+
+        return
+
+
+
+    # --- EQUIP ITEMS (Checking from inventory) ---
+
+    if text in gear_items:
+
+        # Проверяем, есть ли хотя бы один такой предмет в инвентаре
+
+        item_count = sum(1 for item in user.get("inventory", []) if item == text)
+
+        if item_count == 0:
+
+            bot.send_message(msg.chat.id, "You don't have this it[em.", reply_markup=back_menu())
+
+            return
+
+
+
+        if text in user.get("equipped", []):
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                f"Do you want to unequip {text}?",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row(f"❌ Unequip {text}").row("⬅️ Back")
+
+            )
+
+        else:
+
+            bot.send_message(
+
+                msg.chat.id,
+
+                f"Do you want to equip {text}?",
+
+                reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row(f"✅ Equip {text}").row("⬅️ Back")
+
+            )
+
+        return
+
+
+
+    # --- EQUIP / UNEQUIP (Action) ---
+
+    if text.startswith("✅ Equip "):
+
+        item = text.replace("✅ Equip ", "")
+
+        if text.startswith("✅ Equip "):
+
+            item = text.replace("✅ Equip ", "")
+
+
+
+        # --- НАЧАЛО ФИКСА ---
+
+        # Проверяем, есть ли у пользователя этот предмет в инвентаре
+
+        if item not in user.get("inventory", []):
+
+            bot.send_message(msg.chat.id, f"❌ You don't have {item} in your inventory.", reply_markup=main_menu(uid))
+
+            return  # Выходим, не давая экипировать
+
+        # --- КОНЕЦ ФИКСА ---
+
+
+
+        if "equipped" not in user:
+
+            user["equipped"] = []
+
+        if "equipped" not in user:
+
+            user["equipped"] = []
+
+
+
+        # Проверяем, есть ли уже экипированная перчатка
+
+        equipped_glove = next((g for g in gear_items if g in user.get("equipped", [])), None)
+
+
+
+        # Если уже надета другая перчатка — снимаем её
+
+        if equipped_glove and equipped_glove != item:
+
+            user["equipped"].remove(equipped_glove)
+
+            bot.send_message(msg.chat.id, f"⚠️ {equipped_glove} has been unequipped.")
+
+
+
+        # Экипируем новую
+
+        if item not in user["equipped"]:
+
+            user["equipped"].append(item)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, f"✅ You equipped {item}!", reply_markup=back_menu())
+
+        return
+
+
+
+    if text.startswith("❌ Unequip "):
+
+        item = text.replace("❌ Unequip ", "")
+
+        if item in user.get("equipped", []):
+
+            user["equipped"].remove(item)
+
+            save_data()
+
+            bot.send_message(msg.chat.id, f"You unequipped {item}.", reply_markup=back_menu())
+
+        return
+
+
+
+
+
+def console_loop():
+
+    while True:
+
+        cmd = input().strip()
+
+        if cmd == "end":
+
+            Whyturnof = input("Причина")
+
+            notify_all_users(f"🔴 Bot offline\nПричина: {Whyturnof}", message_type="default")
+
+            print("Shutting down... Saving data.")
+
+            save_data()
+
+            print("Data saved. Stopping bot polling.")
+
+            bot.stop_polling()
+
+            break
+
+
+
+
+
+threading.Thread(target=console_loop, daemon=True).start()
+
+
+
+# Запускаем проверку Auto Roll в отдельном потоке, чтобы не блокировать старт
+
+threading.Thread(target=restart_auto_rollers, daemon=True).start()
+
+
+
+while True:
+
+    try:
+
+        bot.polling(non_stop=True, interval=0)
+
+
+
+        # Если bot.stop_polling() был вызван, bot.polling() завершится
+
+        # и мы окажемся здесь.
+
+        print("Polling stopped gracefully.")
+
+        break  # <--- ДОБАВЛЕНО: Выходим из цикла, чтобы скрипт завершился
+
+
+
+    except requests .exceptions.ReadTimeout:
+
+        print("requests.exceptions.ReadTimeout, sleeping for 5s")
+
+        time.sleep(2)
+
+    except requests.exceptions.ConnectionError:
+
+        print("requests.exceptions.ConnectionError, sleeping for 5s")
+
+        time.sleep(2)
+
+    except Exception as e:
+
+        print(f"ERROR: Unhandled exception in polling loop: {e}")
+
+        time.sleep(5)  # Спим дольше при неизвестных ошибках
+
+
+
+print("Bot shut down complete.")  # Добавлено для ясности
