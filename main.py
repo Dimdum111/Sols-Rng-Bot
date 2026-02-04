@@ -1,5 +1,4 @@
-# Тех обнова 0.95! Перенес все что внизу в Config.py. код стал легче! (02:20)
-# To-do: обновить надписи при старте, конце, и ошибки. и сократить код.. все я спать
+# Bot version: 0.95
 from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, gear_items, luck_bonuses
 import telebot
 from telebot import types
