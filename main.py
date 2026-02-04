@@ -12,20 +12,14 @@ import math
 import requests
 from datetime import datetime, timedelta
 LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен бота В который кидается какой админ команду узнул
-TOKEN = "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8" # Основной бот
-
+TOKEN = "7965336094:AAE0uvd5kp7-FZQs0TtmF3mvj51S-H1iQpA" # Основной бот
+# "5221898690", "5158628471", "5710564708" ener and kot testosteron and rain
 bot = telebot.TeleBot(TOKEN)
 
-
-
 USER_DATA_FILE = "users_data_lines.json"
-
 SAVE_FILE = "global_settings.json"
-
 EVENT_FILE = "event_data.json"
-
 BIOME_FILE = "biome_data.json"
-
 PAGE_SIZE = 20
 
 admin_ids = ["5298923430", "1876839608"]
@@ -63,12 +57,6 @@ def log_admin_action(admin_msg, action_text): # Логирует действи�
                     print(f"Ошибка отправки через лог-бота пользователю {user_id}: {e}")
 
         threading.Thread(target=send_to_all, daemon=True).start()
-
-
-
-# , "5221898690", "5158628471", "5710564708" ener and kot testosteron and rain
-
-
 
 # Загрузка данных события
 
@@ -464,7 +452,7 @@ def save_data():
 
 
 
-AUTOSAVE_INTERVAL = 20  # Сохранять каждые 20 секунд
+AUTOSAVE_INTERVAL = 600  # Сохранять каждые 10 мин
 
 
 
@@ -5650,11 +5638,12 @@ def handle(msg):
         | Auras, biomes, gears, and many others now in Config.py 🐍
         # 🏆 And most important in this category:
         | Switched to GitHub! 🔒
-        # We can now do the code without needing to sent over the file. this increases speed of development!
+        # We can now do the code without needing to sent over the file. this increases speed of development!    
         -=-=-=-
         ⚙️ Technical updates:
         -=-=-=-
         | Updated [Bot offline]. Now its more user-friendly, and Readable! ✍️
+        | Optimized bot a little bit 😄
         ??? 🤫:
         | Reveals Tomorrow..
         # Dont expect something big!
@@ -5678,23 +5667,16 @@ def handle(msg):
 
 -=- CREDITS -=-
 
+=-Main Devs-=
 @underrosta - Owner 👑, Developer 🛠  
-
 @DimdumXD - CoOwner 👑, Developer 🛠, Tester 🧪
 
-
-
+=-Testers-=
 @CtsGmd - Tester 🧪
-
 @ener1337 - Tester 🧪
-
 @ra1n1337 - Tester 🧪
 
-
-
-Original Idea - Sol's RNG Team
-
-
+Original Idea - Sol's RNG Team 
 
 По всем вопросам по боту писать: @underrosta или @DimdumXD
 
@@ -10331,15 +10313,9 @@ while True:
 
         bot.polling(non_stop=True, interval=0)
 
-
-
-        # Если bot.stop_polling() был вызван, bot.polling() завершится
-
-        # и мы окажемся здесь.
-
         print("[✓] Polling stopped gracefully.")
 
-        break  # <--- ДОБАВЛЕНО: Выходим из цикла, чтобы скрипт завершился
+        break  # Выходим из цикла, чтобы скрипт завершился
 
 
 

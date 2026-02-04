@@ -328,7 +328,7 @@ auras = {
 
     "⭐⭐⭐": 10000,
 
-    "Dreammetric": 520000000
+    "Dreammetric": 520000000,
 
 }
 
