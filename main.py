@@ -256,7 +256,7 @@ if "auras" not in data:
 
 if os.path.exists(USER_DATA_FILE):
 
-    print(f"Loading user data (JSON Lines) from {USER_DATA_FILE}...")
+    print(f"[💾] Loading users data from {USER_DATA_FILE}...")
 
     try:
 
@@ -306,7 +306,7 @@ if os.path.exists(USER_DATA_FILE):
 
 
 
-        print(f"Successfully loaded {loaded_users_count} users.")
+        print(f"[✓] Successfully loaded {loaded_users_count} users.")
 
 
 
@@ -474,7 +474,7 @@ def autosave_loop():
 
     """Периодически сохраняет все данные."""
 
-    print("[Autosave] Autosave thread started.")
+    print("[📂] Autosave thread started.")
 
     while True:
 
@@ -1722,7 +1722,7 @@ def auto_roll_thread(user_id, chat_id):
 
 def restart_auto_rollers():
 
-    print("Checking for active auto-rollers...")
+    print("[🎲] Checking for active auto-rollers...")
 
     with data_lock:
 
@@ -5644,19 +5644,25 @@ def handle(msg):
 
     elif text == "📝 Change Logs":
 
-        changelogs_text = """
-
--=- Change Logs 0.9 -=-
-
---- • Added New dimension (The Limbo) • ---
-
---- • Added 8 new potions (FP123,JP,ZP,ZGP,HGP,GP) • ---
-
---- • Changed luck system (More accurate to original Sols) • ---
-
---- • Nerfed all gloves • ---
-
-"""
+        changelogs_text = """-=- Update 0.95 -=- \n
+        🛠 Developer stuff:
+        | Improved Console output 📃
+        | Auras, biomes, gears, and many others now in Config.py 🐍
+        # 🏆 And most important in this category:
+        | Switched to GitHub! 🔒
+        # We can now do the code without needing to sent over the file. this increases speed of development!
+        -=-=-=-
+        ⚙️ Technical updates:
+        -=-=-=-
+        | Updated [Bot offline]. Now its more user-friendly, and Readable! ✍️
+        ??? 🤫:
+        | Reveals Tomorrow..
+        # Dont expect something big!
+        
+        📰 NEXT UPDATE GOALS:
+        | Fix the luck 🍀
+        | Add every aura from Original Sols rng to Sols rng bot. ⚖️
+        | Add every cutscene to that aura 🌠"""
 
         bot.send_message(msg.chat.id, changelogs_text, reply_markup=back_menu())
 
@@ -10288,15 +10294,18 @@ def console_loop():
 
         if cmd == "end":
 
-            Whyturnof = input("Причина")
+            Whyturnof = input("[❓] Shutdown Reason (or leave empty): ")
 
-            notify_all_users(f"🔴 Bot offline\nПричина: {Whyturnof}", message_type="default")
+            notify_all_users("━━━━━━━━━━━━━━━\n"
+            "🔴 BOT OFFLINE\n"
+            f"💬 Reason: {Whyturnof}\n"
+            "━━━━━━━━━━━━━━━", message_type="default")
 
-            print("Shutting down... Saving data.")
+            print("\n[✓] Shutting down... Saving data.")
 
             save_data()
 
-            print("Data saved. Stopping bot polling.")
+            print("[✓] Data saved. Stopping bot polling.")
 
             bot.stop_polling()
 
@@ -10328,7 +10337,7 @@ while True:
 
         # и мы окажемся здесь.
 
-        print("Polling stopped gracefully.")
+        print("[✓] Polling stopped gracefully.")
 
         break  # <--- ДОБАВЛЕНО: Выходим из цикла, чтобы скрипт завершился
 
@@ -10336,22 +10345,22 @@ while True:
 
     except requests .exceptions.ReadTimeout:
 
-        print("requests.exceptions.ReadTimeout, sleeping for 5s")
+        print("[⚠️] Read Timeout. Waiting for [60s]")
 
-        time.sleep(2)
+        time.sleep(60)
 
     except requests.exceptions.ConnectionError:
 
-        print("requests.exceptions.ConnectionError, sleeping for 5s")
+        print("[⚠️] Connection Error. Waiting for [60s]")
 
-        time.sleep(2)
+        time.sleep(60)
 
     except Exception as e:
 
-        print(f"ERROR: Unhandled exception in polling loop: {e}")
+        print(f"[❌] Critical error. {e}")
 
         time.sleep(5)  # Спим дольше при неизвестных ошибках
 
 
 
-print("Bot shut down complete.")  # Добавлено для ясности
+print("[✓] Bot shut down complete.")  # Добавлено для ясности
