@@ -1,4 +1,4 @@
-# Bot version: 0.95
+# Bot version: 0.95.1
 from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, gear_items, luck_bonuses
 import telebot
 from telebot import types
@@ -102,10 +102,7 @@ def save_event_data():
     with open(EVENT_FILE, "w", encoding="utf-8") as f:
 
         json.dump(event_data_to_save, f, ensure_ascii=False)
-
-
-
-
+        
 
 # Загрузка данных биома
 
@@ -301,11 +298,9 @@ if os.path.exists(USER_DATA_FILE):
 
         # Если не смогли даже открыть файл (например, проблемы с правами)
 
-        print(f"CRITICAL ERROR: Failed to open or read {USER_DATA_FILE}. All user data might be missing!")
+        print(f"[⚠️⚠️⚠️] CRITICAL ERROR: Failed to open or read {USER_DATA_FILE}. All user data might be missing!!")
 
-        print(f"Error: {e}")
-
-        # data["auras"] остается пустым, но бот не падает
+        print(f"[⚠️] Error: {e}")
 
 
 
@@ -314,12 +309,7 @@ else:
     print(f"User data file {USER_DATA_FILE} not found. Starting with empty user data.")
 
     data = {"auras": {}}
-
-
-
-# data_lock = threading.Lock() # <--- ИЗМЕНЕНИЕ 1: Заменено на RLock
-
-# (Строка ~557)
+    
 
 data_lock = threading.RLock()
 
@@ -761,10 +751,6 @@ def roll_aura(effective_luck, user):
 
             if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
 
-
-
-            # --- ФИКС ДЛЯ NULL БИОМА ---
-
             # Если снаружи Null биом, в Лимбо он не должен давать множитель x1000
 
             if current_biome == "Null":
@@ -774,8 +760,6 @@ def roll_aura(effective_luck, user):
             else:
 
                 biome_multiplier = get_biome_multiplier(aura)
-
-            # ---------------------------
 
 
 
@@ -841,10 +825,6 @@ def roll_aura(effective_luck, user):
 
         weight = 1.0 / final_rarity
 
-
-
-        # --- ИСПРАВЛЕНИЕ: Сохраняем adjusted_rarity, а не base_chance ---
-
         candidates.append((aura, adjusted_rarity, weight))
 
         total_weight += weight
@@ -852,8 +832,6 @@ def roll_aura(effective_luck, user):
 
 
     if not candidates:
-
-        # --- ИСПРАВЛЕНИЕ: max -> min. Если все ауры "слишком легкие", роллим самую частую ---
 
         best = min(auras.items(), key=lambda x: x[1])
 
@@ -867,23 +845,13 @@ def roll_aura(effective_luck, user):
 
     cumulative = 0
 
-
-
-    # --- ИСПРАВЛЕНИЕ: Получаем adjusted_rarity из списка ---
-
     for aura, adjusted_rarity, weight in candidates:
 
         cumulative += weight
 
         if rnd <= cumulative:
 
-            # --- ИСПРАВЛЕНИЕ: Возвращаем adjusted_rarity ---
-
             return aura, adjusted_rarity
-
-
-
-            # --- ИСПРАВЛЕНИЕ: Возвращаем adjusted_rarity для последнего кандидата ---
 
     return candidates[-1][0], candidates[-1][1]
 
@@ -893,7 +861,7 @@ def roll_aura(effective_luck, user):
 
 def get_time_remaining():
 
-    """Возвращает оставшееся время события в формате HH:MM:SS"""
+    # Возвращает оставшееся время события в формате HH:MM:SS
 
     if not EVENT_DATA["event_active"] or not EVENT_DATA["event_end_time"]:
 
@@ -3708,17 +3676,11 @@ def item_req_cmd(msg):
 def apply_timed_potion(user, new_bonus, new_duration_seconds):
 
     """
-
     Применяет эффект временного зелья.
-
     Логика:
-
     1. Если активно зелье с БОЛЬШЕЙ удачей, просто добавляем время к СТАРОМУ зелью.
-
     2. Если активно зелье с МЕНЬШЕЙ или РАВНОЙ удачей, перезаписываем удачу и УСТАНАВЛИВАЕМ новое время.
-
     3. Если зелье неактивно, просто устанавливаем.
-
     """
 
     current_end_time_str = user.get("potion_end_time")
@@ -4151,7 +4113,7 @@ def process_manual_roll(msg):
 
         except Exception as e:
 
-            print(f"Failed to send GIF for {aura}: {e}")
+            print(f"[⚠️] Failed to send GIF for {aura}: {e}")
 
 
 
@@ -4187,7 +4149,7 @@ def process_manual_roll(msg):
 
             except Exception as e:
 
-                print(f"Failed to pin message for {uid}: {e}")
+                print(f"[❌] Failed to pin message for {uid}: {e}")
 
     except Exception as e:
 
@@ -5062,9 +5024,6 @@ def handle(msg):
         display_luck = int(effective_luck) if effective_luck == int(effective_luck) else round(effective_luck, 2)
 
 
-
-        # --- ИЗМЕНЕНИЕ 3: Новая логика для 'From Glitched' ---
-
         from_biome = ""
 
         current_biome = BIOME_DATA["current_biome"]
@@ -5208,8 +5167,7 @@ def handle(msg):
 
 
         if chance > GLOBAL_THRESHOLD or aura == "Glitch":
-
-            # --- ИЗМЕНЕНИЕ 3 (Глобальное): Новая логика для 'From Glitched' ---
+            
 
             from_biome_global = ""
 
@@ -7481,9 +7439,6 @@ Original Idea - Sol's RNG Team
 
         return
 
-
-
-    # --- ИЗМЕНЕНИЕ 2: Блокировка крафта ---
 
     if text == "🛠 Craft" and user_last_command.get(uid) == "craft_luckglove":
 
@@ -10193,10 +10148,6 @@ Original Idea - Sol's RNG Team
 
             item = text.replace("✅ Equip ", "")
 
-
-
-        # --- НАЧАЛО ФИКСА ---
-
         # Проверяем, есть ли у пользователя этот предмет в инвентаре
 
         if item not in user.get("inventory", []):
@@ -10204,9 +10155,6 @@ Original Idea - Sol's RNG Team
             bot.send_message(msg.chat.id, f"❌ You don't have {item} in your inventory.", reply_markup=main_menu(uid))
 
             return  # Выходим, не давая экипировать
-
-        # --- КОНЕЦ ФИКСА ---
-
 
 
         if "equipped" not in user:
