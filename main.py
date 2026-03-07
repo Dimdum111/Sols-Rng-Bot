@@ -1,4 +1,4 @@
-# Bot version: 0.95.1
+# Bot version: 0.95.1 
 from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, gear_items, luck_bonuses
 import telebot
 from telebot import types
@@ -5589,7 +5589,7 @@ def handle(msg):
 
     elif text == "📝 Change Logs":
 
-        changelogs_text = """-=- Update 0.95 -=- \n
+        changelogs_text = """-=- Update 0.95.2 -=- \n
         🛠 Developer stuff:
         | Improved Console output 📃
         | Auras, biomes, gears, and many others now in Config.py 🐍
@@ -5625,13 +5625,11 @@ def handle(msg):
 -=- CREDITS -=-
 
 =-Main Devs-=
-@underrosta - Owner 👑, Developer 🛠  
+@Exo_Gene - Owner 👑, Developer 🛠  
 @DimdumXD - CoOwner 👑, Developer 🛠, Tester 🧪
 
 =-Testers-=
-@CtsGmd - Tester 🧪
 @ener1337 - Tester 🧪
-@ra1n1337 - Tester 🧪
 
 Original Idea - Sol's RNG Team 
 
