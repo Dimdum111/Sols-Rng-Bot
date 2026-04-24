@@ -23,7 +23,7 @@ You can see all of your auras here, if you don't have some auras they will be di
 
 **Example:**  
 🔥 **Hell**: Hades 6,666,666 > 666,666  
-🌧 **Rainy**: Abyssal hunter 300,000,000 > 100,000,000
+🌧 **Rainy**: Abyssal hunter 400,000,000 > 100,000,000
 
 **📊 Stats**:  
 In the **Stats** You can see how many times you **Rolled**, Your rarest **Aura**, Your **Luck**, And current **Biome**
