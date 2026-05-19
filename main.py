@@ -1,5 +1,4 @@
-# Bot version: 0.95.1
-# в рот того ебал блять
+# Bot version: 1.0.0 (BETA)
 from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map
 import telebot
 from telebot import types
@@ -573,7 +572,7 @@ def set_biome(biome_name):
     if biome_name != "Normal":
         biome_messages = {
             "Windy": "A refreshing and cool wind passes through the world..",
-            "Snowy": "White sperm and cold sweat to cover the surroundings..",
+            "Snowy": "White snow and cold begin to cover the surroundings..",
             "Rainy": "Strong winds and showers sweep through the world..",
             "Sand Storm": "A harsh Sand Storm blocks your path...",
             "Hell": "A strong and violent energy of chaos overtakes the world..",
