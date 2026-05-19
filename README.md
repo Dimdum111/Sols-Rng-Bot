@@ -75,7 +75,7 @@ Main branch (Unreleased): 0.95.1
 - [ ] Luck from Sol's rng
 - [ ] Fix autoroll
 - [ ] Add all auras from original
-- [ ] Update 📜 Credits
+- [X] Update 📜 Credits
 - [ ] Add System messages toggle for ALL messages
 - [ ] Update Change logs
 - [ ] Update ALL bot associated channels, bots, and other profile picture and name
