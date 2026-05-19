@@ -10,9 +10,8 @@ import time
 import math
 import requests
 from datetime import datetime, timedelta
-LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен бота В который кидается какой админ команду узнул
+LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен бота Логера.
 TOKEN = "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8" # Основной бот
-# "5221898690", "5158628471", "5710564708" ener and kot testosteron and rain
 bot = telebot.TeleBot(TOKEN)
 
 USER_DATA_FILE = "users_data_lines.json"
@@ -28,7 +27,7 @@ admin_ids = ["5298923430", "1876839608"]
 pending_confirmations = {}
 
 def resolve_uid(uid_str, sender_uid):
-    """Заменяет 'me' на uid отправителя."""
+    # Заменяет 'me' на uid отправителя.
     return sender_uid if uid_str.lower() == "me" else uid_str
 
 user_locks = {}
@@ -271,14 +270,13 @@ AUTOSAVE_INTERVAL = 600  # Сохранять каждые 10 мин
 
 def autosave_loop():
 
-    """Периодически сохраняет все данные."""
+    # Периодически сохраняет все данные.
     print("[📂] Autosave thread started.")
     while True:
         time.sleep(AUTOSAVE_INTERVAL)
         try:
             # Просто вызываем нашу новую безопасную функцию
             save_data()
-            # print(f"[Autosave] Data saved successfully.") # Можно раскомментировать для отладки
         except Exception as e:
             print(f"[Autosave] CRITICAL ERROR during autosave: {e}")
 
@@ -300,7 +298,7 @@ def get_user_data(user_id, user_name="User"):
             }
         u = data["auras"].setdefault(user_id, {})
         u.setdefault("user_id", user_id)
-        # Всегда обновляем имя если получили реальное (не заглушку)
+        # Всегда обновляем имя если получили реальное
         if user_name and user_name != "User":
             u["name"] = user_name
         else:
@@ -334,7 +332,7 @@ def get_user_data(user_id, user_name="User"):
 
 def get_calculated_luck(user):
 
-    """Рассчитывает ОБЩУЮ удачу. В Лимбо зелья не работают."""
+    # Рассчитывает ОБЩУЮ удачу. В Лимбо зелья не работают.
     base_luck = user.get("user_luck", 1.0)
     item_bonus = 0.0
 
@@ -370,14 +368,14 @@ def get_calculated_luck(user):
 
 def get_effective_luck(calculated_luck):
 
-    """Возвращает удачу с учетом активного события"""
+    # Возвращает удачу с учетом активного события
     if EVENT_DATA["event_active"] and EVENT_DATA["event_end_time"] and datetime.now() < EVENT_DATA["event_end_time"]:
         return calculated_luck * EVENT_DATA["event_multiplier"]
     return calculated_luck
 
 def get_biome_multiplier(aura_name):
 
-    """Возвращает множитель биома для конкретной ауры"""
+    # Возвращает множитель биома для конкретной ауры
     current_biome = BIOME_DATA["current_biome"]
 
     # Glitched ауры доступны ТОЛЬКО в Glitched биоме
@@ -500,7 +498,7 @@ def get_time_remaining():
 
 def get_biome_time_remaining():
 
-    """Возвращает оставшееся время биома в формате MM:SS"""
+    # Возвращает оставшееся время биома в формате MM:SS
     if not BIOME_DATA["biome_end_time"]:
         return "∞"
 
@@ -518,7 +516,7 @@ def get_biome_time_remaining():
 
 def is_event_active():
 
-    """Проверяет, активно ли событие"""
+    # Проверяет, активно ли событие
     if EVENT_DATA["event_active"] and EVENT_DATA["event_end_time"]:
         if datetime.now() < EVENT_DATA["event_end_time"]:
             return True
@@ -530,7 +528,7 @@ def is_event_active():
 
 def check_biome_change():
 
-    """Проверяет и меняет биом если нужно"""
+    # Проверяет и меняет биом если нужно
     current_biome = BIOME_DATA["current_biome"]
 
     # Если текущий биом еще активен, ничего не делаем
@@ -559,7 +557,7 @@ def check_biome_change():
 
 def set_biome(biome_name):
 
-    """Устанавливает новый биом"""
+    # Устанавливает новый биом
     old_biome = BIOME_DATA["current_biome"]
     BIOME_DATA["current_biome"] = biome_name
     if biome_name == "Normal":
@@ -601,14 +599,14 @@ def set_biome(biome_name):
 
 def biome_loop():
 
-    """Цикл смены биомов"""
+    # Цикл смены биомов
     while True:
         check_biome_change()
         time.sleep(1)
 
 def potion_spawn_loop():
 
-    """Цикл спавна зелий"""
+    # Цикл спавна зелий
     global lucky_potion_active
     while True:
         time.sleep(60)  # Каждую минуту
@@ -618,7 +616,7 @@ def potion_spawn_loop():
 
 def apply_potion_effect(user, amount):
 
-    """Применяет эффект зелья к пользователю"""
+    # Применяет эффект зелья к пользователю
     duration_seconds = amount * 60
     bonus_luck = 1  # +100% = +1.0
 
@@ -1033,10 +1031,10 @@ auras_default = auras.copy()
 
 def apply_day_chances():
 
-    """Сбрасывает ауры к дневным шансам."""
+    # Сбрасывает ауры к дневным шансам.
     global auras
     auras = auras_default.copy()
-    # День — Solar активнее, Lunar слабее
+    # День - Solar активнее, Lunar слабее
     if "Solar" in auras:
         auras["Solar"] = 5000
     if "Solar : Solstice" in auras:
@@ -1055,10 +1053,10 @@ def apply_day_chances():
 
 def apply_night_chances():
 
-    """Устанавливает ночные шансы."""
+    # Устанавливает ночные шансы.
     global auras
     auras = auras_default.copy()
-    # Ночь — Lunar/Twilight активнее, Solar слабее
+    # Ночь - Lunar/Twilight активнее, Solar слабее
     if "Lunar" in auras:
         auras["Lunar"] = 5000
     if "Lunar : Full Moon" in auras:
@@ -2105,7 +2103,7 @@ POTION_DATA = {
 POTION_NAME_TO_KEY = {v["name"]: k for k, v in POTION_DATA.items()}
 
 def handle_potion_select(msg, uid, potion_name):
-    """Показывает меню использования зелья из инвентаря."""
+    # Показывает меню использования зелья из инвентаря.
     user = get_user_data(uid)
     data_key = POTION_NAME_TO_KEY.get(potion_name)
     if not data_key:
@@ -2126,7 +2124,7 @@ def handle_potion_select(msg, uid, potion_name):
     return True
 
 def handle_potion_use(msg, uid, name, use_key, amount=1):
-    """Использует 1 или N зелий. Возвращает True если обработал."""
+    # Использует 1 или N зелий. Возвращает True если обработал.
     potion = POTION_DATA.get(use_key)
     if not potion:
         return False
@@ -2401,7 +2399,7 @@ luck_bonuses = {name: item["luck_bonus"] for name, item in WORKSHOP_ITEMS.items(
 
 
 def do_craft(msg, uid, name, craft_key):
-    """Универсальная логика крафта. Возвращает True если обработал."""
+    # Универсальная логика крафта. Возвращает True если обработал.
     recipe = CRAFT_RECIPES.get(craft_key)
     if not recipe:
         return False
@@ -2449,7 +2447,7 @@ def do_craft(msg, uid, name, craft_key):
     return True
 
 def handle_limbo_exit(msg, uid, user):
-    """Обрабатывает выход из Лимбо и разморозку таймеров зелий."""
+    # Обрабатывает выход из Лимбо и разморозку таймеров зелий.
     if not user.get("in_limbo", False):
         bot.send_message(msg.chat.id, "YOU\'RE NOT WORTHY TO PASS.", reply_markup=back_menu())
         return
@@ -3245,20 +3243,21 @@ def handle(msg):
     elif text == "📜 Credits":
         credits_text = """
 
-🔥 CREDITS 🔥
+-= CREDITS =-
 
-─〔 👑 MAIN DEVS 〕─
+-== 🔨 Main developers ==-
 
-⭐ @Exo_Gene — Owner, Developer
-⭐ @DimdumXD — Co-Owner, Developer, Tester
+⭐👑🔨 @underrosta - Owner, Developer
+⭐👑🔨🧪 @DimdumXD - Co-Owner, Developer, Tester
 
-─〔 🧪 TESTERS 〕─
+--= 🧪 Testers =--
 
-- @ener1337
+🧪 @ener1337 - Tester
 
-─────────────────
-💡 Idea by Sol's RNG Team
-📩 @Exo_Gene · @DimdumXD
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌸 Original Idea - Sol's RNG Team
+📩 For help Write to - @underrosta · @DimdumXD
 
 """
 
@@ -3280,8 +3279,6 @@ def handle(msg):
         markup.row(types.KeyboardButton("[🧪] Godlike Potion"))
 
         # 3. ТЕПЕРЬ Добавляем Unknown Potion (если условия выполнены)
-        # В твоем коде было 99999, в тесте ты просил 9 для проверки. Оставляю 99999 как в изначальном ТЗ.
-        # Если хочешь для теста 9, замени 99999 на 9.
         if user.get("rolls", 0) > 99999:
             if not user.get("limbo_unlocked", False):
                 markup.row(types.KeyboardButton("[❔] Unknown Potion"))
