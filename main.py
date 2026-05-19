@@ -1,4 +1,5 @@
 # Bot version: 0.95.1
+# в рот того ебал блять
 from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map
 import telebot
 from telebot import types
