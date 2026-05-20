@@ -11,7 +11,7 @@ import math
 import requests
 from datetime import datetime, timedelta
 LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен бота В который кидается какой админ команду узнул
-TOKEN = "7965336094:AAE0uvd5kp7-FZQs0TtmF3mvj51S-H1iQpA" # Основной бот
+TOKEN = "7965336094:AAGDZd4o39plNUlgeebQYKvIALsQqd857Hs" # Основной бот
 # "5221898690", "5158628471", "5710564708" ener and kot testosteron and rain
 bot = telebot.TeleBot(TOKEN)
 
