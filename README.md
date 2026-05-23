@@ -71,12 +71,10 @@ Main branch (Unreleased): 0.95.1
 | Sol's rng Bot Announcer | Admin only | Logger | https://t.me/Solsrngannouncerbot |
 | Sols rng Tester's bot | Admin only | Testers | https://t.me/SolsRngTestersBot |  
 
-**🔨 To-do (1.0.0)**:  
-- [ ] Luck from Sol's rng
-- [ ] Fix autoroll
+**🔨 To-do (1.0.0)**:
+- [X] Fix autoroll
 - [ ] Add all auras from original
 - [X] Update 📜 Credits
-- [ ] Add System messages toggle for ALL messages
 - [ ] Update Change logs
 - [X] Update ALL bot associated channels, bots, and other profile picture and name
 - [ ] Make 1.0 trailer
@@ -88,6 +86,8 @@ Main branch (Unreleased): 0.95.1
 - [X] Add Me instead of user_id
 - [X] Make username update every time user rolls
 - [X] Update README.md
-- [ ] Sol's rng bot Special event before 1.0
 - [ ] Make special event for 1.0
 
+**🛠️ To-do (Sometime)**:
+- [ ] Add System messages toggle for ALL messages
+- [ ] Luck from Sol's rng
