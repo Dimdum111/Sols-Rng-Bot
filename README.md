@@ -88,6 +88,6 @@ Main branch (Unreleased): 0.95.1
 - [X] Add Me instead of user_id
 - [X] Make username update every time user rolls
 - [X] Update README.md
-- [WIP] Sol's rng bot Special event before 1.0
+- [ ] Sol's rng bot Special event before 1.0
 - [ ] Make special event for 1.0
 
