@@ -11,7 +11,7 @@ import math
 import requests
 from datetime import datetime, timedelta
 LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен бота Логера.
-TOKEN = "7965336094:AAGDZd4o39plNUlgeebQYKvIALsQqd857Hs" # Основной бот
+TOKEN = "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8" # Основной бот
 bot = telebot.TeleBot(TOKEN)
 
 USER_DATA_FILE = "users_data_lines.json"
@@ -3220,26 +3220,20 @@ def handle(msg):
 
     # --- Change Logs ---
     elif text == "📝 Change Logs":
-        changelogs_text = """-=- Update 0.95.2 -=- \n
-        🛠 Developer stuff:
-        | Improved Console output 📃
-        | Auras, biomes, gears, and many others now in Config.py 🐍
-        # 🏆 And most important in this category:
-        | Switched to GitHub! 🔒
-        # We can now do the code without needing to sent over the file. this increases speed of development!
-        -=-=-=-
-        ⚙️ Technical updates:
-        -=-=-=-
-        | Updated [Bot offline]. Now its more user-friendly, and Readable! ✍️
-        | Optimized bot a little bit 😄
-        ??? 🤫:
-        | Reveals Tomorrow..
-        # Dont expect something big!
-
-        📰 NEXT UPDATE GOALS:
-        | Fix the luck 🍀
-        | Add every aura from Original Sols rng to Sols rng bot. ⚖️
-        | Add every cutscene to that aura 🌠"""
+        changelogs_text = """--=[Update 1.0.0]=--
+        🔨 Fixes:
+        | Autoroll fixed!
+        | Your username is now isnt locked forever, it updates every time you roll!
+        | Code refactoring, optimiztion, and cleanup.
+        🛠️ Developers stuff:
+        | Code MASSIVLY refactored, - 5000 Lines
+        ✨ New Stuff:
+        | Updated Bot, Bot news, Bot chat Profile picture!
+        📰 Developer notes:
+        | Hi everyone! Long time no see! This update took a while.. but it's finally here!
+        | i've been focusing on code rewrite, optimizations, and bug fixes in this update,
+        | But there is still a lot of new stuff and features! Hope you like this update,
+        | And if you find any bugs please report them to @DimdumXD Or @underrosta, Thanks!"""
         bot.send_message(msg.chat.id, changelogs_text, reply_markup=back_menu())
         return
 
