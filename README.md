@@ -78,7 +78,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Update 📜 Credits
 - [ ] Add System messages toggle for ALL messages
 - [ ] Update Change logs
-- [ ] Update ALL bot associated channels, bots, and other profile picture and name
+- [X] Update ALL bot associated channels, bots, and other profile picture and name
 - [ ] Make 1.0 trailer
 - [X] Optimize code 10286 -> 4333 Lines of code
 - [X] Make adding item easier
