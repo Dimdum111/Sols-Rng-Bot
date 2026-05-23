@@ -858,6 +858,9 @@ def auto_roll_thread(user_id, chat_id):
             except Exception as e:
                 # Если не удалось отправить сообщение, возможно юзер заблочил бота, выключаем авторолл
                 print(f"Error sending msg to {user_id}: {e}")
+                if "429" in str(e):
+                    time.sleep(30)
+                    continue
                 # --- Добавляем причину админа в глобальное сообщение ---
                 if forced_reason and global_msg_to_send:
                     global_msg_to_send += f"\n(Was given by admin: {forced_reason})"
@@ -871,19 +874,20 @@ def auto_roll_thread(user_id, chat_id):
             if global_msg_to_send:
                 threading.Thread(target=lambda: notify_all_users(global_msg_to_send, message_type="global"),
                                  daemon=True).start()
-
+        
         except Exception as e:
-            print(f"CRITICAL Error in auto-roll thread for {user_id}: {e}")
-            # Пытаемся выключить авторолл при критической ошибке
+            print(f"CRITICAL Error in auto-roll thread for {user_id}: {e}, Continuing anyways.")
+            if "429" in str(e):
+                time.sleep(30) # If error is 429 We wait some time instead of disabling auto-roll.
+                continue
             try:
                 with data_lock:
                     u = get_user_data(user_id)
                     u["auto_roll_enabled"] = False
-                    save_data()
+                    save_data() # added this to ensure we don't lose progress if something goes wrong.
             except:
                 pass
             break
-
         time.sleep(1.25)
 
 def restart_auto_rollers():
