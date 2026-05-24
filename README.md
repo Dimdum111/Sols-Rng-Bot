@@ -88,7 +88,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Update README.md
 - [ ] Make special event for 1.0
 - [ ] Make /profile [User id] command
-- [ ] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
+- [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
 
 **🛠️ To-do (Sometime)**:
 - [ ] Add System messages toggle for ALL messages
