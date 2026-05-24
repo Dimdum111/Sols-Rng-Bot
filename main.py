@@ -1126,8 +1126,7 @@ def notify_all_users(message, message_type="default", pin=False):
                 continue  # Пропустить, если юзер отключил
 
             # 'default' и 'biome' отправляются всегда
-            sent_msg = bot.send_message(uid, message)
-
+            sent_msg = bot.send_message(uid, message, parse_mode="Markdown")
             if pin:
                 try:
                     bot.pin_chat_message(uid, sent_msg.message_id, disable_notification=False)
@@ -1135,8 +1134,48 @@ def notify_all_users(message, message_type="default", pin=False):
                     pass
         except:
             continue
+        time.sleep(0.05)
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
+
+
+"""
+CITADEL OF ORDER event!
+CitadelOfOrderMessages Contains all messages that should be send after the command to all users.
+It uses notify_all_users function that notifies all users in Users_data_lines.json.
+It called after using /CitadelOfOrder command from CitadelOfOrderEvent function.
+"""
+def CitadelOfOrderMessages():
+    notify_all_users("Every life commit sins.", message_type="default")
+    time.sleep(2.5)
+    notify_all_users("Wouldn't you agree?", message_type="default")
+    time.sleep(2.5)
+    notify_all_users("Prepare.", message_type="default")
+    time.sleep(2.5)
+    notify_all_users("MUST\n**OBEY**\nORDER", message_type="default")   
+    time.sleep(2)
+    notify_all_users("The judgement.", message_type="default")
+    time.sleep(2)
+    notify_all_users("JUSTICE\n**RULES**\nTHE\nWORLD", message_type="default")
+    time.sleep(1)
+    notify_all_users("💫", message_type="default")
+    time.sleep(5)
+    notify_all_users("EDICT\n~Judge of Equilibrium ~", message_type="default")
+
+"""
+CitadelOfOrderEvent - Handles the event, called after using /CitadelOfOrder command!
+It checks if user is in admin list if not says "❌ No permission."
+If user IS admin it calls CitadelOfOrderMessages function.
+"""
+@bot.message_handler(commands=["CitadelOfOrder"])
+def CitadelOfOrderEvent(msg):
+    chatid = str(msg.chat.id) # Gets user chatid
+    uid = str(msg.from_user.id) # Gets user id
+    if uid not in admin_ids: # Checks if user is admin
+        bot.send_message(chatid, "❌ No permission.") # if not - says no permission
+        return
+    bot.send_message(chatid, "✨ Starting...") # if user IS admin says staring and calls CitadelOfOrderMessages
+    threading.Thread(target=CitadelOfOrderMessages, daemon=True).start()
 
 @bot.message_handler(commands=["setluck"])
 
@@ -3231,6 +3270,7 @@ def handle(msg):
         | Autoroll fixed!
         | Your username is now isnt locked forever, it updates every time you roll!
         | Code refactoring, optimiztion, and cleanup.
+        | Luck event are not not lagging when starting or ending!
         🛠️ Developers stuff:
         | Code MASSIVLY refactored, - 5000 Lines
         ✨ New Stuff:
