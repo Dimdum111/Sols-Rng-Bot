@@ -91,3 +91,4 @@ Main branch (Unreleased): 0.95.1
 **🛠️ To-do (Sometime)**:
 - [ ] Add System messages toggle for ALL messages
 - [ ] Luck from Sol's rng
+- [ ] Choose how much potions you can craft at 1 time (eg. choose 5 zombie potions and craft
