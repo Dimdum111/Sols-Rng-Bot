@@ -1532,7 +1532,10 @@ def luck_event_stop(msg):
 def _do_luck_event_stop():
     EVENT_DATA["event_active"] = False
     save_event_data()
-    notify_all_users("🔴 LUCK EVENT STOPPED!\nYour luck is now back to normal.", message_type="default")
+    threading.Thread(
+        target=lambda: notify_all_users("🔴 LUCK EVENT STOPPED!\nYour luck is now back to normal.", message_type="default"),
+        daemon=True
+    ).start()
     return "✅ Luck event stopped!"
 
 @bot.message_handler(commands=["luckEventStart"])
@@ -1561,9 +1564,12 @@ def _do_luck_event_start():
     EVENT_DATA["event_active"] = True
     EVENT_DATA["event_end_time"] = datetime.now() + timedelta(seconds=EVENT_DATA["event_duration"])
     save_event_data()
-    notify_all_users(
+    threading.Thread(
+        target=lambda:     notify_all_users(
         f"🎉 X{EVENT_DATA['event_multiplier']} LUCK EVENT STARTED! 🎉\nTime left: {get_time_remaining()}\nYour luck is now multiplied by {EVENT_DATA['event_multiplier']}!",
-        message_type="default")
+        message_type="default"),
+        daemon=True
+    ).start()
     return f"✅ x{EVENT_DATA['event_multiplier']} luck event started! Duration: {get_time_remaining()}"
 
 @bot.message_handler(commands=["luckEventChange"])
