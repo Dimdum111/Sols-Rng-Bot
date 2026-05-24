@@ -87,6 +87,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Make username update every time user rolls
 - [X] Update README.md
 - [ ] Make special event for 1.0
+- [ ] Make /profile [User id] command
 
 **🛠️ To-do (Sometime)**:
 - [ ] Add System messages toggle for ALL messages
