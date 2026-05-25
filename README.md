@@ -75,7 +75,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Fix autoroll
 - [ ] Add all auras from original
 - [X] Update 📜 Credits
-- [ ] Update Change logs
+- [X] Update Change logs
 - [X] Update ALL bot associated channels, bots, and other profile picture and name
 - [ ] Make 1.0 trailer
 - [X] Optimize code 10286 -> 4333 Lines of code
@@ -86,7 +86,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Add Me instead of user_id
 - [X] Make username update every time user rolls
 - [X] Update README.md
-- [ ] Make special event for 1.0
+- [ ] Make special event for 1.0 [WIP]
 - [ ] Make /profile [User id] command
 - [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
 
