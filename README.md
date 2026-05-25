@@ -87,7 +87,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Make username update every time user rolls
 - [X] Update README.md
 - [ ] Make special event for 1.0 [WIP]
-- [ ] Make /profile [User id] command
+- [ ] Make /profile [User id] command [WIP]
 - [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
 
 **🛠️ To-do (Sometime)**:
