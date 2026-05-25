@@ -1138,7 +1138,23 @@ def notify_all_users(message, message_type="default", pin=False):
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
 
+"""Profile command.
+Lets you see user profile.
 
+WARNING! for now this command only displays placeholder info. Todo: make it work."""
+@bot.message_handler(commands=["profile"])
+def profile(msg):
+    parts = msg.text.split()
+    if len(parts) != 2:
+        bot.send_message(msg.chat.id, f"💫 Usage: /profile [User_id]")
+        return
+    bot.send_message(msg.chat.id,
+                     f"┍👤 Profile\n"
+                     f"┃⭐ Username: Dimdum111\n"
+                     f"┃🆔 Id: 324234455\n"
+                     f"┃🎲 Rolls: 9945566\n"
+                     f"┃💎 Rarest: Luminocity\n"
+                     f"┕🍀 Luck: x8.6")
 """
 CITADEL OF ORDER event!
 CitadelOfOrderMessages Contains all messages that should be send after the command to all users.
@@ -3272,9 +3288,11 @@ def handle(msg):
         | Code refactoring, optimiztion, and cleanup.
         | Luck event are not not lagging when starting or ending!
         🛠️ Developers stuff:
-        | Code MASSIVLY refactored, - 5000 Lines
+        | Code MASSIVLY refactored, -5000 Lines
         ✨ New Stuff:
         | Updated Bot, Bot news, Bot chat Profile picture!
+        | New Event!! Citadel Of Order!
+        | /Profile [UserId] to see user profile
         📰 Developer notes:
         | Hi everyone! Long time no see! This update took a while.. but it's finally here!
         | i've been focusing on code rewrite, optimizations, and bug fixes in this update,
