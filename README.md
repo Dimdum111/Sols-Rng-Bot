@@ -79,6 +79,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Update ALL bot associated channels, bots, and other profile picture and name
 - [ ] Make 1.0 trailer
 - [X] Optimize code 10286 -> 4333 Lines of code
+- [ ] 1.0.0 Rebalance: increase ALL gauntlets luck.
 - [X] Make adding item easier
 - [X] Allow /end directly from bot
 - [X] Add .Help
