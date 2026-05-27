@@ -2532,9 +2532,21 @@ def handle_limbo_exit(msg, uid, user):
     save_data()
     bot.send_message(msg.chat.id, "Returning to reality...\nTime flows again.", reply_markup=main_menu(uid))
 
-@bot.message_handler(func=lambda m: m.text and m.text.strip() == ".help" and str(m.from_user.id) in admin_ids)
+@bot.message_handler(commands=["help"])
 def admin_help(msg):
-    help_text = (
+    uid = msg.from_user.id
+    user_help_text = (
+"""
+```
+🛠 COMMANDS
+/Profile <User_id>
+    → Показывает информацию о пользователе.
+
+/help — это сообщение
+```
+"""
+    )
+    admin_help_text = (
 """
 ```
 🛠 ADMIN COMMANDS
@@ -2598,11 +2610,18 @@ def admin_help(msg):
 /itemReq <item_name>
   → Показать требования для крафта предмета
   → Пример: /itemReq [T5] Galactic Device
+  
+👤 NORMAL-USER COMMANDS
+/Profile <User_id>
+    → Показывает информацию о пользователе.
 
-.help — это сообщение
+/help — это сообщение
 ```"""
     )
-    bot.send_message(msg.chat.id, help_text, parse_mode="Markdown")
+    if str(uid) not in admin_ids:
+        bot.send_message(msg.chat.id, user_help_text, parse_mode="Markdown")
+        return
+    bot.send_message(msg.chat.id, admin_help_text, parse_mode="Markdown")
 
 
 @bot.message_handler(commands=["end"])
@@ -3293,6 +3312,7 @@ def handle(msg):
         | Updated Bot, Bot news, Bot chat Profile picture!
         | New Event!! Citadel Of Order!
         | /Profile [UserId] to see user profile
+        | /help command: See all avalible commands for you!
         📰 Developer notes:
         | Hi everyone! Long time no see! This update took a while.. but it's finally here!
         | i've been focusing on code rewrite, optimizations, and bug fixes in this update,
