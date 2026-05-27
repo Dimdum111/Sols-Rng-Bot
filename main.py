@@ -11,7 +11,7 @@ import math
 import requests
 from datetime import datetime, timedelta
 LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен бота Логера.
-TOKEN = "7965336094:AAGDZd4o39plNUlgeebQYKvIALsQqd857Hs" # Основной бот
+TOKEN = "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8" # Основной бот
 bot = telebot.TeleBot(TOKEN)
 
 USER_DATA_FILE = "users_data_lines.json"
