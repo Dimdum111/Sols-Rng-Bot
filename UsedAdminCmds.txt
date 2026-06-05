@@ -1,0 +1,5 @@
+[2026, 05.06, 18:59:27] [@DimdumXD] Used /say [TESTINGBOT] TEST, Userid: [1876839608]
+[2026, 05.06, 18:59:34] [@DimdumXD] Used /say [TESTINGBOT] TEST, Userid: [1876839608]
+[2026, 05.06, 19:00:28] [@DimdumXD] Used /end Testing session is stopped., Userid: [1876839608]
+[2026, 05.06, 19:08:02] [@DimdumXD] Used /CitadelOfOrder, Userid: [1876839608]
+[2026, 05.06, 19:08:35] [@DimdumXD] Used /end Test Session over., Userid: [1876839608]

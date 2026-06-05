@@ -10,8 +10,9 @@ import time
 import math
 import requests
 from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
 LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен бота Логера.
-TOKEN = "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8" # Основной бот
+TOKEN = "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8" # Основной бот (7965336094:AAGDZd4o39plNUlgeebQYKvIALsQqd857Hs)
 bot = telebot.TeleBot(TOKEN)
 
 USER_DATA_FILE = "users_data_lines.json"
@@ -1107,25 +1108,21 @@ threading.Thread(target=autosave_loop, daemon=True).start()
 user_pages = {}
 
 user_last_command = {}
-
-def notify_all_users(message, message_type="default", pin=False):
-
-    """
+"""
     Отправляет сообщение всем пользователям с учетом их настроек.
     message_type: 'default', 'global', 'day_night', 'biome'
     pin: Если True, сообщение будет закреплено
-    """
+"""
+def notify_all_users(message, message_type="default", pin=False):
     with data_lock:
         users_data = data.get("auras", {}).copy()
 
-    for uid, user_data in users_data.items():
+    def send_one(uid, user_data):
         try:
             if message_type == "day_night" and not user_data.get("notify_day_night", True):
-                continue  # Пропустить, если юзер отключил
+                return
             if message_type == "global" and not user_data.get("notify_global", True):
-                continue  # Пропустить, если юзер отключил
-
-            # 'default' и 'biome' отправляются всегда
+                return
             sent_msg = bot.send_message(uid, message, parse_mode="Markdown")
             if pin:
                 try:
@@ -1133,8 +1130,11 @@ def notify_all_users(message, message_type="default", pin=False):
                 except:
                     pass
         except:
-            continue
-        time.sleep(0.05)
+            pass
+
+    with ThreadPoolExecutor(max_workers=30) as executor:
+        for uid, user_data in users_data.items():
+            executor.submit(send_one, uid, user_data)
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
 
@@ -1191,6 +1191,7 @@ def CitadelOfOrderEvent(msg):
         bot.send_message(chatid, "❌ No permission.") # if not - says no permission
         return
     bot.send_message(chatid, "✨ Starting...") # if user IS admin says staring and calls CitadelOfOrderMessages
+    log_admin_action(msg, msg.text)
     threading.Thread(target=CitadelOfOrderMessages, daemon=True).start()
 
 @bot.message_handler(commands=["setluck"])
@@ -4397,7 +4398,7 @@ threading.Thread(target=restart_auto_rollers, daemon=True).start()
 while True:
 
     try:
-        bot.polling(non_stop=True, interval=0)
+        bot.polling(non_stop=True, interval=0, skip_pending=True)
         print("[✓] Polling stopped gracefully.")
         break  # Выходим из цикла, чтобы скрипт завершился
 
