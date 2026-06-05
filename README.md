@@ -90,6 +90,7 @@ Main branch (Unreleased): 0.95.1
 - [ ] Make special event for 1.0 [WIP]
 - [ ] Make /profile [User id] command [WIP]
 - [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
+- [ ] Fix a bug that YOU NEED TO RESTART THE BOT 2. TIMES. BEFORE. IT'S. WORKING.
 
 **🛠️ To-do (Sometime)**:
 - [ ] Add System messages toggle for ALL messages
