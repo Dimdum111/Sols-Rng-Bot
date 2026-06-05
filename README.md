@@ -91,6 +91,9 @@ Main branch (Unreleased): 0.95.1
 - [ ] Make /profile [User id] command [WIP]
 - [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
 - [ ] Fix a bug that YOU NEED TO RESTART THE BOT 2. TIMES. BEFORE. IT'S. WORKING.
+- [ ] Make so when you do say/sayPin It says your name At the bottom. Example: Hello!
+
+-Dimdum
 
 **🛠️ To-do (Sometime)**:
 - [ ] Add System messages toggle for ALL messages
