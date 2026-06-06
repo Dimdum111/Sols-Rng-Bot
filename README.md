@@ -92,6 +92,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
 - [X] Fix a bug that YOU NEED TO RESTART THE BOT 2. TIMES. BEFORE. IT'S. WORKING. [I think i fixed it]
 - [X] Make so when you do say/sayPin It says your name At the bottom. Example: Hello!
+- [ ] FIX CRAFTS
 
 -Dimdum
 
