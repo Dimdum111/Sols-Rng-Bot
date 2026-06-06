@@ -1156,6 +1156,7 @@ def profile(msg):
                      f"┃⭐ Username: {user_info.get('name')}\n"
                      f"┃🆔 Id: {user_info.get('user_id')}\n"
                      f"┃🎲 Rolls: {user_info.get('rolls')}\n"
+                     f"┃🔄 Auto Roll Enabled: {user_info.get('auto_roll_enabled')}\n"
                      f"┃💎 Rarest: {user_info.get('rarest')}\n"
                      f"┕🍀 Luck: x{user_info.get('user_luck')}")
 """
