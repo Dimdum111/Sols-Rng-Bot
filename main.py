@@ -300,11 +300,6 @@ def get_user_data(user_id, user_name="User"):
             }
         u = data["auras"].setdefault(user_id, {})
         u.setdefault("user_id", user_id)
-        # Всегда обновляем имя если получили реальное
-        if user_name and user_name != "User":
-            u["name"] = user_name
-        else:
-            u.setdefault("name", user_name)
         u.setdefault("user_luck", 1.0)  # Это базовая удача
         u.setdefault("rolls", 0)
         u.setdefault("rarest", None)
