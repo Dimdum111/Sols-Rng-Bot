@@ -12,7 +12,8 @@ import requests
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен бота Логера.
-TOKEN = "7965336094:AAGDZd4o39plNUlgeebQYKvIALsQqd857Hs" # Основной бот
+TOKEN = "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8" # Основной бот
+# ОСНОВНОЙ БОТ - [7965336094:AAGDZd4o39plNUlgeebQYKvIALsQqd857Hs], TESTERS БОТ - [8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8]
 bot = telebot.TeleBot(TOKEN)
 
 USER_DATA_FILE = "users_data_lines.json"
@@ -197,7 +198,7 @@ if os.path.exists(USER_DATA_FILE):
 
     except Exception as e:
         # Если не смогли даже открыть файл (например, проблемы с правами)
-        print(f"[⚠️⚠️⚠️] CRITICAL ERROR: Failed to open or read {USER_DATA_FILE}. All user data might be missing!!")
+        print(f"[⚠️] CRITICAL ERROR: Failed to open or read {USER_DATA_FILE}. All user data might be missing!!")
         print(f"[⚠️] Error: {e}")
 
 else:
@@ -1139,22 +1140,24 @@ def notify_all_users(message, message_type="default", pin=False):
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
 
 """Profile command.
-Lets you see user profile.
-
-WARNING! for now this command only displays placeholder info. Todo: make it work."""
+Lets you see user profile!"""
 @bot.message_handler(commands=["profile"])
 def profile(msg):
     parts = msg.text.split()
     if len(parts) != 2:
         bot.send_message(msg.chat.id, f"💫 Usage: /profile [User_id]")
         return
+    user_info = data["auras"].get(parts[1])
+    if not user_info:
+        bot.send_message(msg.chat.id, f"💫 User id is not found in our database!")
+        return
     bot.send_message(msg.chat.id,
                      f"┍👤 Profile\n"
-                     f"┃⭐ Username: Dimdum111\n"
-                     f"┃🆔 Id: 324234455\n"
-                     f"┃🎲 Rolls: 9945566\n"
-                     f"┃💎 Rarest: Luminocity\n"
-                     f"┕🍀 Luck: x8.6")
+                     f"┃⭐ Username: {user_info.get('name')}\n"
+                     f"┃🆔 Id: {user_info.get('user_id')}\n"
+                     f"┃🎲 Rolls: {user_info.get('rolls')}\n"
+                     f"┃💎 Rarest: {user_info.get('rarest')}\n"
+                     f"┕🍀 Luck: x{user_info.get('user_luck')}")
 """
 CITADEL OF ORDER event!
 CitadelOfOrderMessages Contains all messages that should be send after the command to all users.
@@ -1484,7 +1487,7 @@ def say_pin_cmd(msg):
     message = msg.text.split(" ", 1)[1]
     pending_confirmations[uid] = {
         "cmd": msg.text,
-        "action": lambda: _do_say(message, pin=True)
+        "action": lambda: _do_say(message, msg, pin=True)
     }
     markup = types.InlineKeyboardMarkup()
     markup.row(
@@ -1552,7 +1555,7 @@ def say_cmd(msg):
     message = msg.text.split(" ", 1)[1]
     pending_confirmations[uid] = {
         "cmd": msg.text,
-        "action": lambda: _do_say(message, pin=False)
+        "action": lambda: _do_say(message, msg, pin=False)
     }
     markup = types.InlineKeyboardMarkup()
     markup.row(
@@ -1561,8 +1564,8 @@ def say_cmd(msg):
     )
     bot.send_message(msg.chat.id, f"⚠️ Confirm: send to ALL users:\n\n{message}", reply_markup=markup)
 
-def _do_say(message, pin=False):
-    threading.Thread(target=lambda: notify_all_users(message, message_type="global", pin=pin), daemon=True).start()
+def _do_say(message, msg, pin=False):
+    threading.Thread(target=lambda: notify_all_users(f"{message} \n\n   ✧ {msg.from_user.username} ╝", message_type="global", pin=pin), daemon=True).start()
     return "✅ Sent to all users." + (" Pinned." if pin else "")
 
 # Новые админские команды для управления событием
@@ -3304,15 +3307,16 @@ def handle(msg):
         changelogs_text = """--=[Update 1.0.0]=--
         🔨 Fixes:
         | Autoroll fixed!
-        | Your username is now isnt locked forever, it updates every time you roll!
         | Code refactoring, optimiztion, and cleanup.
         | Luck event are not not lagging when starting or ending!
+        | We don't need to restart the bot 2 times to start it anymore.
         🛠️ Developers stuff:
         | Code MASSIVLY refactored, -5000 Lines
+        | Adding items is now easier!
         ✨ New Stuff:
         | Updated Bot, Bot news, Bot chat Profile picture!
         | New Event!! Citadel Of Order!
-        | /Profile [UserId] to see user profile
+        | /Profile [UserId] to see user profile!
         | /help command: See all avalible commands for you!
         📰 Developer notes:
         | Hi everyone! Long time no see! This update took a while.. but it's finally here!
