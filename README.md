@@ -85,7 +85,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Add .Help
 - [X] Add Confirm for ALL commands
 - [X] Add Me instead of user_id
-- [ ] [!DELETE!] Make username update every time user rolls
+- [X] [!DELETE!] Make username update every time user rolls
 - [X] Update README.md
 - [ ] Make special event for 1.0 [WIP]
 - [X] Make /profile [User id] command
