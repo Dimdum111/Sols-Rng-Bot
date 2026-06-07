@@ -3313,8 +3313,10 @@ def handle(msg):
         ✨ New Stuff:
         | Updated Bot, Bot news, Bot chat Profile picture!
         | New Event!! Citadel Of Order!
+        | 📜 Credits Updated
         | Workshop icon changed (⚙️>🛠️)
         | /Profile [UserId] to see user profile!
+        | Now when admins use say command It will show their name!
         | /help command: See all avalible commands for you!
         📰 Developer notes:
         | Hi everyone! Long time no see! This update took a while.. but it's finally here!
