@@ -15,6 +15,7 @@ LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен �
 TOKEN = "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8" # Основной бот
 # ОСНОВНОЙ БОТ - [7965336094:AAGDZd4o39plNUlgeebQYKvIALsQqd857Hs], TESTERS БОТ - [8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8]
 bot = telebot.TeleBot(TOKEN)
+MaintanceActive = False
 
 USER_DATA_FILE = "users_data_lines.json"
 SAVE_FILE = "global_settings.json"
@@ -1014,15 +1015,19 @@ def start(msg):
 
     # Добавляем информацию о событии и биоме в приветственное сообщение
     event_info = ""
+    MaintanceText = ""
     if is_event_active():
         event_info = f"\n\n🎉 X{EVENT_DATA['event_multiplier']} LUCK EVENT ACTIVE! 🎉\nTime left: {get_time_remaining()}"
+        
+    if MaintanceActive:
+        MaintanceText = f"\n\n⚠️ Sol's rng bot is Going down for Scheduled Maintenance soon."
 
     biome_info = f"\nBIOME: {BIOME_DATA['current_biome']}"
     if BIOME_DATA['current_biome'] != "Normal":
         biome_info += f" (ends in: {get_biome_time_remaining()})"
 
     bot.send_message(msg.chat.id,
-                     f"Welcome to Sol's RNG 🎰\nTime: {'DAYTIME ☀️' if is_day else 'NIGHTTIME 🌙'}{biome_info}{event_info}",
+                     f"Welcome to Sol's RNG 🎰\nTime: {'DAYTIME ☀️' if is_day else 'NIGHTTIME 🌙'}{biome_info}{event_info}{MaintanceText}",
                      reply_markup=main_menu(uid))
 
 # --- Day/Night Cycle ---
@@ -1135,6 +1140,43 @@ def notify_all_users(message, message_type="default", pin=False):
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
 
+"""Scheduled Maintance
+Recroom Inspired! (Rip recroom <3)
+When command is used it calls the ScheduledMaintance which check if user is admin if not then return and if user IS admin
+it calls ScheduledMaintanceMsgs in threading.thread and starts the countdown and sets MaintanceActive = True so it would appear
+in menus. and when countdown is over it saves the data and shuts down."""
+def ScheduledMaintanceMsgs():
+    notify_all_users("⏱️ | Scheduled Maintenance\nSol's rng bot is going down for Scheduled Maintenance In 1 hour!", message_type="default", pin=True)
+    time.sleep(1800) #1800
+    notify_all_users("⏱️ | Scheduled Maintenance\nSol's rng bot is going down for Scheduled Maintenance In 30 minutes!", message_type="default", pin=True)
+    time.sleep(1200) #1200
+    notify_all_users("⏱️ | Scheduled Maintenance\nSol's rng bot is going down for Scheduled Maintenance In 10 minutes!", message_type="default", pin=True)
+    time.sleep(300) #300
+    notify_all_users("⏱️ | Scheduled Maintenance\nSol's rng bot is going down for Scheduled Maintenance In 5 minutes!", message_type="default", pin=True)
+    time.sleep(60) #60
+    notify_all_users("⏱️ | Scheduled Maintenance\nSol's rng bot is going down for Scheduled Maintenance In 4 minutes!", message_type="default", pin=True)
+    time.sleep(60) #60
+    notify_all_users("⏱️ | Scheduled Maintenance\nSol's rng bot is going down for Scheduled Maintenance In 3 minutes!", message_type="default", pin=True)
+    time.sleep(60) #60
+    notify_all_users("⏱️ | Scheduled Maintenance\nSol's rng bot is going down for Scheduled Maintenance In 2 minutes!", message_type="default", pin=True)
+    time.sleep(60) #60
+    notify_all_users("⏱️ | Scheduled Maintenance\nSol's rng bot is going down for Scheduled Maintenance In 1 minute!", message_type="default", pin=True)
+    time.sleep(60) #60
+    notify_all_users("⏱️ | Scheduled Maintenance\nSol's rng bot is going down for Scheduled Maintenance Right now.", message_type="default", pin=True)
+    notify_all_users(f"━━━━━━━━━━━━━━━\n🔴 BOT OFFLINE\n💬 Reason: Scheduled Maintenance\n━━━━━━━━━━━━━━━", message_type="default", pin=True)
+    save_data()
+    bot.stop_polling()
+@bot.message_handler(commands=['ScheduledMaintenance'])
+def ScheduledMaintance(msg):
+    global MaintanceActive
+    uid = str(msg.from_user.id)
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ No permission.")
+        return
+    bot.send_message(msg.chat.id, "⏱️ Starting Scheduled Maintance")
+    threading.Thread(target=ScheduledMaintanceMsgs, daemon=True).start()
+    MaintanceActive = True
+    return MaintanceActive
 """Profile command.
 Lets you see user profile!"""
 @bot.message_handler(commands=["profile"])
@@ -2584,6 +2626,9 @@ def admin_help(msg):
   → Выдать себе все ауры × amount
 /end <reason>
     → Выключить бота
+/ScheduledMaintenance
+    → Включить отсчет ScheduledMaintenance который при окончании
+    выключает бота.
 
 📢 BROADCASTS
 /say <message>
@@ -3193,8 +3238,11 @@ def handle(msg):
 
         # Добавляем информацию о событии и биоме
         event_info = ""
+        MaintanceText = ""
         if is_event_active():
             event_info = f"\n\n🎉 X{EVENT_DATA['event_multiplier']} LUCK EVENT\nTIME LEFT: {get_time_remaining()}"
+        if MaintanceActive:
+            MaintanceText = f"\n\n⚠️ Sol's rng bot is Going down for Scheduled Maintenance soon."
 
         biome_info = f"\n🌍 BIOME: {BIOME_DATA['current_biome']}"
         if BIOME_DATA['current_biome'] != "Normal":
@@ -3264,7 +3312,7 @@ def handle(msg):
             active_effects += "\n" + "\n".join(roll_potion_effects)
 
         bot.send_message(msg.chat.id,
-                         f"🎲 Rolls: {user['rolls']}\n💎 Rarest: {rare}\n🍀 Luck: x{display_luck}{biome_info}{event_info}{active_effects}",
+                         f"🎲 Rolls: {user['rolls']}\n💎 Rarest: {rare}\n🍀 Luck: x{display_luck}{biome_info}{event_info}{active_effects}{MaintanceText}",
                          reply_markup=back_menu())
         return
 
@@ -3318,6 +3366,7 @@ def handle(msg):
         | /Profile [UserId] to see user profile!
         | Now when admins use say command It will show their name!
         | /help command: See all avalible commands for you!
+        | ⏱️ Added Scheduled Maintenance! Now you can see when bot will shutdown and there will be less unexpected shutdowns.
         📰 Developer notes:
         | Hi everyone! Long time no see! This update took a while.. but it's finally here!
         | i've been focusing on code rewrite, optimizations, and bug fixes in this update,
@@ -3625,15 +3674,18 @@ def handle(msg):
         # --- Back / Pagination ---
     elif text == "⬅️ Back":
         event_info = ""
+        MaintanceText = ""
         if is_event_active():
             event_info = f"\n\n🎉 X{EVENT_DATA['event_multiplier']} LUCK EVENT ACTIVE! 🎉\nTime left: {get_time_remaining()}"
+        if MaintanceActive:
+                MaintanceText = f"\n\n⚠️ Sol's rng bot is Going down for Scheduled Maintenance soon."
 
         biome_info = f"\nBIOME: {BIOME_DATA['current_biome']}"
         if BIOME_DATA['current_biome'] != "Normal":
             biome_info += f" (ends in: {get_biome_time_remaining()})"
 
         bot.send_message(msg.chat.id,
-                         f"Sol's RNG 🎰\nTime: {'DAYTIME ☀️' if is_day else 'NIGHTTIME 🌙'}{biome_info}{event_info}",
+                         f"Sol's RNG 🎰\nTime: {'DAYTIME ☀️' if is_day else 'NIGHTTIME 🌙'}{biome_info}{event_info}{MaintanceText}",
                          reply_markup=main_menu(uid)
                          )
         return
