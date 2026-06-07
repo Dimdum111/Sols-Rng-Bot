@@ -300,7 +300,7 @@ def get_user_data(user_id, user_name="User"):
             }
         u = data["auras"].setdefault(user_id, {})
         u.setdefault("user_id", user_id)
-        # TODO: зделать так чтобы узер присваевался только 1 раз когда игрок заходит в бота.
+        u.setdefault("name", user_name) # It's not a bug that username only updates when user start playing! don't fix it!
         u.setdefault("user_luck", 1.0)  # Это базовая удача
         u.setdefault("rolls", 0)
         u.setdefault("rarest", None)
