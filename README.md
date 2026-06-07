@@ -93,6 +93,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Fix a bug that YOU NEED TO RESTART THE BOT 2. TIMES. BEFORE. IT'S. WORKING. [I think i fixed it]
 - [X] Make so when you do say/sayPin It says your name At the bottom. Example: Hello!
 - [ ] FIX CRAFTS
+- [X] Add scheduled maintanence
 
 -Dimdum
 
