@@ -300,6 +300,7 @@ def get_user_data(user_id, user_name="User"):
             }
         u = data["auras"].setdefault(user_id, {})
         u.setdefault("user_id", user_id)
+        # TODO: зделать так чтобы узер присваевался только 1 раз когда игрок заходит в бота.
         u.setdefault("user_luck", 1.0)  # Это базовая удача
         u.setdefault("rolls", 0)
         u.setdefault("rarest", None)
@@ -920,7 +921,7 @@ def main_menu(user_id=None):  # Добавь user_id, если его нет, и
 
     markup.row(types.KeyboardButton("💫 Auras"), types.KeyboardButton("📊 Stats"))
     markup.row(types.KeyboardButton("🏆 Leaderboard"), types.KeyboardButton("📝 Change Logs"))
-    markup.row(types.KeyboardButton("⚙️ Workshop"), types.KeyboardButton("🎒 Inventory"))
+    markup.row(types.KeyboardButton("🛠️ Workshop"), types.KeyboardButton("🎒 Inventory"))
     markup.row(types.KeyboardButton("🧪 Potions"))
     markup.row(types.KeyboardButton("⚙️ Settings"), types.KeyboardButton("📜 Credits"))
 
@@ -3312,6 +3313,7 @@ def handle(msg):
         ✨ New Stuff:
         | Updated Bot, Bot news, Bot chat Profile picture!
         | New Event!! Citadel Of Order!
+        | Workshop icon changed (⚙️>🛠️)
         | /Profile [UserId] to see user profile!
         | /help command: See all avalible commands for you!
         📰 Developer notes:
@@ -3656,7 +3658,7 @@ def handle(msg):
         return
 
     # --- WORKSHOP ---
-    if text == "⚙️ Workshop":
+    if text == "🛠️ Workshop":
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         # Все предметы всегда доступны для крафта
         items_tiers = list(WORKSHOP_ITEMS.keys())  # Автогенерация из WORKSHOP_ITEMS
