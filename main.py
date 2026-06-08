@@ -2328,77 +2328,77 @@ CRAFT_RECIPES = {
     "craft_luckglove": {
         "aura_reqs": {"Common": 50, "Uncommon": 35, "Rare": 10, "Crystallised": 3, "Sapphire": 1},
         "item_reqs": {},
-        "result": "[T1] Luck Glove", "result_display": "[T1] 🧤 Luck Glove",
+        "result": "[T1] 🧤 Luck Glove", "result_display": "[T1] 🧤 Luck Glove",
     },
     "craft_desireglove": {
         "aura_reqs": {"Rage": 20, "Ruby": 10, "Diaboli": 4, "Bleeding": 2},
         "item_reqs": {},
-        "result": "[T1] Desire Glove", "result_display": "[T1] 🔥 Desire Glove",
+        "result": "[T1] 🔥 Desire Glove", "result_display": "[T1] 🔥 Desire Glove",
     },
     "craft_solardevice": {
         "aura_reqs": {"Solar": 1, "Rare": 100, "Divinus": 50, "Uncommon": 300},
         "item_reqs": {},
-        "result": "[T1] Solar Device", "result_display": "[T1] ☀️ Solar Device",
+        "result": "[T1] ☀️ Solar Device", "result_display": "[T1] ☀️ Solar Device",
     },
     "craft_shiningstar": {
         "aura_reqs": {"Starlight": 2, "Star Rider": 2, "Wind": 50},
         "item_reqs": {},
-        "result": "[T2] Shining Star", "result_display": "[T2] ⭐ Shining Star",
+        "result": "[T2] ⭐ Shining Star", "result_display": "[T2] ⭐ Shining Star",
     },
     "craft_exogauntlet": {
         "aura_reqs": {"Gilded": 20, "Precious": 10, "Magnetic": 7, "Sidereum": 3, "Undead": 1, "Exotic": 1},
         "item_reqs": {},
-        "result": "[T3] Exo Gauntlet", "result_display": "[T3] 💠 Exo Gauntlet",
+        "result": "[T3] 💠 Exo Gauntlet", "result_display": "[T3] 💠 Exo Gauntlet",
     },
     "craft_windstormdevice": {
         "aura_reqs": {"Wind": 90, "Stormal": 2, "Aquatic": 2, "Sidereum": 14, "Precious": 28},
         "item_reqs": {},
-        "result": "[T3] Windstorm Device", "result_display": "[T3] 🌪️ Windstorm Device",
+        "result": "[T3] 🌪️ Windstorm Device", "result_display": "[T3] 🌪️ Windstorm Device",
     },
     "craft_subzerodevice": {
         "aura_reqs": {"Permafrost": 3, "Aquatic": 1, "Glacier": 20},
         "item_reqs": {},
-        "result": "[T4] Subzero Device", "result_display": "[T4] ❄️ Subzero Device",
+        "result": "[T4] ❄️ Subzero Device", "result_display": "[T4] ❄️ Subzero Device",
     },
     "craft_galacticdevice": {
         "aura_reqs": {"Galaxy": 1, "Sapphire": 320, "Solar": 30, "Magnetic": 100, "Comet": 4, "Diaboli": 150},
-        "item_reqs": {"[T1] Solar Device": 2},
-        "result": "[T5] Galactic Device", "result_display": "[T5] 🌌 Galactic Device",
+        "item_reqs": {"[T1] ☀️ Solar Device": 2},
+        "result": "[T5] 🌌 Galactic Device", "result_display": "[T5] 🌌 Galactic Device",
     },
     "craft_volcanicdevice": {
         "aura_reqs": {"Hades": 1, "Rage : Heated": 30, "Diaboli": 200, "Rage": 3000, "Bleeding": 133},
-        "item_reqs": {"[T1] Solar Device": 3, "[T3] Windstorm Device": 1},
-        "result": "[T5] Volcanic Device", "result_display": "[T5] 🌋 Volcanic Device",
+        "item_reqs": {"[T1] ☀️ Solar Device": 3, "[T3] 🌪️ Windstorm Device": 1},
+        "result": "[T5] 🌋 Volcanic Device", "result_display": "[T5] 🌋 Volcanic Device",
     },
     "craft_exoflexdevice": {
         "aura_reqs": {"Arcane": 5, "Jade": 15, "Exotic": 80, "Undead": 67, "Sidereum": 500, "Starlight": 140},
-        "item_reqs": {"[T3] Exo Gauntlet": 1},
-        "result": "[T6] Exoflex Device", "result_display": "[T6] 🔮 Exoflex Device",
+        "item_reqs": {"[T3] 💠 Exo Gauntlet": 1},
+        "result": "[T6] 🔮 Exoflex Device", "result_display": "[T6] 🔮 Exoflex Device",
     },
     "craft_hologrammer": {
         "aura_reqs": {"Virtual": 5, "Magnetic : Reverse Polarity": 5, "Twilight": 6, "Kyawthuite": 5, "Comet": 60},
         "item_reqs": {},
-        "result": "[T6] Hologrammer", "result_display": "[T6] 🌈 Hologrammer",
+        "result": "[T6] 🌈 Hologrammer", "result_display": "[T6] 🌈 Hologrammer",
     },
     "craft_ragnaroker": {
         "aura_reqs": {"Zeus": 7, "Hades": 7, "Poseidon": 7, "Star Rider": 175, "Solar": 300, "Lunar": 300},
         "item_reqs": {},
-        "result": "[T7] Ragnaröker", "result_display": "[T7] ⚡ Ragnaröker",
+        "result": "[T7] ⚡ Ragnaröker", "result_display": "[T7] ⚡ Ragnaröker",
     },
     "craft_starshaper": {
         "aura_reqs": {"Starscourge": 4, "Hyper-Volt": 6, "Galaxy": 6, "Comet": 270, "Star Rider": 600, "Solar": 3000},
-        "item_reqs": {"[T5] Galactic Device": 2, "[T1] Solar Device": 30},
-        "result": "[T8] Starshaper", "result_display": "[T8] ✨ Starshaper",
+        "item_reqs": {"[T5] 🌌 Galactic Device": 2, "[T1] ☀️ Solar Device": 30},
+        "result": "[T8] ✨ Starshaper", "result_display": "[T8] ✨ Starshaper",
     },
     "craft_neurolyzer": {
         "aura_reqs": {"Chromatic": 5, "Origin": 12, "Virtual": 30, "Twilight": 18, "Bounded : Unbound": 50},
-        "item_reqs": {"[T6] Hologrammer": 1},
-        "result": "[T9] Neurolyzer", "result_display": "[T9] 🔬 Neurolyzer",
+        "item_reqs": {"[T6] 🌈 Hologrammer": 1},
+        "result": "[T9] 🔬 Neurolyzer", "result_display": "[T9] 🔬 Neurolyzer",
     },
     "craft_genesisdrive": {
         "aura_reqs": {"Chromatic : Genesis": 2, "Matrix": 5, "Chromatic": 10, "Hyper-Volt": 30, "Origin": 30},
-        "item_reqs": {"[T9] Neurolyzer": 1},
-        "result": "[T10] Genesis Drive", "result_display": "[T10] 🌀 Genesis Drive",
+        "item_reqs": {"[T9] 🔬 Neurolyzer": 1},
+        "result": "[T10] 🌀 Genesis Drive", "result_display": "[T10] 🌀 Genesis Drive",
     },
 }
 
@@ -4374,7 +4374,7 @@ def handle(msg):
         # Проверяем, есть ли хотя бы один такой предмет в инвентаре
         item_count = sum(1 for item in user.get("inventory", []) if item == text)
         if item_count == 0:
-            bot.send_message(msg.chat.id, "You don't have this it[em.", reply_markup=back_menu())
+            bot.send_message(msg.chat.id, "You don't have this item.", reply_markup=back_menu())
             return
 
         if text in user.get("equipped", []):
