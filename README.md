@@ -94,6 +94,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Make so when you do say/sayPin It says your name At the bottom. Example: Hello!
 - [ ] FIX CRAFTS
 - [X] Add scheduled maintanence
+- [ ] Add if item not exists check to give givemeitem and etc.
 
 -Dimdum
 
