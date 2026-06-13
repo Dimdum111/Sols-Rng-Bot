@@ -74,6 +74,7 @@ Main branch (Unreleased): 0.95.1
 **🔨 To-do (1.0.0)**:
 - [X] Fix autoroll
 - [ ] Add all auras from original
+- [ ] Add all cutscenes to them
 - [X] Update 📜 Credits
 - [X] Update Change logs
 - [X] Update ALL bot associated channels, bots, and other profile picture and name
@@ -95,6 +96,7 @@ Main branch (Unreleased): 0.95.1
 - [ ] FIX CRAFTS
 - [X] Add scheduled maintanence
 - [ ] Add if item not exists check to give givemeitem and etc.
+- [ ] Add Heaven biome
 
 -Dimdum
 
