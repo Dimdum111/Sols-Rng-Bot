@@ -98,9 +98,9 @@ Main branch (Unreleased): 0.95.1
 - [ ] Add if item not exists check to give givemeitem and etc.
 - [ ] Add Heaven biome
 
--Dimdum
-
 **🛠️ To-do (Sometime)**:
 - [ ] Luck from Sol's rng
 - [ ] Ban system
 - [ ] Auto collect lucky potions when autorolling
+
+-Dimdum
