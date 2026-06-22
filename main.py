@@ -4468,4 +4468,4 @@ while True:
         print(f"[❌] Critical error. {e}")
         time.sleep(5)  # Спим дольше при неизвестных ошибках
 
-print("[✓] Bot shut down complete.")  # Добавлено для ясности
+print("[✓] Bot shut down complete.")
