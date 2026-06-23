@@ -97,6 +97,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Add scheduled maintanence
 - [ ] Add if item not exists check to give givemeitem and etc.
 - [ ] Add Heaven biome
+- [ ] Code system
 
 **🛠️ To-do (Sometime)**:
 - [ ] Luck from Sol's rng
