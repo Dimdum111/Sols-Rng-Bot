@@ -950,6 +950,7 @@ def back_menu():
 user_pages = {}
 
 user_last_command = {}
+user_current_menu = {}
 
 def paginate_list(items, page):
 
@@ -3713,6 +3714,7 @@ def handle(msg):
 
     # --- WORKSHOP ---
     if text == "🛠️ Workshop":
+        user_current_menu[uid] = "workshop"
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         # Все предметы всегда доступны для крафта
         items_tiers = list(WORKSHOP_ITEMS.keys())  # Автогенерация из WORKSHOP_ITEMS
@@ -3725,7 +3727,7 @@ def handle(msg):
 
     # --- WORKSHOP ITEMS: показ описания + кнопка крафта (из WORKSHOP_ITEMS) ---
     _workshop_info = {name: (item["craft_key"], item["desc"]) for name, item in WORKSHOP_ITEMS.items()}
-    if text in _workshop_info:
+    if text in _workshop_info and user_current_menu.get(uid) == "workshop":
         craft_key, desc = _workshop_info[text]
         bot.send_message(msg.chat.id, desc,
                          reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back"))
@@ -3734,6 +3736,7 @@ def handle(msg):
 
     # --- INVENTORY ---
     if text == "🎒 Inventory":
+        user_current_menu[uid] = "inventory"
         inv = user.get("inventory", [])
         if not inv:
             bot.send_message(msg.chat.id, "You don't have anything in your inventory.", reply_markup=back_menu())
