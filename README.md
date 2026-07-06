@@ -93,14 +93,13 @@ Main branch (Unreleased): 0.95.1
 - [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
 - [X] Fix a bug that YOU NEED TO RESTART THE BOT 2. TIMES. BEFORE. IT'S. WORKING. [I think i fixed it]
 - [X] Make so when you do say/sayPin It says your name At the bottom. Example: Hello!
-- [ ] FIX CRAFTS
+- [X] FIX CRAFTS
 - [X] Add scheduled maintanence
 - [ ] Add if item not exists check to give givemeitem and etc.
 - [ ] Add Heaven biome
 - [ ] Code system
 
 **🛠️ To-do (Sometime)**:
-- [ ] Luck from Sol's rng
 - [ ] Ban system
 - [ ] Auto collect lucky potions when autorolling
 
