@@ -318,33 +318,3 @@ aura_gif_map = {
     "dreamscape": "https://t.me/solsrngbotcutscenes/109",
     "NYCTOPHOBIA": "https://t.me/solsrngbotcutscenes/110",
 }
-
-# все перчатки в игре
-
-gear_items = [
-    "[T1] Luck Glove", "[T1] Desire Glove", "[T1] Solar Device",
-    "[T2] Shining Star", "[T3] Exo Gauntlet", "[T3] Windstorm Device",
-    "[T4] Subzero Device", "[T5] Galactic Device", "[T5] Volcanic Device",
-    "[T6] Exoflex Device", "[T6] Hologrammer", "[T7] Ragnaröker",
-    "[T8] Starshaper", "[T9] Neurolyzer", "[T10] Genesis Drive"
-]
-
-# Все баффы перчаток
-
-luck_bonuses = {
-    "[T1] Luck Glove": 0.8,
-    "[T1] Desire Glove": 1.4,
-    "[T1] Solar Device": 2.3,
-    "[T2] Shining Star": 2,  # Базовый (че ты имеешь ввиду под этим)
-    "[T3] Exo Gauntlet": 3.5,
-    "[T3] Windstorm Device": 4.5,
-    "[T4] Subzero Device": 5,
-    "[T5] Galactic Device": 6.8,
-    "[T5] Volcanic Device": 7.25,
-    "[T6] Exoflex Device": 9.2,
-    "[T6] Hologrammer": 10,
-    "[T7] Ragnaröker": 13.5,  # Базовый (???)
-    "[T8] Starshaper": 27.5,
-    "[T9] Neurolyzer": 45.25,
-    "[T10] Genesis Drive": 65
-}

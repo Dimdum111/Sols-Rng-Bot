@@ -39,15 +39,18 @@ def log_admin_action(admin_msg, action_text): # Логирует действи�
     # 1. Запись в файл UsedAdminCmds.txt
     now = datetime.now().strftime("%Y, %d.%m, %H:%M:%S")
     username = f"@{admin_msg.from_user.username}" if admin_msg.from_user.username else admin_msg.from_user.first_name
-    log_entry = f"[{now}] [{username}] Used {action_text}, Userid: [{admin_msg.from_user.id}]\n"
+    log_entry = f"[{now}] [{username}] Used {action_text}, Userid: [{admin_msg.from_user.id}]\n\n"
+    TestBot = ""
     with open("UsedAdminCmds.txt", "a", encoding="utf-8") as f:
         f.write(log_entry)
-        # 2. Отправка через второго бота всем пользователям первого бота
+        if TOKEN == "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8": TestBot = "╚ ⚠️ THIS COMMAND WAS USED IN THE TEST BOT ╗"
+        else: TestBot = ""
         notification_text = (
             "⚠️ Admin command notification\n"
             f"👤 Admin: {username}\n"
             f"🛠 Used: {action_text}\n"
-            f"🆔 ID: {admin_msg.from_user.id}"
+            f"🆔 ID: {admin_msg.from_user.id}\n\n"
+            f"{TestBot}"
         )
         def send_to_all():
             with data_lock:
@@ -320,6 +323,7 @@ def get_user_data(user_id, user_name="User"):
         u.setdefault("auto_pin_rarity", None)
         u.setdefault("forced_aura", None)
         u.setdefault("gif_rarity_threshold", 1000000)
+        #u.setdefault("codes", []) 
         # лимбо
         u.setdefault("limbo_unlocked", False)
         u.setdefault("in_limbo", False)
@@ -362,7 +366,7 @@ def get_calculated_luck(user):
             except:
                 pass
 
-    total_luck = base_luck + item_bonus + potion_bonus
+    total_luck = base_luck + item_bonus + potion_bonus # total_luck = ((base_luck + item_bonus + potion_bonus) * 2) * 1.2
     return max(1.0, total_luck)  # Удача не может быть меньше 1
 
 def get_effective_luck(calculated_luck):
@@ -3910,7 +3914,7 @@ def handle(msg):
         markup.row(types.KeyboardButton("Use"))
         if potion_count > 1:
             markup.row(types.KeyboardButton("Use All"))
-            markup.row(types.KeyboardButton("Use amount"))  # <--- НОВАЯ КНОПКА
+            markup.row(types.KeyboardButton("Use amount"))
         markup.row(types.KeyboardButton("⬅️ Back"))
         bot.send_message(msg.chat.id, "Lucky Potion\n+100% luck for 1 minute", reply_markup=markup)
         user_last_command[uid] = "use_potion"  # Это для "Use" и "Use All"
