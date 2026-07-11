@@ -88,6 +88,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Add Me instead of user_id
 - [X] [!DELETE!] Make username update every time user rolls
 - [X] Update README.md
+- [X] make so u see if command executed in test bot
 - [ ] Make special event for 1.0 [WIP]
 - [X] Make /profile [User id] command
 - [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
