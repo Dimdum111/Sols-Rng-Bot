@@ -2698,6 +2698,8 @@ def admin_help(msg):
 /itemReq <item_name>
   → Показать требования для крафта предмета
   → Пример: /itemReq [T5] Galactic Device
+/activeplayers
+    → Показать активных игроков в некоторый промежутках времени.
   
 👤 NORMAL-USER COMMANDS
 /Profile <User_id>
