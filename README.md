@@ -80,7 +80,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Update ALL bot associated channels, bots, and other profile picture and name
 - [ ] Make 1.0 trailer
 - [X] Optimize code 10286 -> 4333 Lines of code
-- [ ] Luck from Sol's rng MAKE IT BALANCED AND EASIER TO PLAY SERIOSLY ITS LITTEARY IMPOSIBLE TO PLAY NOW PLEASE.
+- [X] Luck from Sol's rng (Finnaly..!)
 - [X] Make adding item easier
 - [X] Allow /end directly from bot
 - [X] Add .Help
@@ -89,11 +89,12 @@ Main branch (Unreleased): 0.95.1
 - [X] [!DELETE!] Make username update every time user rolls
 - [X] Update README.md
 - [X] make so u see if command executed in test bot
+- [X] /activeplayers command
 - [ ] Make special event for 1.0 [WIP]
 - [X] Make /profile [User id] command
 - [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
 - [X] Fix a bug that YOU NEED TO RESTART THE BOT 2. TIMES. BEFORE. IT'S. WORKING. [I think i fixed it]
-- [X] Make so when you do say/sayPin It says your name At the bottom. Example: Hello!
+- [X] Make so when you do say/sayPin It says your name At the bottom.
 - [X] FIX CRAFTS
 - [X] Add scheduled maintanence
 - [ ] Add if item not exists check to give givemeitem and etc.
