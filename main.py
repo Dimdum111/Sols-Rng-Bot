@@ -447,31 +447,33 @@ def roll_aura(effective_luck, user):
         # 3. ЕСЛИ НИЧЕГО НЕ ВЫПАЛО В ЛИМБО
         return "Nothing", 1
 
-    # === ОБЫЧНАЯ ЛОГИКА (ЕСЛИ НЕ В ЛИМБО) ===
-    candidates = []
-    total_weight = 0
+    # === Luck logic (fixed) ===
     current_biome = BIOME_DATA["current_biome"]
 
+    pool = []
     for aura, base_chance in auras.items():
         if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
         if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
 
         biome_multiplier = get_biome_multiplier(aura)
         adjusted_rarity = base_chance / biome_multiplier
+        pool.append((aura, adjusted_rarity))
 
-        # final_rarity - это то, с какой *реальной* сложностью ты роллишь
-        final_rarity = adjusted_rarity / effective_luck
+    # Sort rarest -> most common (highest rarity number first), matching original algorithm
+    pool.sort(key=lambda x: x[1], reverse=True)
 
-        if final_rarity < 0.9: continue
+    for i, (aura, adjusted_rarity) in enumerate(pool):
+        if i == len(pool) - 1:
+            # Last (most common) aura is the guaranteed catch-all if everything above missed
+            return aura, adjusted_rarity
 
-        weight = 1.0 / final_rarity
-        candidates.append((aura, adjusted_rarity, weight))
-        total_weight += weight
+        new_rarity = max(1, math.floor(adjusted_rarity / effective_luck + 0.5))
+        if random.randint(1, new_rarity) == 1:
+            return aura, adjusted_rarity
 
-    if not candidates:
-        best = min(auras.items(), key=lambda x: x[1])
-        # Возвращаем ее базовый шанс, так как для нее adjusted_rarity = base_chance
-        return best[0], best[1]
+    # Should be unreachable, but just in case the pool was empty
+    best = min(auras.items(), key=lambda x: x[1])
+    return best[0], best[1]
 
     rnd = random.random() * total_weight
     cumulative = 0
@@ -679,17 +681,17 @@ def auto_roll_thread(user_id, chat_id):
 
                 if not user.get("in_limbo", False):
                     if user.get("heavenly_potion_active", 0) > 0:
-                        heavenly_bonus = 425000
+                        heavenly_bonus = 150000
                         user["heavenly_potion_active"] -= 1
                         potion_msg += f"\nHeavenly Potion left: {user['heavenly_potion_active']}"
 
                     if user.get("bound_potion_active", 0) > 0:
-                        bound_bonus = 200000
+                        bound_bonus = 50000
                         user["bound_potion_active"] -= 1
                         potion_msg += f"\nPotion of Bound left: {user['bound_potion_active']}"
 
                     if user.get("godlike_potion_active", 0) > 0:
-                        godlike_bonus = 1000000
+                        godlike_bonus = 400000
                         user["godlike_potion_active"] -= 1
                         potion_msg += f"\nGodlike Potion left: {user['godlike_potion_active']}"
 
@@ -1909,17 +1911,17 @@ def process_manual_roll(msg):
         # Проверяем, НЕ в лимбо ли мы. Если в Лимбо — бонусы не применяются.
         if not user.get("in_limbo", False):
             if user.get("heavenly_potion_active", 0) > 0:
-                heavenly_bonus = 425000
+                heavenly_bonus = 150000
                 user["heavenly_potion_active"] -= 1
                 potion_msg += f"\nHeavenly Potion left: {user['heavenly_potion_active']}"
 
             if user.get("bound_potion_active", 0) > 0:
-                bound_bonus = 200000
+                bound_bonus = 50000
                 user["bound_potion_active"] -= 1
                 potion_msg += f"\nPotion of Bound left: {user['bound_potion_active']}"
 
             if user.get("godlike_potion_active", 0) > 0:
-                godlike_bonus = 1000000
+                godlike_bonus = 400000
                 user["godlike_potion_active"] -= 1
                 potion_msg += f"\nGodlike Potion left: {user['godlike_potion_active']}"
         else:
@@ -2142,75 +2144,75 @@ def handle_dangerous_cmd_confirm(msg):
 POTION_DATA = {
     "use_heavenly_potion": {
         "name": "Heavenly Potion",
-        "desc": "Heavenly Potion\n+42500000% (+425000) luck for 1 roll",
+        "desc": "Heavenly Potion\n+15000000% (+150000) luck for 1 roll",
         "type": "roll",
         "user_key": "heavenly_potion_active",
-        "luck": 425000,
+        "luck": 150000,
     },
     "use_bound_potion": {
         "name": "Potion of Bound",
-        "desc": "Potion of Bound\n+20000000% (+200000) luck for 1 roll",
+        "desc": "Potion of Bound\n+5000000% (+50000) luck for 1 roll",
         "type": "roll",
         "user_key": "bound_potion_active",
-        "luck": 200000,
+        "luck": 50000,
     },
     "use_fortune_potion_1": {
         "name": "Fortune Potion I",
-        "desc": "Fortune Potion I\n+200% (+2) luck for 5 minutes",
+        "desc": "Fortune Potion I\n+50% (+0.5) luck for 5 minutes",
         "type": "timed",
-        "luck": 2.0,
+        "luck": 0.5,
         "duration": 300,
     },
     "use_fortune_potion_2": {
         "name": "Fortune Potion II",
-        "desc": "Fortune Potion II\n+350% (+3.5) luck for 5 minutes",
+        "desc": "Fortune Potion II\n+75% (+0.75) luck for 5 minutes",
         "type": "timed",
-        "luck": 3.5,
+        "luck": 0.75,
         "duration": 300,
     },
     "use_fortune_potion_3": {
         "name": "Fortune Potion III",
-        "desc": "Fortune Potion III\n+500% (+5) luck for 5 minutes",
+        "desc": "Fortune Potion III\n+100% (+1) luck for 5 minutes",
         "type": "timed",
-        "luck": 5.0,
+        "luck": 1.0,
         "duration": 300,
     },
     "use_jewellery_potion": {
         "name": "Jewellery Potion",
-        "desc": "Jewellery Potion\n+600% (+6) luck for 10 minutes",
+        "desc": "Jewellery Potion\n+120% (+1.2) luck for 10 minutes",
         "type": "timed",
-        "luck": 6.0,
+        "luck": 1.2,
         "duration": 600,
     },
     "use_zombie_potion": {
         "name": "Zombie Potion",
-        "desc": "Zombie Potion\n+800% (+8) luck for 10 minutes",
+        "desc": "Zombie Potion\n+150% (+1.5) luck for 10 minutes",
         "type": "timed",
-        "luck": 8.0,
+        "luck": 1.5,
         "duration": 600,
     },
     "use_hades_godly_potion": {
         "name": "Hades Godly Potion",
-        "desc": "Hades Godly Potion\n+1200% (+12) luck for 4 hours",
+        "desc": "Hades Godly Potion\n+300% (+3) luck for 4 hours",
         "type": "timed",
-        "luck": 12.0,
+        "luck": 3.0,
         "duration": 14400,
     },
     "use_zeus_godly_potion": {
         "name": "Zeus Godly Potion",
-        "desc": "Zeus Godly Potion\n+1000% (+10) luck for 4 hours",
+        "desc": "Zeus Godly Potion\n+200% (+2) luck for 4 hours",
         "type": "timed",
-        "luck": 10.0,
+        "luck": 2.0,
         "duration": 14400,
     },
     "use_godlike_potion": {
         "name": "Godlike Potion",
-        "desc": "Godlike Potion\n+100000000% (+1000000) luck for 1 roll",
+        "desc": "Godlike Potion\n+40000000% (+400000) luck for 1 roll",
         "type": "roll",
         "user_key": "godlike_potion_active",
-        "luck": 1000000,
+        "luck": 400000,
     },
-}
+}  
 
 # Имя зелья -> ключ в POTION_DATA (для показа меню при нажатии на зелье из инвентаря)
 POTION_NAME_TO_KEY = {v["name"]: k for k, v in POTION_DATA.items()}
@@ -2416,92 +2418,92 @@ CRAFT_RECIPES = {
 WORKSHOP_ITEMS = {
     "[T1] 🧤 Luck Glove": {
         "craft_key": "craft_luckglove",
-        "luck_bonus": 0.8,
-        "desc": "[T1] 🧤 Luck Glove\n+80% (+0.8) luck\n\nRequirements:\nx50 Common\nx35 Uncommon\nx10 Rare\nx3 Crystallised\nx1 Sapphire",
+        "luck_bonus": 0.25,
+        "desc": "[T1] 🧤 Luck Glove\n+25% (+0.25) luck\n\nRequirements:\nx50 Common\nx35 Uncommon\nx10 Rare\nx3 Crystallised\nx1 Sapphire",
         "biome_bonus": None,  # {"biome": "Starfall", "bonus": 6.0} или None
     },
     "[T1] 🔥 Desire Glove": {
         "craft_key": "craft_desireglove",
-        "luck_bonus": 1.4,
-        "desc": "[T1] 🔥 Desire Glove\n+140% (+1.4) luck\n\nRequirements:\nx20 Rage\nx10 Ruby\nx4 Diaboli\nx2 Bleeding",
+        "luck_bonus": 0.4,
+        "desc": "[T1] 🔥 Desire Glove\n+40% (+0.4) luck\n\nRequirements:\nx20 Rage\nx10 Ruby\nx4 Diaboli\nx2 Bleeding",
         "biome_bonus": None,
     },
     "[T1] ☀️ Solar Device": {
         "craft_key": "craft_solardevice",
-        "luck_bonus": 2.3,
-        "desc": "[T1] ☀️ Solar Device\n+230% (+2.3) luck\n\nRequirements:\nx1 Solar\nx100 Rare\nx50 Divinus\nx300 Uncommon",
+        "luck_bonus": 0.5,
+        "desc": "[T1] ☀️ Solar Device\n+50% (+0.5) luck\n\nRequirements:\nx1 Solar\nx100 Rare\nx50 Divinus\nx300 Uncommon",
         "biome_bonus": None,
     },
     "[T2] ⭐ Shining Star": {
         "craft_key": "craft_shiningstar",
-        "luck_bonus": 2.0,
-        "desc": "[T2] ⭐ Shining Star\n+200% luck (when Starfall biome: +600%)\n\nRequirements:\nx2 Starlight\nx2 Star Rider\nx50 Wind",
-        "biome_bonus": {"biome": "Starfall", "bonus": 6.0},
+        "luck_bonus": 0.5,
+        "desc": "[T2] ⭐ Shining Star\n+50% luck (when Starfall biome: +250%)\n\nRequirements:\nx2 Starlight\nx2 Star Rider\nx50 Wind",
+        "biome_bonus": {"biome": "Starfall", "bonus": 2.5},
     },
     "[T3] 💠 Exo Gauntlet": {
         "craft_key": "craft_exogauntlet",
-        "luck_bonus": 3.5,
-        "desc": "[T3] 💠 Exo Gauntlet\n+350% (+3.5) luck\n\nRequirements:\nx20 Gilded\nx10 Precious\nx7 Magnetic\nx3 Sidereum\nx1 Undead\nx1 Exotic",
+        "luck_bonus": 1.0,
+        "desc": "[T3] 💠 Exo Gauntlet\n+100% (+1.0) luck\n\nRequirements:\nx20 Gilded\nx10 Precious\nx7 Magnetic\nx3 Sidereum\nx1 Undead\nx1 Exotic",
         "biome_bonus": None,
     },
     "[T3] 🌪️ Windstorm Device": {
         "craft_key": "craft_windstormdevice",
-        "luck_bonus": 4.5,
-        "desc": "[T3] 🌪️ Windstorm Device\n+450% (+4.5) luck\n\nRequirements:\nx90 Wind\nx2 Stormal\nx2 Aquatic\nx14 Sidereum\nx28 Precious",
+        "luck_bonus": 1.15,
+        "desc": "[T3] 🌪️ Windstorm Device\n+115% (+1.15) luck\n\nRequirements:\nx90 Wind\nx2 Stormal\nx2 Aquatic\nx14 Sidereum\nx28 Precious",
         "biome_bonus": None,
     },
     "[T4] ❄️ Subzero Device": {
         "craft_key": "craft_subzerodevice",
-        "luck_bonus": 5.0,
-        "desc": "[T4] ❄️ Subzero Device\n+500% (+5) luck\n\nRequirements:\nx3 Permafrost\nx1 Aquatic\nx20 Glacier",
+        "luck_bonus": 1.5,
+        "desc": "[T4] ❄️ Subzero Device\n+150% (+1.5) luck\n\nRequirements:\nx3 Permafrost\nx1 Aquatic\nx20 Glacier",
         "biome_bonus": None,
     },
     "[T5] 🌌 Galactic Device": {
         "craft_key": "craft_galacticdevice",
-        "luck_bonus": 6.8,
-        "desc": "[T5] 🌌 Galactic Device\n+680% (+6.8) luck\n\nRequirements:\nx1 Galaxy\nx320 Sapphire\nx30 Solar\nx100 Magnetic\nx4 Comet\nx150 Diaboli\nx2 [T1] Solar Device",
+        "luck_bonus": 2.5,
+        "desc": "[T5] 🌌 Galactic Device\n+250% (+2.5) luck\n\nRequirements:\nx1 Galaxy\nx320 Sapphire\nx30 Solar\nx100 Magnetic\nx4 Comet\nx150 Diaboli\nx2 [T1] Solar Device",
         "biome_bonus": None,
     },
     "[T5] 🌋 Volcanic Device": {
         "craft_key": "craft_volcanicdevice",
-        "luck_bonus": 7.25,
-        "desc": "[T5] 🌋 Volcanic Device\n+725% (+7.25) luck\n\nRequirements:\nx1 Hades\nx30 Rage : Heated\nx200 Diaboli\nx3000 Rage\nx133 Bleeding\nx3 [T1] Solar Device\nx1 [T3] Windstorm Device",
+        "luck_bonus": 2.9,
+        "desc": "[T5] 🌋 Volcanic Device\n+290% (+2.9) luck\n\nRequirements:\nx1 Hades\nx30 Rage : Heated\nx200 Diaboli\nx3000 Rage\nx133 Bleeding\nx3 [T1] Solar Device\nx1 [T3] Windstorm Device",
         "biome_bonus": None,
     },
     "[T6] 🔮 Exoflex Device": {
         "craft_key": "craft_exoflexdevice",
-        "luck_bonus": 9.2,
-        "desc": "[T6] 🔮 Exoflex Device\n+920% (+9.2) luck\n\nRequirements:\nx5 Arcane\nx15 Jade\nx80 Exotic\nx67 Undead\nx500 Sidereum\nx140 Starlight\nx2000 Aquamarine\nx70000 Rare\nx1 [T3] Exo Gauntlet",
+        "luck_bonus": 3.4,
+        "desc": "[T6] 🔮 Exoflex Device\n+340% (+3.4) luck\n\nRequirements:\nx5 Arcane\nx15 Jade\nx80 Exotic\nx67 Undead\nx500 Sidereum\nx140 Starlight\nx2000 Aquamarine\nx70000 Rare\nx1 [T3] Exo Gauntlet",
         "biome_bonus": None,
     },
     "[T6] 🌈 Hologrammer": {
         "craft_key": "craft_hologrammer",
-        "luck_bonus": 10.0,
-        "desc": "[T6] 🌈 Hologrammer\n+1000% (+10) luck\n\nRequirements:\nx5 Virtual\nx5 Magnetic : Reverse Polarity\nx6 Twilight\nx5 Kyawthuite\nx60 Comet\nx100 Starlight\nx250 Rage : Heated\nx1000 Player\nx1350 Magnetic\nx5000 Diaboli\nx8000 Forbidden",
+        "luck_bonus": 3.95,
+        "desc": "[T6] 🌈 Hologrammer\n+395% (+3.95) luck\n\nRequirements:\nx5 Virtual\nx5 Magnetic : Reverse Polarity\nx6 Twilight\nx5 Kyawthuite\nx60 Comet\nx100 Starlight\nx250 Rage : Heated\nx1000 Player\nx1350 Magnetic\nx5000 Diaboli\nx8000 Forbidden",
         "biome_bonus": None,
     },
     "[T7] ⚡ Ragnaröker": {
         "craft_key": "craft_ragnaroker",
-        "luck_bonus": 13.5,
-        "desc": "[T7] ⚡ Ragnaröker\n+1350% (+13.5) luck\n\nRequirements:\nx7 Zeus\nx7 Hades\nx7 Poseidon\nx175 Star Rider\nx300 Solar\nx300 Lunar\nx400 Rage : Heated\nx600 Lost Soul\nx1000 Sidereum\nx4000 Ash\nx7000 Diaboli\nx50000 Rage",
-        "biome_bonus": {"biome": "Windy/Rainy/Hell", "bonus": 1.5},
+        "luck_bonus": 4.55,
+        "desc": "[T7] ⚡ Ragnaröker\n+455% (+4.55) luck\n\nRequirements:\nx7 Zeus\nx7 Hades\nx7 Poseidon\nx175 Star Rider\nx300 Solar\nx300 Lunar\nx400 Rage : Heated\nx600 Lost Soul\nx1000 Sidereum\nx4000 Ash\nx7000 Diaboli\nx50000 Rage",
+        "biome_bonus": {"biome": "Windy/Rainy/Hell", "bonus": 0.45},
     },
     "[T8] ✨ Starshaper": {
         "craft_key": "craft_starshaper",
-        "luck_bonus": 27.5,
-        "desc": "[T8] ✨ Starshaper\n+2750% (+27.5) luck\n\nRequirements:\nx2 [T5] Galactic Device\nx30 [T1] Solar Device\nx4 Starscourge\nx6 Hyper-Volt\nx6 Galaxy\nx270 Comet\nx600 Star Rider\nx3000 Solar\nx3000 Lunar\nx5000 Sidereum\nx10000 Magnetic",
+        "luck_bonus": 7.0,
+        "desc": "[T8] ✨ Starshaper\n+700% (+7) luck\n\nRequirements:\nx2 [T5] Galactic Device\nx30 [T1] Solar Device\nx4 Starscourge\nx6 Hyper-Volt\nx6 Galaxy\nx270 Comet\nx600 Star Rider\nx3000 Solar\nx3000 Lunar\nx5000 Sidereum\nx10000 Magnetic",
         "biome_bonus": None,
     },
     "[T9] 🔬 Neurolyzer": {
         "craft_key": "craft_neurolyzer",
-        "luck_bonus": 45.25,
-        "desc": "[T9] 🔬 Neurolyzer\n+4525% (+45.25) luck\n\nRequirements:\nx1 [T6] Hologrammer\nx5 Chromatic\nx12 Origin\nx30 Virtual\nx18 Twilight\nx50 Bounded : Unbound\nx800 Exotic\nx1200 Starlight\nx5000 Flushed\nx7500 Lost Soul",
+        "luck_bonus": 8.5,
+        "desc": "[T9] 🔬 Neurolyzer\n+850% (+8.5) luck\n\nRequirements:\nx1 [T6] Hologrammer\nx5 Chromatic\nx12 Origin\nx30 Virtual\nx18 Twilight\nx50 Bounded : Unbound\nx800 Exotic\nx1200 Starlight\nx5000 Flushed\nx7500 Lost Soul",
         "biome_bonus": None,
     },
     "[T10] 🌀 Genesis Drive": {
         "craft_key": "craft_genesisdrive",
-        "luck_bonus": 65.0,
-        "desc": "[T10] 🌀 Genesis Drive\n+6500% (+65) luck\n\nRequirements:\nx1 [T9] Neurolyzer\nx2 Chromatic : Genesis\nx5 Matrix\nx10 Chromatic\nx30 Hyper-Volt\nx30 Origin\nx100 Virtual\nx600 Bounded\nx600 Aether\nx1000 Exotic\nx7500 WATT\nx10000 Powered",
+        "luck_bonus": 12.0,
+        "desc": "[T10] 🌀 Genesis Drive\n+1200% (+12) luck\n\nRequirements:\nx1 [T9] Neurolyzer\nx2 Chromatic : Genesis\nx5 Matrix\nx10 Chromatic\nx30 Hyper-Volt\nx30 Origin\nx100 Virtual\nx600 Bounded\nx600 Aether\nx1000 Exotic\nx7500 WATT\nx10000 Powered",
         "biome_bonus": None,
     },
 }
@@ -2850,51 +2852,51 @@ def handle(msg):
             # --- НОВЫЕ ВРЕМЕННЫЕ ЗЕЛЬЯ ---
             elif pending_potion == "fortune_1":
                 # +2 luck, 5 min (300s) per potion
-                response_msg = apply_timed_potion(user, 2.0, 300 * amount)
+                response_msg = apply_timed_potion(user, 0.5, 300 * amount)
                 bot.send_message(msg.chat.id, f"Used {amount} Fortune Potion I. {response_msg}",
                                  reply_markup=back_menu())
             elif pending_potion == "fortune_2":
                 # +3.5 luck, 5 min (300s) per potion
-                response_msg = apply_timed_potion(user, 3.5, 300 * amount)
+                response_msg = apply_timed_potion(user, 0.75, 300 * amount)
                 bot.send_message(msg.chat.id, f"Used {amount} Fortune Potion II. {response_msg}",
                                  reply_markup=back_menu())
             elif pending_potion == "fortune_3":
                 # +5 luck, 5 min (300s) per potion
-                response_msg = apply_timed_potion(user, 5.0, 300 * amount)
+                response_msg = apply_timed_potion(user, 1.0, 300 * amount)
                 bot.send_message(msg.chat.id, f"Used {amount} Fortune Potion III. {response_msg}",
                                  reply_markup=back_menu())
             elif pending_potion == "jewellery":
                 # +6 luck, 10 min (600s) per potion
-                response_msg = apply_timed_potion(user, 6.0, 600 * amount)
+                response_msg = apply_timed_potion(user, 1.2, 600 * amount)
                 bot.send_message(msg.chat.id, f"Used {amount} Jewellery Potion. {response_msg}",
                                  reply_markup=back_menu())
             elif pending_potion == "zombie":
                 # +8 luck, 10 min (600s) per potion
-                response_msg = apply_timed_potion(user, 8.0, 600 * amount)
+                response_msg = apply_timed_potion(user, 1.5, 600 * amount)
                 bot.send_message(msg.chat.id, f"Used {amount} Zombie Potion. {response_msg}", reply_markup=back_menu())
             elif pending_potion == "hades_godly":
                 # +12 luck, 4 hours (14400s) per potion
-                response_msg = apply_timed_potion(user, 12.0, 14400 * amount)
+                response_msg = apply_timed_potion(user, 3.0, 14400 * amount)
                 bot.send_message(msg.chat.id, f"Used {amount} Hades Godly Potion. {response_msg}",
                                  reply_markup=back_menu())
             elif pending_potion == "zeus_godly":
                 # +10 luck, 4 hours (14400s) per potion
-                response_msg = apply_timed_potion(user, 10.0, 14400 * amount)
+                response_msg = apply_timed_potion(user, 2.0, 14400 * amount)
                 bot.send_message(msg.chat.id, f"Used {amount} Zeus Godly Potion. {response_msg}",
                                  reply_markup=back_menu())
 
             # --- ЗЕЛЬЯ НА РОЛЛЫ ---
             elif pending_potion == "godlike":
                 user["godlike_potion_active"] = user.get("godlike_potion_active", 0) + amount
-                bot.send_message(msg.chat.id, f"You used {amount} Godlike Potions. +1000000 luck for {amount} rolls.",
+                bot.send_message(msg.chat.id, f"You used {amount} Godlike Potions. +400000 luck for {amount} rolls.",
                                  reply_markup=back_menu())
             elif pending_potion == "heavenly":
                 user["heavenly_potion_active"] = user.get("heavenly_potion_active", 0) + amount
-                bot.send_message(msg.chat.id, f"You used {amount} Heavenly Potions. +425000 luck for {amount} rolls.",
+                bot.send_message(msg.chat.id, f"You used {amount} Heavenly Potions. +150000 luck for {amount} rolls.",
                                  reply_markup=back_menu())
             elif pending_potion == "bound":
                 user["bound_potion_active"] = user.get("bound_potion_active", 0) + amount
-                bot.send_message(msg.chat.id, f"You used {amount} Potions of Bound. +200000 luck for {amount} rolls.",
+                bot.send_message(msg.chat.id, f"You used {amount} Potions of Bound. +50000 luck for {amount} rolls.",
                                  reply_markup=back_menu())
 
             user["pending_potion_amount"] = None
@@ -3019,169 +3021,6 @@ def handle(msg):
 
     if text == "🎲 Roll":
         threading.Thread(target=process_manual_roll, args=(msg,), daemon=True).start()
-        return
-        heavenly_bonus = 0
-        bound_bonus = 0
-        potion_msg = ""
-
-        if user.get("heavenly_potion_active", 0) > 0:
-            heavenly_bonus = 425000
-            user["heavenly_potion_active"] -= 1
-            potion_msg += f"\nHeavenly Potion left: {user['heavenly_potion_active']}"
-
-        if user.get("bound_potion_active", 0) > 0:
-            bound_bonus = 200000
-            user["bound_potion_active"] -= 1
-            potion_msg += f"\nPotion of Bound left: {user['bound_potion_active']}"
-
-        total_special_bonus = heavenly_bonus + bound_bonus
-
-        calculated_luck = get_calculated_luck(user) + total_special_bonus
-        effective_luck = get_effective_luck(calculated_luck)
-        forced_aura = user.get("forced_aura")
-        if forced_aura:
-            aura = forced_aura
-            chance = auras.get(aura, 1000000)  # Получаем базовый шанс для отображения
-            user["forced_aura"] = None  # Очищаем, т.к. на 1 ролл
-            # save_data() будет вызван ниже
-        else:
-            aura, chance = roll_aura(effective_luck, user)
-        # Проверяем, есть ли аура в нашем словаре И ее шанс >= 1M
-        gif_threshold = user.get("gif_rarity_threshold", 1000000)
-        if aura in aura_gif_map and chance >= gif_threshold:
-            try:
-                # Получаем ID гифки, СВЯЗАННЫЙ с этой аурой
-                gif_id = aura_gif_map[aura]
-
-                if gif_id != "YOUR_ID_HERE":  # Проверка, что вы заполнили ID
-                    bot.send_animation(msg.chat.id, gif_id)
-                    time.sleep(12)
-                else:
-                    print(f"GIF not set for aura: {aura}")
-
-            except Exception as e:
-                print(f"Failed to send GIF for {aura}: {e}")
-
-        user["rolls"] += 1
-        user["auras"][aura] = user["auras"].get(aura, 0) + 1
-        if not user["rarest"] or auras[aura] > auras[user["rarest"]]:
-            user["rarest"] = aura
-        save_data()
-
-        display_luck = int(effective_luck) if effective_luck == int(effective_luck) else round(effective_luck, 2)
-
-        from_biome = ""
-        current_biome = BIOME_DATA["current_biome"]
-
-        glitched_auras = ["Oppression", "Glitch", "Fault"]
-        dreamspace_auras = ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]
-
-        if current_biome == "Dreamspace" and aura in dreamspace_auras:
-            from_biome = " [From Dreamspace!]"
-        elif current_biome == "Glitched":
-            if aura in glitched_auras or aura in dreamspace_auras:
-                from_biome = " [From Glitched!]"
-            else:
-                base_chance = auras[aura]
-                biome_multiplier = get_biome_multiplier(aura)
-                if biome_multiplier > 1:
-                    adjusted_chance = base_chance / biome_multiplier
-                    if adjusted_chance < base_chance:
-                        from_biome = " [From Glitched!]"
-        elif current_biome != "Normal" and current_biome != "Dreamspace":  # Убран 'Glitched'
-            base_chance = auras[aura]
-            biome_multiplier = get_biome_multiplier(aura)
-            if biome_multiplier > 1:
-                adjusted_chance = base_chance / biome_multiplier
-                if adjusted_chance < base_chance:
-                    from_biome = f" [From {current_biome}!]"
-
-        if aura == "Nothing":
-            msg_text = f"You rolled Nothing 1 in 0 🍀x{display_luck}\n\n « ⚪ Basic ⚪ »"
-        elif aura == "NYCTOPHOBIA":
-            msg_text = f"👁️ You have experienced the literal nightmare. 👁️ 🍀x{display_luck}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
-        elif aura == "Pixelation":
-            msg_text = f"🎮👾 You have become PIXELATED!! 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
-        elif aura == "Luminosity":
-            msg_text = f"💫You have been devoured by the blinding light.💫 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
-        elif aura == "Equinox":
-            msg_text = f"⚫You have found [???????] between POSITIVE and NEGATIVE.⚪ 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
-        elif aura == "Glitch":
-            msg_text = f"NO WAY! YOU ROLLED Glitch 1 IN 12210110 🍀x{display_luck}{from_biome}\n\n« ⚪⚫ CHALLENGED ⚪⚫ »"
-        elif aura == "Oppression":
-            msg_text = f"YOU HAVE DISCOVERED Oppression WITH CHANCE OF 1 IN 220000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
-        elif aura == "Dreammetric":
-            msg_text = f"YOU HAVE DISCOVERED Dreammetric WITH CHANCE OF 1 IN 520000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
-        else:
-            chance_display = int(chance) if chance == int(chance) else chance
-            if chance > 99_999_998:
-                msg_text = f"YOU HAVE DISCOVERED {aura} WITH CHANCE OF 1 IN {chance_display} 🍀x{display_luck}{from_biome}\n\n« 🔴🔴 GLORIOUS 🔴🔴 »"
-            elif chance > 9_999_999:
-                msg_text = f"NO WAY! YOU ROLLED {aura} 1IN {chance_display}!!!! 🍀x{display_luck}{from_biome}\n\n« 🔵 EXALTED 🔵 »"
-            elif chance > 999_999:
-                msg_text = f"OMG! You rolled {aura} 1 in {chance_display}!!! 🍀x{display_luck}{from_biome}\n\n« 🟠 MYTHIC 🟠 »"
-            elif chance > 99_998:
-                msg_text = f"Wow! You rolled {aura} 1 in {chance_display}!!! 🍀x{display_luck}{from_biome}\n\n« 🟢 Legendary 🟢 »"
-            elif chance > 10_000:
-                msg_text = f"You rolled {aura} 1 in {chance_display}!! 🍀x{display_luck}{from_biome}\n\n« 🟡 Unique 🟡 »"
-            elif chance > 1_000:
-                msg_text = f"You rolled {aura} 1 in {chance_display}! 🍀x{display_luck}{from_biome}\n\n« 🟣 Epic 🟣 »"
-            else:
-                msg_text = f"You rolled {aura} 1 in {chance_display} 🍀x{display_luck}{from_biome}\n\n« ⚪ Basic ⚪ »"
-        msg_text += potion_msg
-        # Отправляем сообщение и сохраняем его
-        roll_message = bot.send_message(msg.chat.id, msg_text, reply_markup=main_menu(uid))
-
-        # Проверяем, нужно ли закрепить
-        pin_rarity = user.get("auto_pin_rarity")
-        if pin_rarity and chance > pin_rarity:
-            try:
-                bot.pin_chat_message(msg.chat.id, roll_message.message_id, disable_notification=True)
-            except Exception as e:
-                print(f"Failed to pin message for {uid}: {e}")  # Ошибка, если у бота нет прав
-
-        if chance > GLOBAL_THRESHOLD or aura == "Glitch":
-
-            from_biome_global = ""
-            current_biome = BIOME_DATA["current_biome"]
-
-            glitched_auras = ["Oppression", "Glitch", "Fault"]
-            dreamspace_auras = ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]
-
-            if current_biome == "Dreamspace" and aura in dreamspace_auras:
-                from_biome_global = " [From Dreamspace!]"
-            elif current_biome == "Glitched":
-                if aura in glitched_auras or aura in dreamspace_auras:
-                    from_biome_global = " [From Glitched!]"
-                else:
-                    base_chance = auras[aura]
-                    biome_multiplier = get_biome_multiplier(aura)
-                    if biome_multiplier > 1:
-                        adjusted_chance = base_chance / biome_multiplier
-                        if adjusted_chance < base_chance:
-                            from_biome_global = " [From Glitched!]"
-            elif current_biome != "Normal" and current_biome != "Dreamspace":
-                base_chance = auras[aura]
-                biome_multiplier = get_biome_multiplier(aura)
-                if biome_multiplier > 1:
-                    adjusted_chance = base_chance / biome_multiplier
-                    if adjusted_chance < base_chance:
-                        from_biome_global = f" [From {current_biome}!]"
-
-            chance_display = int(chance) if chance == int(chance) else chance
-            if aura == "Pixelation":
-                g = f"💫GLOBAL💫\n{name} Has Become PIXELATED!!\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
-            elif aura == "NYCTOPHOBIA":
-                g = f"💫GLOBAL💫\n{user_name} has experienced the literal nightmare.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
-            elif aura == "Luminosity":
-                g = f"💫GLOBAL💫\nThe blinding light has devoured {name}.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
-            elif aura == "Equinox":
-                g = f"💫GLOBAL💫\n{name} Has Found [???????] Between POSITIVE and NEGATIVE.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
-            elif aura == "Glitch":
-                g = f"💫GLOBAL💫\n{name} HAS ROLLED {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
-            else:
-                g = f"💫GLOBAL💫\n{name} Has rolled {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
-            threading.Thread(target=lambda: notify_all_users(g, message_type="global"), daemon=True).start()
         return
 
     # --- Auras ---
@@ -3438,43 +3277,43 @@ def handle(msg):
             "x20 Undefined\nx15 Shift lock\nx10 Nihility",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft Unknown").row("⬅️ Back")),
         "[🧪] Heavenly Potion": ("craft_heavenly_potion", "use_heavenly_potion",
-            "Heavenly Potion\n+42500000% (+425000) luck for 1 roll\n\nRequirements:\n"
+            "Heavenly Potion\n+15000000% (+150000) luck for 1 roll\n\nRequirements:\n"
             "x3 Celestial\nx70 Lucky Potion\nx2 Divinus : Angel\nx5 Powered\nx15 Quartz",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")),
         "[🧪] Potion of Bound": ("craft_potion_of_bound", "use_bound_potion",
-            "Potion of Bound\n+20000000% (+200000) luck for 1 roll\n\nRequirements:\n"
+            "Potion of Bound\n+5000000% (+50000) luck for 1 roll\n\nRequirements:\n"
             "x2 Bounded\nx5 Permafrost\nx35 Lucky Potion\nx15 Lost Soul",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")),
         "[🧪] Fortune Potion I": ("craft_fortune_potion_1", "use_fortune_potion_1",
-            "Fortune Potion I\n+200% (+2) luck for 5 minutes\n\nRequirements:\n"
+            "Fortune Potion I\n+50% (+0.5) luck for 5 minutes\n\nRequirements:\n"
             "x10 Lucky Potion",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")),
         "[🧪] Fortune Potion II": ("craft_fortune_potion_2", "use_fortune_potion_2",
-            "Fortune Potion II\n+350% (+3.5) luck for 5 minutes\n\nRequirements:\n"
+            "Fortune Potion II\n+75% (+0.76) luck for 5 minutes\n\nRequirements:\n"
             "x20 Lucky Potion",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")),
         "[🧪] Fortune Potion III": ("craft_fortune_potion_3", "use_fortune_potion_3",
-            "Fortune Potion III\n+500% (+5) luck for 5 minutes\n\nRequirements:\n"
+            "Fortune Potion III\n+100% (+1) luck for 5 minutes\n\nRequirements:\n"
             "x30 Lucky Potion",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")),
         "[🧪] Jewellery Potion": ("craft_jewellery_potion", "use_jewellery_potion",
-            "Jewellery Potion\n+600% (+6) luck for 10 minutes\n\nRequirements:\n"
+            "Jewellery Potion\n+120% (+1.2) luck for 10 minutes\n\nRequirements:\n"
             "x23 Lucky Potion\nx3 Aquamarine\nx3 Sapphire\nx3 Gilded\nx3 Emerald\nx3 Ruby\nx3 Topaz",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")),
         "[🧪] Zombie Potion": ("craft_zombie_potion", "use_zombie_potion",
-            "Zombie Potion\n+800% (+8) luck for 10 minutes\n\nRequirements:\n"
+            "Zombie Potion\n+150% (+1.5) luck for 10 minutes\n\nRequirements:\n"
             "x17 Lucky Potion\nx3 Undead\nx3 Bleeding",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")),
         "[🧪] Hades Godly Potion": ("craft_hades_godly_potion", "use_hades_godly_potion",
-            "Hades Godly Potion\n+1200% (+12) luck for 4 hours\n\nRequirements:\n"
+            "Hades Godly Potion\n+300% (+3) luck for 4 hours\n\nRequirements:\n"
             "x50 Lucky Potion\nx1 Hades\nx15 Diaboli\nx12 Bleeding",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")),
         "[🧪] Zeus Godly Potion": ("craft_zeus_godly_potion", "use_zeus_godly_potion",
-            "Zeus Godly Potion\n+1000% (+10) luck for 4 hours\n\nRequirements:\n"
+            "Zeus Godly Potion\n+200% (+2) luck for 4 hours\n\nRequirements:\n"
             "x40 Lucky Potion\nx1 Zeus\nx4 Stormal\nx30 Wind",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")),
         "[🧪] Godlike Potion": ("craft_godlike_potion", "use_godlike_potion",
-            "Godlike Potion\n+100000000% (+1000000) luck for 1 roll\n\nRequirements:\n"
+            "Godlike Potion\n+40000000% (+400000) luck for 1 roll\n\nRequirements:\n"
             "x2 Zeus Godly Potion\nx1 Hades Godly Potion\nx250 Lucky Potion",
             types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back")),
     }
@@ -3956,9 +3795,9 @@ def handle(msg):
         markup.row(types.KeyboardButton("Use"))
         if potion_count > 1:
             markup.row(types.KeyboardButton("Use All"))
-            markup.row(types.KeyboardButton("Use amount"))  # <--- НОВАЯ КНОПКА
+            markup.row(types.KeyboardButton("Use amount"))
         markup.row(types.KeyboardButton("⬅️ Back"))
-        bot.send_message(msg.chat.id, "Heavenly Potion\n+42500000% (+425000) luck for 1 roll", reply_markup=markup)
+        bot.send_message(msg.chat.id, "Heavenly Potion\n+15000000% (+150000) luck for 1 roll", reply_markup=markup)
         user_last_command[uid] = "use_heavenly_potion"
         return
 
@@ -3967,7 +3806,7 @@ def handle(msg):
             user["inventory"].remove("Heavenly Potion")
             user["heavenly_potion_active"] = user.get("heavenly_potion_active", 0) + 1
             save_data()
-            bot.send_message(msg.chat.id, "You used 1 Heavenly Potion. +425000 luck for 1 roll.",
+            bot.send_message(msg.chat.id, "You used 1 Heavenly Potion. +150000 luck for 1 roll.",
                              reply_markup=back_menu())
             user_last_command[uid] = None
         else:
@@ -3981,7 +3820,7 @@ def handle(msg):
             user["heavenly_potion_active"] = user.get("heavenly_potion_active", 0) + potion_count
             save_data()
             bot.send_message(msg.chat.id,
-                             f"You used {potion_count} Heavenly Potions. +425000 luck for {potion_count} rolls.",
+                             f"You used {potion_count} Heavenly Potions. +150000 luck for {potion_count} rolls.",
                              reply_markup=back_menu())
             user_last_command[uid] = None
         else:
@@ -4001,7 +3840,7 @@ def handle(msg):
             markup.row(types.KeyboardButton("Use All"))
             markup.row(types.KeyboardButton("Use amount"))  # <--- НОВАЯ КНОПКА
         markup.row(types.KeyboardButton("⬅️ Back"))
-        bot.send_message(msg.chat.id, "Potion of Bound\n+20000000% (+200000) luck for 1 roll", reply_markup=markup)
+        bot.send_message(msg.chat.id, "Potion of Bound\n+5000000% (+50000) luck for 1 roll", reply_markup=markup)
         user_last_command[uid] = "use_bound_potion"
         return
 
@@ -4010,7 +3849,7 @@ def handle(msg):
             user["inventory"].remove("Potion of Bound")
             user["bound_potion_active"] = user.get("bound_potion_active", 0) + 1
             save_data()
-            bot.send_message(msg.chat.id, "You used 1 Potion of Bound. +200000 luck for 1 roll.",
+            bot.send_message(msg.chat.id, "You used 1 Potion of Bound. +50000 luck for 1 roll.",
                              reply_markup=back_menu())
             user_last_command[uid] = None
         else:
@@ -4024,7 +3863,7 @@ def handle(msg):
             user["bound_potion_active"] = user.get("bound_potion_active", 0) + potion_count
             save_data()
             bot.send_message(msg.chat.id,
-                             f"You used {potion_count} Potions of Bound. +200000 luck for {potion_count} rolls.",
+                             f"You used {potion_count} Potions of Bound. +50000 luck for {potion_count} rolls.",
                              reply_markup=back_menu())
             user_last_command[uid] = None
         else:
@@ -4045,7 +3884,7 @@ def handle(msg):
             markup.row(types.KeyboardButton("Use amount"))
         markup.row(types.KeyboardButton("⬅️ Back"))
 
-        bot.send_message(msg.chat.id, "Fortune Potion I\n+200% (+2) luck for 5 minutes", reply_markup=markup)
+        bot.send_message(msg.chat.id, "Fortune Potion I\n+50% (+0.5) luck for 5 minutes", reply_markup=markup)
         user_last_command[uid] = "use_fortune_potion_1"
         return
 
@@ -4053,7 +3892,7 @@ def handle(msg):
         if "Fortune Potion I" in user.get("inventory", []):
             user["inventory"].remove("Fortune Potion I")
             # +2 luck for 5 minutes (300 seconds)
-            response_msg = apply_timed_potion(user, 2.0, 300)
+            response_msg = apply_timed_potion(user, 0.5, 300)
             save_data()
             bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
             user_last_command[uid] = None
@@ -4066,7 +3905,7 @@ def handle(msg):
         if potion_count > 0:
             user["inventory"] = [item for item in user["inventory"] if item != "Fortune Potion I"]
             # +2 luck, 5 min (300s) per potion
-            response_msg = apply_timed_potion(user, 2.0, 300 * potion_count)
+            response_msg = apply_timed_potion(user, 0.5, 300 * potion_count)
             save_data()
             bot.send_message(msg.chat.id, f"Used {potion_count} Fortune Potion I. {response_msg}",
                              reply_markup=back_menu())
@@ -4089,7 +3928,7 @@ def handle(msg):
             markup.row(types.KeyboardButton("Use amount"))
         markup.row(types.KeyboardButton("⬅️ Back"))
 
-        bot.send_message(msg.chat.id, "Fortune Potion II\n+350% (+3.5) luck for 5 minutes", reply_markup=markup)
+        bot.send_message(msg.chat.id, "Fortune Potion II\n+75% (+0.75) luck for 5 minutes", reply_markup=markup)
         user_last_command[uid] = "use_fortune_potion_2"
         return
 
@@ -4097,7 +3936,7 @@ def handle(msg):
         if "Fortune Potion II" in user.get("inventory", []):
             user["inventory"].remove("Fortune Potion II")
             # +3.5 luck for 5 minutes (300 seconds)
-            response_msg = apply_timed_potion(user, 3.5, 300)
+            response_msg = apply_timed_potion(user, 0.75, 300)
             save_data()
             bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
             user_last_command[uid] = None
@@ -4109,7 +3948,7 @@ def handle(msg):
         potion_count = user.get("inventory", []).count("Fortune Potion II")
         if potion_count > 0:
             user["inventory"] = [item for item in user["inventory"] if item != "Fortune Potion II"]
-            response_msg = apply_timed_potion(user, 3.5, 300 * potion_count)
+            response_msg = apply_timed_potion(user, 0.75, 300 * potion_count)
             save_data()
             bot.send_message(msg.chat.id, f"Used {potion_count} Fortune Potion II. {response_msg}",
                              reply_markup=back_menu())
@@ -4132,7 +3971,7 @@ def handle(msg):
             markup.row(types.KeyboardButton("Use amount"))
         markup.row(types.KeyboardButton("⬅️ Back"))
 
-        bot.send_message(msg.chat.id, "Fortune Potion III\n+500% (+5) luck for 5 minutes", reply_markup=markup)
+        bot.send_message(msg.chat.id, "Fortune Potion III\n+100% (+1) luck for 5 minutes", reply_markup=markup)
         user_last_command[uid] = "use_fortune_potion_3"
         return
 
@@ -4140,7 +3979,7 @@ def handle(msg):
         if "Fortune Potion III" in user.get("inventory", []):
             user["inventory"].remove("Fortune Potion III")
             # +5 luck for 5 minutes (300 seconds)
-            response_msg = apply_timed_potion(user, 5.0, 300)
+            response_msg = apply_timed_potion(user, 1.0, 300)
             save_data()
             bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
             user_last_command[uid] = None
@@ -4152,7 +3991,7 @@ def handle(msg):
         potion_count = user.get("inventory", []).count("Fortune Potion III")
         if potion_count > 0:
             user["inventory"] = [item for item in user["inventory"] if item != "Fortune Potion III"]
-            response_msg = apply_timed_potion(user, 5.0, 300 * potion_count)
+            response_msg = apply_timed_potion(user, 1.0, 300 * potion_count)
             save_data()
             bot.send_message(msg.chat.id, f"Used {potion_count} Fortune Potion III. {response_msg}",
                              reply_markup=back_menu())
@@ -4175,7 +4014,7 @@ def handle(msg):
             markup.row(types.KeyboardButton("Use amount"))
         markup.row(types.KeyboardButton("⬅️ Back"))
 
-        bot.send_message(msg.chat.id, "Jewellery Potion\n+600% (+6) luck for 10 minutes", reply_markup=markup)
+        bot.send_message(msg.chat.id, "Jewellery Potion\n+120% (+1.2) luck for 10 minutes", reply_markup=markup)
         user_last_command[uid] = "use_jewellery_potion"
         return
 
@@ -4183,7 +4022,7 @@ def handle(msg):
         if "Jewellery Potion" in user.get("inventory", []):
             user["inventory"].remove("Jewellery Potion")
             # +6 luck for 10 minutes (600 seconds)
-            response_msg = apply_timed_potion(user, 6.0, 600)
+            response_msg = apply_timed_potion(user, 1.2, 600)
             save_data()
             bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
             user_last_command[uid] = None
@@ -4195,7 +4034,7 @@ def handle(msg):
         potion_count = user.get("inventory", []).count("Jewellery Potion")
         if potion_count > 0:
             user["inventory"] = [item for item in user["inventory"] if item != "Jewellery Potion"]
-            response_msg = apply_timed_potion(user, 6.0, 600 * potion_count)
+            response_msg = apply_timed_potion(user, 1.2, 600 * potion_count)
             save_data()
             bot.send_message(msg.chat.id, f"Used {potion_count} Jewellery Potion. {response_msg}",
                              reply_markup=back_menu())
@@ -4218,7 +4057,7 @@ def handle(msg):
             markup.row(types.KeyboardButton("Use amount"))
         markup.row(types.KeyboardButton("⬅️ Back"))
 
-        bot.send_message(msg.chat.id, "Zombie Potion\n+800% (+8) luck for 10 minutes", reply_markup=markup)
+        bot.send_message(msg.chat.id, "Zombie Potion\n+150% (+1.5) luck for 10 minutes", reply_markup=markup)
         user_last_command[uid] = "use_zombie_potion"
         return
 
@@ -4226,7 +4065,7 @@ def handle(msg):
         if "Zombie Potion" in user.get("inventory", []):
             user["inventory"].remove("Zombie Potion")
             # +8 luck for 10 minutes (600 seconds)
-            response_msg = apply_timed_potion(user, 8.0, 600)
+            response_msg = apply_timed_potion(user, 1.5, 600)
             save_data()
             bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
             user_last_command[uid] = None
@@ -4238,7 +4077,7 @@ def handle(msg):
         potion_count = user.get("inventory", []).count("Zombie Potion")
         if potion_count > 0:
             user["inventory"] = [item for item in user["inventory"] if item != "Zombie Potion"]
-            response_msg = apply_timed_potion(user, 8.0, 600 * potion_count)
+            response_msg = apply_timed_potion(user, 1.5, 600 * potion_count)
             save_data()
             bot.send_message(msg.chat.id, f"Used {potion_count} Zombie Potion. {response_msg}",
                              reply_markup=back_menu())
@@ -4261,7 +4100,7 @@ def handle(msg):
             markup.row(types.KeyboardButton("Use amount"))
         markup.row(types.KeyboardButton("⬅️ Back"))
 
-        bot.send_message(msg.chat.id, "Hades Godly Potion\n+1200% (+12) luck for 4 hours", reply_markup=markup)
+        bot.send_message(msg.chat.id, "Hades Godly Potion\n+300% (+3) luck for 4 hours", reply_markup=markup)
         user_last_command[uid] = "use_hades_godly_potion"
         return
 
@@ -4269,7 +4108,7 @@ def handle(msg):
         if "Hades Godly Potion" in user.get("inventory", []):
             user["inventory"].remove("Hades Godly Potion")
             # +12 luck for 4 hours (14400 seconds)
-            response_msg = apply_timed_potion(user, 12.0, 14400)
+            response_msg = apply_timed_potion(user, 3.0, 14400)
             save_data()
             bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
             user_last_command[uid] = None
@@ -4281,7 +4120,7 @@ def handle(msg):
         potion_count = user.get("inventory", []).count("Hades Godly Potion")
         if potion_count > 0:
             user["inventory"] = [item for item in user["inventory"] if item != "Hades Godly Potion"]
-            response_msg = apply_timed_potion(user, 12.0, 14400 * potion_count)
+            response_msg = apply_timed_potion(user, 3.0, 14400 * potion_count)
             save_data()
             bot.send_message(msg.chat.id, f"Used {potion_count} Hades Godly Potion. {response_msg}",
                              reply_markup=back_menu())
@@ -4304,7 +4143,7 @@ def handle(msg):
             markup.row(types.KeyboardButton("Use amount"))
         markup.row(types.KeyboardButton("⬅️ Back"))
 
-        bot.send_message(msg.chat.id, "Zeus Godly Potion\n+1000% (+10) luck for 4 hours", reply_markup=markup)
+        bot.send_message(msg.chat.id, "Zeus Godly Potion\n+200% (+2) luck for 4 hours", reply_markup=markup)
         user_last_command[uid] = "use_zeus_godly_potion"
         return
 
@@ -4312,7 +4151,7 @@ def handle(msg):
         if "Zeus Godly Potion" in user.get("inventory", []):
             user["inventory"].remove("Zeus Godly Potion")
             # +10 luck for 4 hours (14400 seconds)
-            response_msg = apply_timed_potion(user, 10.0, 14400)
+            response_msg = apply_timed_potion(user, 2.0, 14400)
             save_data()
             bot.send_message(msg.chat.id, response_msg, reply_markup=back_menu())
             user_last_command[uid] = None
@@ -4324,7 +4163,7 @@ def handle(msg):
         potion_count = user.get("inventory", []).count("Zeus Godly Potion")
         if potion_count > 0:
             user["inventory"] = [item for item in user["inventory"] if item != "Zeus Godly Potion"]
-            response_msg = apply_timed_potion(user, 10.0, 14400 * potion_count)
+            response_msg = apply_timed_potion(user, 2.0, 14400 * potion_count)
             save_data()
             bot.send_message(msg.chat.id, f"Used {potion_count} Zeus Godly Potion. {response_msg}",
                              reply_markup=back_menu())
