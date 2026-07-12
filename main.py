@@ -321,6 +321,7 @@ def get_user_data(user_id, user_name="User"):
         u.setdefault("auto_roll_enabled", False)
         u.setdefault("pending_potion_amount", None)
         u.setdefault("auto_pin_rarity", None)
+        u.setdefault("last_active", None)
         u.setdefault("forced_aura", None)
         u.setdefault("gif_rarity_threshold", 1000000)
         #u.setdefault("codes", []) 
@@ -1146,6 +1147,40 @@ def notify_all_users(message, message_type="default", pin=False):
             executor.submit(send_one, uid, user_data)
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
+
+@bot.message_handler(commands=["activeplayers"])
+def active_players(msg):
+    uid = str(msg.from_user.id)
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+        return
+
+    now = datetime.now()
+    windows = {"Last 30 seconds": 30/86400, "Last 1 minute": 1/1440, "Last 5 minutes": 5/1440, "Last 1 hour": 1/24, "Last 24 hours": 1, "Last 7 days": 7, "Last 30 days": 30}
+    counts = {label: 0 for label in windows}
+    total_users = 0
+    never_active = 0
+
+    for user_info in data["auras"].values():
+        total_users += 1
+        last_active_str = user_info.get("last_active")
+        if not last_active_str:
+            never_active += 1
+            continue
+        try:
+            last_active = datetime.fromisoformat(last_active_str)
+        except Exception:
+            continue
+        days_ago = (now - last_active).total_seconds() / 86400
+        for label, days in windows.items():
+            if days_ago <= days:
+                counts[label] += 1
+
+    report = f"📊 Active Players\n\nTotal registered: {total_users}\nNever recorded (pre-tracking): {never_active}\n\n"
+    for label in windows:
+        report += f"{label}: {counts[label]}\n"
+    bot.send_message(msg.chat.id, report)
+
 
 """Scheduled Maintance
 Recroom Inspired! (Rip recroom <3)
@@ -2744,6 +2779,7 @@ def handle(msg):
     uid = str(msg.from_user.id)
     name = msg.from_user.first_name or "User"
     user = get_user_data(uid, name)  # Получаем пользователя
+    user["last_active"] = datetime.now().isoformat()
 
     # 2. Блокировка команд, если Auto Roll включен (Это тоже должно быть в начале)
     if user.get("auto_roll_enabled", False) and text != "Disable Auto Roll":
@@ -3225,7 +3261,7 @@ def handle(msg):
 
 -= CREDITS =-
 
--== 🔨 Main developers ==-
+--= 🔨 Main developers =--
 
 ⭐👑🔨 @underrosta - Owner, Developer
 ⭐👑🔨🧪 @DimdumXD - Co-Owner, Developer, Tester
