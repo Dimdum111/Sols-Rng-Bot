@@ -1208,6 +1208,7 @@ def ScheduledMaintanceMsgs():
     save_data()
     bot.stop_polling()
 @bot.message_handler(commands=['ScheduledMaintenance'])
+
 def ScheduledMaintance(msg):
     global MaintanceActive
     uid = str(msg.from_user.id)
@@ -1218,18 +1219,22 @@ def ScheduledMaintance(msg):
     threading.Thread(target=ScheduledMaintanceMsgs, daemon=True).start()
     MaintanceActive = True
     return MaintanceActive
+
 """Profile command.
 Lets you see user profile!"""
 @bot.message_handler(commands=["profile"])
 def profile(msg):
     parts = msg.text.split()
-    if len(parts) != 2:
-        bot.send_message(msg.chat.id, f"💫 Usage: /profile [User_id]")
+    if len(parts) != 2: # checking if there is arguments missing
+        bot.send_message(msg.chat.id, f"💫 Usage: /profile <User_id|me>")
         return
+    if parts[1] == "me": # checking if user tries to check himself
+        parts[1] = str(msg.from_user.id)
     user_info = data["auras"].get(parts[1])
     if not user_info:
         bot.send_message(msg.chat.id, f"💫 User id is not found in our database!")
         return
+    # showing the info
     bot.send_message(msg.chat.id,
                      f"┍👤 Profile\n"
                      f"┃⭐ Username: {user_info.get('name')}\n"
@@ -2629,7 +2634,7 @@ def admin_help(msg):
 """
 ```
 🛠 COMMANDS
-/Profile <User_id>
+/Profile <User_id|me>
     → Показывает информацию о пользователе.
 
 /help — это сообщение
@@ -2707,7 +2712,7 @@ def admin_help(msg):
     → Показать активных игроков в некоторый промежутках времени.
   
 👤 NORMAL-USER COMMANDS
-/Profile <User_id>
+/Profile <User_id|me>
     → Показывает информацию о пользователе.
 
 /help — это сообщение
@@ -3440,7 +3445,6 @@ def handle(msg):
         return
 
     elif text == "Auto Roll (OFF)":
-        # У пользователя >9к роллов, и он хочет включить
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row(types.KeyboardButton("Enable Auto Roll"))
         markup.row(types.KeyboardButton("⬅️ Back"))
@@ -3448,7 +3452,6 @@ def handle(msg):
         return
 
     elif text == "Auto Roll (ON)":
-        # У пользователя >9к роллов, и он хочет выключить
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row(types.KeyboardButton("Disable Auto Roll"))
         markup.row(types.KeyboardButton("⬅️ Back"))
@@ -3456,7 +3459,7 @@ def handle(msg):
         return
 
     elif text == "Enable Auto Roll":
-        if user.get("rolls", 0) < 9:  # Двойная проверка
+        if user.get("rolls", 0) < 9999:
             bot.send_message(msg.chat.id, "10000 Rolls Required for this option!", reply_markup=main_menu(uid))
             return
 
@@ -3519,7 +3522,7 @@ def handle(msg):
             else:
                 markup.row(types.KeyboardButton("Auto Roll (OFF)"))
         else:
-            markup.row(types.KeyboardButton("Auto Roll (25000 Rolls Required)"))
+            markup.row(types.KeyboardButton("Auto Roll (10000 Rolls Required)"))
 
         markup.row(types.KeyboardButton("⬅️ Back"))
         bot.send_message(msg.chat.id, f"DAY/NIGHT Notifications set to {dn_status}", reply_markup=markup)
@@ -3552,7 +3555,7 @@ def handle(msg):
             else:
                 markup.row(types.KeyboardButton("Auto Roll (OFF)"))
         else:
-            markup.row(types.KeyboardButton("Auto Roll (25000 Rolls Required)"))
+            markup.row(types.KeyboardButton("Auto Roll (10000 Rolls Required)"))
 
         markup.row(types.KeyboardButton("⬅️ Back"))
         bot.send_message(msg.chat.id, f"Global Messages set to {global_status}", reply_markup=markup)
