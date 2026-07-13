@@ -731,8 +731,7 @@ def auto_roll_thread(user_id, chat_id):
                         gif_id_to_send = val
 
                 # Подготовка данных для сообщения
-                display_luck = int(effective_luck) if effective_luck == int(effective_luck) else round(effective_luck,
-                                                                                                       2)
+                display_luck = int(effective_luck) if effective_luck == int(effective_luck) else round(effective_luck, 2)
 
                 from_biome = ""
                 current_biome = BIOME_DATA["current_biome"]
