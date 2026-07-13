@@ -90,6 +90,9 @@ Main branch (Unreleased): 0.95.1
 - [X] Update README.md
 - [X] make so u see if command executed in test bot
 - [X] /activeplayers command
+- [X] Make so you can use me for profile
+- [X] Fix a bug where if you press Day/night notifications or Global messages it will show that autoroll requires 25000 rolls
+- [X] FIX A CRITICAL BUG WHERE YOU CAN USE AUTOROLL FROM 9 ROLLS
 - [ ] Make special event for 1.0 [WIP]
 - [X] Make /profile [User id] command
 - [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
@@ -97,7 +100,6 @@ Main branch (Unreleased): 0.95.1
 - [X] Make so when you do say/sayPin It says your name At the bottom.
 - [X] FIX CRAFTS
 - [X] Add scheduled maintanence
-- [ ] Add if item not exists check to give givemeitem and etc.
 - [ ] Add Heaven biome
 - [ ] Code system
 
