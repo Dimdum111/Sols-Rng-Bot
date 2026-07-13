@@ -766,9 +766,9 @@ def auto_roll_thread(user_id, chat_id):
                 elif aura == "Pixelation":
                     msg_text = f"🎮👾 You have become PIXELATED!! 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
                 elif aura == "Luminosity":
-                    msg_text = f"💫You have been devoured by the blinding light.💫 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+                    msg_text = f"💫 You have been devoured by the blinding light. 💫 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
                 elif aura == "Equinox":
-                    msg_text = f"⚫You have found [???????] between POSITIVE and NEGATIVE.⚪ 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+                    msg_text = f"⚫ You have found [???????] between POSITIVE and NEGATIVE. ⚪ 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
                 elif aura == "⭐":
                     msg_text = f"You rolled ⭐ 1 in 100 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
                 elif aura == "⭐⭐":
@@ -1133,7 +1133,7 @@ def notify_all_users(message, message_type="default", pin=False):
                 return
             if message_type == "global" and not user_data.get("notify_global", True):
                 return
-            sent_msg = bot.send_message(uid, message, parse_mode="Markdown")
+            sent_msg = bot.send_message(uid, message, parse_mode="HTML")
             if pin:
                 try:
                     bot.pin_chat_message(uid, sent_msg.message_id, disable_notification=False)
@@ -1252,15 +1252,16 @@ def CitadelOfOrderMessages():
     time.sleep(2.5)
     notify_all_users("Prepare.", message_type="default")
     time.sleep(2.5)
-    notify_all_users("MUST\n**OBEY**\nORDER", message_type="default")   
+    notify_all_users("MUST\n<b>OBEY</b>\nORDER", message_type="default")   
     time.sleep(2)
     notify_all_users("The judgement.", message_type="default")
     time.sleep(2)
-    notify_all_users("JUSTICE\n**RULES**\nTHE\nWORLD", message_type="default")
+    notify_all_users("JUSTICE\n<b>RULES\nTHE</b>\nWORLD", message_type="default")
     time.sleep(1)
     notify_all_users("💫", message_type="default")
     time.sleep(5)
-    notify_all_users("EDICT\n~Judge of Equilibrium ~", message_type="default")
+    notify_all_users("EDICT\n~ Judge of Equilibrium ~", message_type="default")
+    _do_luck_event_start() # Start luck event
 
 """
 CitadelOfOrderEvent - Handles the event, called after using /CitadelOfOrder command!
@@ -1276,6 +1277,11 @@ def CitadelOfOrderEvent(msg):
         return
     bot.send_message(chatid, "✨ Starting...") # if user IS admin says staring and calls CitadelOfOrderMessages
     log_admin_action(msg, msg.text)
+    # Set luck, Set event duration, disable it, and reset End time
+    EVENT_DATA["event_multiplier"] = 1.2
+    EVENT_DATA["event_duration"] = 3600
+    EVENT_DATA["event_active"] = False
+    EVENT_DATA["event_end_time"] = None
     threading.Thread(target=CitadelOfOrderMessages, daemon=True).start()
 
 @bot.message_handler(commands=["setluck"])
