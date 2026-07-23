@@ -201,6 +201,7 @@ BIOMES = {
                    "auras": ["Gilded", "Jackpot", "Anubis", "Atlas"]},
     "Hell": {"chance": 1 / 6666, "duration": 660, "multiplier": 6,
              "auras": ["Undead", "Undead : Devil", "Hades", "Felled", "Bloodlust"]},
+    "Heaven": {"chance": 1 / 7777, "duration": 240, "multiplier": 5, "auras": []}, # To-Do: Add breakthrough auras and yes
     "Starfall": {"chance": 1 / 7500, "duration": 600, "multiplier": 5,
                  "auras": ["Starlight", "Star Rider", "Comet", "Astral", "Galaxy", "Stargazer", "Sirius",
                            "Starscourge : Radiant", "Astral : Zodiac", "Gargantua"]},

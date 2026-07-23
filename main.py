@@ -12,8 +12,8 @@ import requests
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен бота Логера.
-TOKEN = "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8" # Основной бот
-# ОСНОВНОЙ БОТ - [7965336094:AAGDZd4o39plNUlgeebQYKvIALsQqd857Hs], TESTERS БОТ - [8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8]
+TOKEN = "8535142439:AAH3c-cwndvvW54YGKZt3pkXuLkMgDvrZPo" # Основной бот
+# ОСНОВНОЙ БОТ - [7965336094:AAGDZd4o39plNUlgeebQYKvIALsQqd857Hs], TESTERS БОТ - [8535142439:AAH3c-cwndvvW54YGKZt3pkXuLkMgDvrZPo]
 bot = telebot.TeleBot(TOKEN)
 MaintanceActive = False
 
@@ -43,7 +43,7 @@ def log_admin_action(admin_msg, action_text): # Логирует действи�
     TestBot = ""
     with open("UsedAdminCmds.txt", "a", encoding="utf-8") as f:
         f.write(log_entry)
-        if TOKEN == "8535142439:AAHu-FuEFGy_r1khDS_bTBGBPJ8VCPBakz8": TestBot = "╚ ⚠️ THIS COMMAND WAS USED IN THE TEST BOT ╗"
+        if TOKEN == "8535142439:AAH3c-cwndvvW54YGKZt3pkXuLkMgDvrZPo": TestBot = "╚ ⚠️ THIS COMMAND WAS USED IN THE TEST BOT ╗"
         else: TestBot = ""
         notification_text = (
             "⚠️ Admin command notification\n"
@@ -582,6 +582,7 @@ def set_biome(biome_name):
             "Rainy": "Strong winds and showers sweep through the world..",
             "Sand Storm": "A harsh Sand Storm blocks your path...",
             "Hell": "A strong and violent energy of chaos overtakes the world..",
+            "Heaven": "A hand of angel leads you into divine place...",
             "Starfall": "Beautiful and dreamy starlight pours into the world..",
             "Corruption": "Poisonous pollution spreads throughout the world..",
             "Null": "It's too dark here..",
