@@ -100,7 +100,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Make so when you do say/sayPin It says your name At the bottom.
 - [X] FIX CRAFTS
 - [X] Add scheduled maintanence
-- [ ] Add Heaven biome
+- [X] Add Heaven biome
 - [ ] Code system
 
 **🛠️ To-do (Sometime)**:
