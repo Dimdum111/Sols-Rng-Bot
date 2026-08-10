@@ -73,7 +73,7 @@ Main branch (Unreleased): 0.95.1
 
 **🔨 To-do (1.0.0)**:
 - [X] Fix autoroll
-- [ ] Add all auras from original <-- Finnaly written down all new auras time to add them
+- [ ] Add all auras from original <-- Working on it
 - [ ] Add all cutscenes to them
 - [X] Update 📜 Credits
 - [X] Update Change logs
