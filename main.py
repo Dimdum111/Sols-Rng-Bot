@@ -848,7 +848,7 @@ def auto_roll_thread(user_id, chat_id):
             if gif_id_to_send:
                 try:
                     bot.send_animation(chat_id, gif_id_to_send, reply_markup=disable_markup)
-                    time.sleep(10)  # <--- ТЕПЕРЬ ЭТОТ СОН НЕ БЛОКИРУЕТ БОТА
+                    time.sleep(10)
                 except Exception as e:
                     print(f"Error sending GIF: {e}")
 
@@ -2986,7 +2986,7 @@ def handle(msg):
             rarity_threshold = int(text)
             if rarity_threshold < 1000000:  # Если ввели 0 или число < 1M
                 # Устанавливаем очень большое число, чтобы гифки не показывались
-                user["gif_rarity_threshold"] = 999999999999999
+                user["gif_rarity_threshold"] = 10000000000
                 bot.send_message(msg.chat.id, "Gif cutscenes disabled.", reply_markup=main_menu(uid))
             else:
                 user["gif_rarity_threshold"] = rarity_threshold
