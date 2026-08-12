@@ -389,6 +389,12 @@ def get_biome_multiplier(aura_name):
     # Dreamspace ауры доступны только в Glitched и Dreamspace биомах
     if aura_name in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]:
         return math.inf  # Сделать невозможным выпадение
+    
+    if aura_name == "Borealis" and current_biome != "Dreamspace":
+        return math.inf
+    
+    if aura_name == "Breakthrough" and current_biome == "Null":
+        return math.inf
 
     biome_info = BIOMES[current_biome]
 
@@ -429,6 +435,8 @@ def roll_aura(effective_luck, user):
             # Пропуск аур, не подходящих под биом (для Glitched и Dreamspace)
             if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
             if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
+            if aura == "Borealis" and current_biome != "Dreamspace": continue
+            if aura == "Breakthrough" and current_biome == "Null": continue
             # Если снаружи Null биом, в Лимбо он не должен давать множитель x1000
             if current_biome == "Null":
                 biome_multiplier = 1
@@ -455,6 +463,8 @@ def roll_aura(effective_luck, user):
     for aura, base_chance in auras.items():
         if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
         if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
+        if aura == "Borealis" and current_biome != "Dreamspace": continue
+        if aura == "Breakthrough" and current_biome == "Null": continue
 
         biome_multiplier = get_biome_multiplier(aura)
         adjusted_rarity = base_chance / biome_multiplier
@@ -476,13 +486,6 @@ def roll_aura(effective_luck, user):
     best = min(auras.items(), key=lambda x: x[1])
     return best[0], best[1]
 
-    rnd = random.random() * total_weight
-    cumulative = 0
-    for aura, adjusted_rarity, weight in candidates:
-        cumulative += weight
-        if rnd <= cumulative:
-            return aura, adjusted_rarity
-    return candidates[-1][0], candidates[-1][1]
 
 def get_time_remaining():
 
@@ -737,7 +740,7 @@ def auto_roll_thread(user_id, chat_id):
                 from_biome = ""
                 current_biome = BIOME_DATA["current_biome"]
                 glitched_auras = ["Oppression", "Glitch", "Fault"]
-                dreamspace_auras = ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]
+                dreamspace_auras = ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric", "Borealis"]
                 base_chance = auras.get(aura, limbo_auras.get(aura, 1))
 
                 if current_biome == "Dreamspace" and aura in dreamspace_auras:
@@ -769,6 +772,8 @@ def auto_roll_thread(user_id, chat_id):
                     msg_text = f"💫 You have been devoured by the blinding light. 💫 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
                 elif aura == "Equinox":
                     msg_text = f"⚫ You have found [???????] between POSITIVE and NEGATIVE. ⚪ 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+                elif aura == "Breakthrough":
+                    msg_text = f"you have found ???, chance of 1 in 1,999,999,999 [BREAKTHROUGH!] 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
                 elif aura == "⭐":
                     msg_text = f"You rolled ⭐ 1 in 100 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
                 elif aura == "⭐⭐":
@@ -786,7 +791,7 @@ def auto_roll_thread(user_id, chat_id):
                     if chance > 99_999_998:
                         msg_text = f"YOU HAVE DISCOVERED {aura} WITH CHANCE OF 1 IN {chance_display} 🍀x{display_luck}{from_biome}\n\n« 🔴🔴 GLORIOUS 🔴🔴 »"
                     elif chance > 9_999_999:
-                        msg_text = f"NO WAY! YOU ROLLED {aura} 1IN {chance_display}!!!! 🍀x{display_luck}{from_biome}\n\n« 🔵 EXALTED 🔵 »"
+                        msg_text = f"NO WAY! YOU ROLLED {aura} 1 IN {chance_display}!!!! 🍀x{display_luck}{from_biome}\n\n« 🔵 EXALTED 🔵 »"
                     elif chance > 999_999:
                         msg_text = f"OMG! You rolled {aura} 1 in {chance_display}!!! 🍀x{display_luck}{from_biome}\n\n« 🟠 MYTHIC 🟠 »"
                     elif chance > 99_998:
@@ -836,6 +841,8 @@ def auto_roll_thread(user_id, chat_id):
                         global_msg_to_send = f"💫GLOBAL💫\nThe blinding light has devoured {user_name}.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     elif aura == "Equinox":
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} Has Found [???????] Between POSITIVE and NEGATIVE.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+                    elif aura == "Breakthrough":
+                        global_msg_to_send = f"💫GLOBAL💫\n{user_name} has found ???, chance of 1 in {chance_display} [BREAKTHROUGH!]{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     elif aura == "Glitch":
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} HAS ROLLED {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     else:
@@ -1069,6 +1076,8 @@ def apply_day_chances():
         auras["Twilight : Iridescent Memory"] = 60000000
     if "Twilight : Withering Grace" in auras:
         auras["Twilight : Withering Grace"] = 180000000
+    if "Dream Catcher" in auras:
+        auras["Dream Catcher"] = 999999999999999999
 
 def apply_night_chances():
 
@@ -1095,6 +1104,8 @@ def apply_night_chances():
         auras["Solar"] = 50000
     if "Solar : Solstice" in auras:
         auras["Solar : Solstice"] = 5000000
+    if "Dream Catcher" in auras:
+        auras["Dream Catcher"] = 2222222222
 
 def day_night_cycle():
 
@@ -2029,7 +2040,7 @@ def process_manual_roll(msg):
         from_biome = ""
         current_biome = BIOME_DATA["current_biome"]
         glitched_auras = ["Oppression", "Glitch", "Fault"]
-        dreamspace_auras = ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]
+        dreamspace_auras = ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric", "Borealis"]
         base_chance = auras.get(aura, limbo_auras.get(aura, 1))
 
         if current_biome == "Dreamspace" and aura in dreamspace_auras:
@@ -2058,6 +2069,8 @@ def process_manual_roll(msg):
             msg_text = f"💫You have been devoured by the blinding light.💫 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
         elif aura == "Equinox":
             msg_text = f"⚫You have found [???????] between POSITIVE and NEGATIVE.⚪ 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+        elif aura == "Breakthrough":
+            msg_text = f"you have found ???, chance of 1 in 1,999,999,999 [BREAKTHROUGH!] 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
         elif aura == "Glitch":
             msg_text = f"NO WAY! YOU ROLLED Glitch 1 IN 12210110 🍀x{display_luck}{from_biome}\n\n« ⚪⚫ CHALLENGED ⚪⚫ »"
         elif aura == "Oppression":
@@ -2108,6 +2121,8 @@ def process_manual_roll(msg):
                 global_msg_to_send = f"💫GLOBAL💫\nThe blinding light has devoured {name}.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
             elif aura == "Equinox":
                 global_msg_to_send = f"💫GLOBAL💫\n{name} Has Found [???????] Between POSITIVE and NEGATIVE.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+            elif aura == "Breakthrough":
+                global_msg_to_send = f"💫GLOBAL💫\n{name} has found ???, chance of 1 in {chance_display} [BREAKTHROUGH!]{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"              
             elif aura == "Glitch":
                 global_msg_to_send = f"💫GLOBAL💫\n{name} HAS ROLLED {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
             else:
