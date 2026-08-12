@@ -1059,10 +1059,12 @@ def apply_day_chances():
         auras["Lunar"] = 50000
     if "Lunar : Full Moon" in auras:
         auras["Lunar : Full Moon"] = 5000000
-    if "Melodic : Serenade" in auras:
-        auras["Melodic : Serenade"] = 77000000
     if "Twilight" in auras:
         auras["Twilight"] = 6000000
+    if "Melodic : Serenade" in auras:
+        auras["Melodic : Serenade"] = 77000000
+    if "Dreamer" in auras:
+        auras["Dreamer"] = 315000000
     if "Twilight : Iridescent Memory" in auras:
         auras["Twilight : Iridescent Memory"] = 60000000
     if "Twilight : Withering Grace" in auras:
@@ -1082,6 +1084,8 @@ def apply_night_chances():
         auras["Twilight"] = 600000
     if "Melodic : Serenade" in auras:
         auras["Melodic : Serenade"] = 7700000
+    if "Dreamer" in auras:
+        auras["Dreamer"] = 31500000
     if "Twilight : Iridescent Memory" in auras:
         auras["Twilight : Iridescent Memory"] = 6000000
     if "Twilight : Withering Grace" in auras:
