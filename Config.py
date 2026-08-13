@@ -217,6 +217,7 @@ auras = {
     "Ascendant": 935000000,
     "Pixelation": 1073741824,
     "Luminosity": 1200000000,
+    "Leviathan": 1730400000,
     "Breakthrough": 1999999999,
     "Dream Catcher": 2222222222,
     "Equinox": 2500000000,

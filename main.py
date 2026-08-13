@@ -390,6 +390,9 @@ def get_biome_multiplier(aura_name):
     if aura_name in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]:
         return math.inf  # Сделать невозможным выпадение
     
+    if aura_name == "Leviathan" and current_biome not in ["Rainy", "Glitched"]:
+        return math.inf
+    
     if aura_name == "Borealis" and current_biome != "Dreamspace":
         return math.inf
     
@@ -435,6 +438,7 @@ def roll_aura(effective_luck, user):
             # Пропуск аур, не подходящих под биом (для Glitched и Dreamspace)
             if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
             if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
+            if aura == "Leviathan" and current_biome not in ["Rainy", "Glitched"]: continue
             if aura == "Borealis" and current_biome != "Dreamspace": continue
             if aura == "Breakthrough" and current_biome == "Null": continue
             # Если снаружи Null биом, в Лимбо он не должен давать множитель x1000
@@ -463,6 +467,7 @@ def roll_aura(effective_luck, user):
     for aura, base_chance in auras.items():
         if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
         if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
+        if aura == "Leviathan" and current_biome not in ["Rainy", "Glitched"]: continue
         if aura == "Borealis" and current_biome != "Dreamspace": continue
         if aura == "Breakthrough" and current_biome == "Null": continue
 
@@ -786,6 +791,8 @@ def auto_roll_thread(user_id, chat_id):
                     msg_text = f"YOU HAVE DISCOVERED Oppression WITH CHANCE OF 1 IN 220000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
                 elif aura == "Dreammetric":
                     msg_text = f"YOU HAVE DISCOVERED Dreammetric WITH CHANCE OF 1 IN 520000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+                elif aura == "Leviathan":
+                    msg_text = f"You have tamed the Ruler of Beneath. 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
                 else:
                     chance_display = int(chance) if chance == int(chance) else chance
                     if chance > 99_999_998:
@@ -839,6 +846,8 @@ def auto_roll_thread(user_id, chat_id):
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} has experienced the literal nightmare.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     elif aura == "Luminosity":
                         global_msg_to_send = f"💫GLOBAL💫\nThe blinding light has devoured {user_name}.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+                    elif aura == "Leviathan":
+                        global_msg_to_send = f"💫GLOBAL💫\n{user_name} has tamed the Ruler of Beneath.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     elif aura == "Equinox":
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} Has Found [???????] Between POSITIVE and NEGATIVE.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     elif aura == "Breakthrough":
@@ -2077,6 +2086,8 @@ def process_manual_roll(msg):
             msg_text = f"YOU HAVE DISCOVERED Oppression WITH CHANCE OF 1 IN 220000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
         elif aura == "Dreammetric":
             msg_text = f"YOU HAVE DISCOVERED Dreammetric WITH CHANCE OF 1 IN 520000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
+        elif aura == "Leviathan":
+            msg_text = f"You have tamed the Ruler of Beneath. 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
         else:
             chance_display = int(chance) if chance == int(chance) else chance
             if chance > 99_999_998:
@@ -2119,6 +2130,8 @@ def process_manual_roll(msg):
                 global_msg_to_send = f"💫GLOBAL💫\n{name} has experienced the literal nightmare.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
             elif aura == "Luminosity":
                 global_msg_to_send = f"💫GLOBAL💫\nThe blinding light has devoured {name}.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+            elif aura == "Leviathan":
+                global_msg_to_send = f"💫GLOBAL💫\n{name} has tamed the Ruler of Beneath.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
             elif aura == "Equinox":
                 global_msg_to_send = f"💫GLOBAL💫\n{name} Has Found [???????] Between POSITIVE and NEGATIVE.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
             elif aura == "Breakthrough":
