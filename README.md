@@ -73,8 +73,8 @@ Main branch (Unreleased): 0.95.1
 
 **🔨 To-do (1.0.0)**:
 - [X] Fix autoroll
-- [ ] Add all auras from original <-- Working on it
-- [ ] Add all cutscenes to them
+- [X] Add all auras from original
+- [ ] Add all cutscenes to them <-- It will be hard. but wish me good luck!
 - [X] Update 📜 Credits
 - [X] Update Change logs
 - [X] Update ALL bot associated channels, bots, and other profile picture and name
