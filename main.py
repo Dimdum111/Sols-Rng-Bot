@@ -390,6 +390,9 @@ def get_biome_multiplier(aura_name):
     if aura_name in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]:
         return math.inf  # Сделать невозможным выпадение
     
+    if aura_name == "Monarch" and current_biome not in ["Corruption", "Glitched"]:
+        return math.inf
+    
     if aura_name == "Leviathan" and current_biome not in ["Rainy", "Glitched"]:
         return math.inf
     
@@ -438,6 +441,7 @@ def roll_aura(effective_luck, user):
             # Пропуск аур, не подходящих под биом (для Glitched и Dreamspace)
             if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
             if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
+            if aura == "Monarch" and current_biome not in ["Corruption", "Glitched"]: continue
             if aura == "Leviathan" and current_biome not in ["Rainy", "Glitched"]: continue
             if aura == "Borealis" and current_biome != "Dreamspace": continue
             if aura == "Breakthrough" and current_biome == "Null": continue
@@ -467,6 +471,7 @@ def roll_aura(effective_luck, user):
     for aura, base_chance in auras.items():
         if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
         if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
+        if aura == "Monarch" and current_biome not in ["Corruption", "Glitched"]: continue
         if aura == "Leviathan" and current_biome not in ["Rainy", "Glitched"]: continue
         if aura == "Borealis" and current_biome != "Dreamspace": continue
         if aura == "Breakthrough" and current_biome == "Null": continue
@@ -777,6 +782,8 @@ def auto_roll_thread(user_id, chat_id):
                     msg_text = f"💫 You have been devoured by the blinding light. 💫 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
                 elif aura == "Equinox":
                     msg_text = f"⚫ You have found [???????] between POSITIVE and NEGATIVE. ⚪ 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+                elif aura == "Monarch":
+                    msg_text = f"👑 All hail, Your Majesty. 👑 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
                 elif aura == "Breakthrough":
                     msg_text = f"you have found ???, chance of 1 in 1,999,999,999 [BREAKTHROUGH!] 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
                 elif aura == "⭐":
@@ -850,6 +857,8 @@ def auto_roll_thread(user_id, chat_id):
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} has tamed the Ruler of Beneath.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     elif aura == "Equinox":
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} Has Found [???????] Between POSITIVE and NEGATIVE.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+                    elif aura == "Monarch":
+                        global_msg_to_send = f"💫GLOBAL💫\nAll hail, The {user_name}.\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     elif aura == "Breakthrough":
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} has found ???, chance of 1 in {chance_display} [BREAKTHROUGH!]{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     elif aura == "Glitch":
@@ -2078,6 +2087,8 @@ def process_manual_roll(msg):
             msg_text = f"💫You have been devoured by the blinding light.💫 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
         elif aura == "Equinox":
             msg_text = f"⚫You have found [???????] between POSITIVE and NEGATIVE.⚪ 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
+        elif aura == "Monarch":
+            msg_text = f"👑 All hail, Your Majesty. 👑 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
         elif aura == "Breakthrough":
             msg_text = f"you have found ???, chance of 1 in 1,999,999,999 [BREAKTHROUGH!] 🍀x{display_luck}{from_biome}\n\n« 🟢🔵 TRANSCENDENT 🔵🟢 »"
         elif aura == "Glitch":
@@ -2134,6 +2145,8 @@ def process_manual_roll(msg):
                 global_msg_to_send = f"💫GLOBAL💫\n{name} has tamed the Ruler of Beneath.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
             elif aura == "Equinox":
                 global_msg_to_send = f"💫GLOBAL💫\n{name} Has Found [???????] Between POSITIVE and NEGATIVE.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+            elif aura == "Monarch":
+                global_msg_to_send = f"💫GLOBAL💫\nAll hail, The {name}.\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
             elif aura == "Breakthrough":
                 global_msg_to_send = f"💫GLOBAL💫\n{name} has found ???, chance of 1 in {chance_display} [BREAKTHROUGH!]{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"              
             elif aura == "Glitch":
