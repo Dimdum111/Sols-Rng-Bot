@@ -1048,6 +1048,7 @@ def start(msg):
         markup.add(btn_continue)
         bot.send_message(msg.chat.id, start_msg, parse_mode="HTML", reply_markup=markup)
         user['DidIntro'] = True
+        save_data()
         return
     
     save_data()
@@ -2812,7 +2813,6 @@ def _do_end(reason):
     bot.stop_polling()
     return f"✅ Bot shutting down. Reason: {reason}"
 
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith("confirm_"))
 def handle_confirm_callback(call):
     parts = call.data.split("_", 3)  # confirm_yes_uid or confirm_no_uid
@@ -2838,9 +2838,30 @@ def handle_confirm_callback(call):
     else:
         bot.edit_message_text("❌ Cancelled.", call.message.chat.id, call.message.message_id)
     bot.answer_callback_query(call.id)
+    
+@bot.callback_query_handler(func=lambda call: True)
+def intro_continue(call):
+    if call.data == "btn_continue":
+        bot.answer_callback_query(call.id, "🍀 Good luck!", show_alert=False)
+        
+        uid = str(call.from_user.id)
+        event_info = ""
+        MaintanceText = ""
+        if is_event_active():
+            event_info = f"\n\n🎉 X{EVENT_DATA['event_multiplier']} LUCK EVENT ACTIVE! 🎉\nTime left: {get_time_remaining()}"
+            
+        if MaintanceActive:
+            MaintanceText = f"\n\n⚠️ Sol's rng bot is Going down for Scheduled Maintenance soon."
+
+        biome_info = f"\nBIOME: {BIOME_DATA['current_biome']}"
+        if BIOME_DATA['current_biome'] != "Normal":
+            biome_info += f" (ends in: {get_biome_time_remaining()})"
+
+        bot.send_message(call.message.chat.id,
+                        f"Welcome to Sol's RNG 🎰\nTime: {'DAYTIME ☀️' if is_day else 'NIGHTTIME 🌙'}{biome_info}{event_info}{MaintanceText}",
+                        reply_markup=main_menu(uid))
 
 @bot.message_handler(func=lambda m: True)
-
 def handle(msg):
 
     global lucky_potion_active  # Нужно для обработки нажатия
@@ -4410,11 +4431,11 @@ while True:
         break  # Выходим из цикла, чтобы скрипт завершился
 
     except requests .exceptions.ReadTimeout:
-        print("[⚠️] Read Timeout. Waiting for [60s]")
-        time.sleep(60)
+        print("[⚠️] Read Timeout. Waiting for [1s]")
+        time.sleep(1)
     except requests.exceptions.ConnectionError:
-        print("[⚠️] Connection Error. Waiting for [60s]")
-        time.sleep(60)
+        print("[⚠️] Connection Error. Waiting for [1s]")
+        time.sleep(1)
     except Exception as e:
         print(f"[❌] Critical error. {e}")
         time.sleep(5)  # Спим дольше при неизвестных ошибках
