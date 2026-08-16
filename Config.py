@@ -286,7 +286,6 @@ BIOMES = {
 
 # --- СЛОВАРЬ ДЛЯ GIF ---
 # Связывает название ауры с ID гифки.
-# Если вы не хотите гифку для какой-то ауры, просто удалите ее из этого словаря.
 # Логика ">= 1,000,000" все еще будет применяться.
 
 aura_gif_map = {
@@ -400,3 +399,17 @@ aura_gif_map = {
     "dreamscape": "https://t.me/solsrngbotcutscenes/109",
     "NYCTOPHOBIA": "https://t.me/solsrngbotcutscenes/110",
 }
+
+start_msg = """✧ Welcome to the <b>Sol's RNG bot!</b>
+Sol's RNG bot is a bot based of a game called "Sol's RNG" on roblox!
+
+In <b>Sol's RNG bot</b> you can Roll auras, craft gloves, craft potions, And much more that i can't just say here,
+We have a small but friendly community!
+If you want help us grow, You can invite your friends here!
+
+You can ask a question, Talk to people, and see news about this bot in: @solsrngsimbotnews
+Or if you find a bug? you can always tell us about it! (@DimdumXD or @underrosta)
+
+Since it's your first time playing <b>Sol's Rng bot</b> Press continue And roll your first ever <b>aura</b>!
+
+<b>Good luck and have fun!!</b>"""

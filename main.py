@@ -1,5 +1,5 @@
 # Bot version: 1.0.0 (BETA)
-from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map
+from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, start_msg
 import telebot
 from telebot import types
 import random
@@ -304,7 +304,7 @@ def get_user_data(user_id, user_name="User"):
             }
         u = data["auras"].setdefault(user_id, {})
         u.setdefault("user_id", user_id)
-        u.setdefault("name", user_name) # It's not a bug that username only updates when user start playing! don't fix it!
+        u.setdefault("name", user_name)
         u.setdefault("user_luck", 1.0)  # Это базовая удача
         u.setdefault("rolls", 0)
         u.setdefault("rarest", None)
@@ -324,6 +324,7 @@ def get_user_data(user_id, user_name="User"):
         u.setdefault("last_active", None)
         u.setdefault("forced_aura", None)
         u.setdefault("gif_rarity_threshold", 1000000)
+        u.setdefault("DidIntro", False)
         #u.setdefault("codes", []) 
         # лимбо
         u.setdefault("limbo_unlocked", False)
@@ -1037,10 +1038,18 @@ def redo_last_list(uid, chat_id):
 @bot.message_handler(commands=["start"])
 
 def start(msg):
-
     uid = str(msg.from_user.id)
     name = msg.from_user.first_name or "User"
-    get_user_data(uid, name)
+    user = get_user_data(uid, name)
+    
+    if user['DidIntro'] == False:
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        btn_continue = types.InlineKeyboardButton("continue", callback_data="btn_continue", style="success")
+        markup.add(btn_continue)
+        bot.send_message(msg.chat.id, start_msg, parse_mode="HTML", reply_markup=markup)
+        user['DidIntro'] = True
+        return
+    
     save_data()
     user_handle = name
     if msg.from_user.username:
@@ -1219,11 +1228,10 @@ def active_players(msg):
     bot.send_message(msg.chat.id, report)
 
 
-"""Scheduled Maintance
-Recroom Inspired! (Rip recroom <3)
-When command is used it calls the ScheduledMaintance which check if user is admin if not then return and if user IS admin
-it calls ScheduledMaintanceMsgs in threading.thread and starts the countdown and sets MaintanceActive = True so it would appear
-in menus. and when countdown is over it saves the data and shuts down."""
+"""Scheduled Maintenance
+Starts a Scheduled Maintenance in a threading, and sets MaintanceActive to True
+so in main menu there will be a notification about Maintenance.
+at the end of a countdown it saves users_data and stops polling."""
 def ScheduledMaintanceMsgs():
     notify_all_users("⏱️ | Scheduled Maintenance\nSol's rng bot is going down for Scheduled Maintenance In 1 hour!", message_type="default", pin=True)
     time.sleep(1800) #1800
@@ -1259,14 +1267,15 @@ def ScheduledMaintance(msg):
     return MaintanceActive
 
 """Profile command.
-Lets you see user profile!"""
+Accepts an user id or 'me'
+and shows a profile. ('me' shows yourself)"""
 @bot.message_handler(commands=["profile"])
 def profile(msg):
     parts = msg.text.split()
-    if len(parts) != 2: # checking if there is arguments missing
+    if len(parts) != 2:
         bot.send_message(msg.chat.id, f"💫 Usage: /profile <User_id|me>")
         return
-    if parts[1] == "me": # checking if user tries to check himself
+    if parts[1] == "me":
         parts[1] = str(msg.from_user.id)
     user_info = data["auras"].get(parts[1])
     if not user_info:
@@ -1312,10 +1321,10 @@ If user IS admin it calls CitadelOfOrderMessages function.
 """
 @bot.message_handler(commands=["CitadelOfOrder"])
 def CitadelOfOrderEvent(msg):
-    chatid = str(msg.chat.id) # Gets user chatid
-    uid = str(msg.from_user.id) # Gets user id
-    if uid not in admin_ids: # Checks if user is admin
-        bot.send_message(chatid, "❌ No permission.") # if not - says no permission
+    chatid = str(msg.chat.id)
+    uid = str(msg.from_user.id)
+    if uid not in admin_ids:
+        bot.send_message(chatid, "❌ No permission.")
         return
     bot.send_message(chatid, "✨ Starting...") # if user IS admin says staring and calls CitadelOfOrderMessages
     log_admin_action(msg, msg.text)
