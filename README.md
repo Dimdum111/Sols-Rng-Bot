@@ -101,6 +101,7 @@ Main branch (Unreleased): 0.95.1
 - [X] FIX CRAFTS
 - [X] Add scheduled maintanence
 - [X] Add Heaven biome
+- [X] Added intro
 - [ ] Code system
 
 **🛠️ To-do (Sometime)**:
