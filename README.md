@@ -104,6 +104,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Added intro
 
 **🛠️ To-do (Sometime)**:
+- [ ] Add referal system 
 - [ ] Code system
 - [ ] Ban system
 - [ ] Auto collect lucky potions when autorolling
