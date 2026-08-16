@@ -78,7 +78,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Update 📜 Credits
 - [X] Update Change logs
 - [X] Update ALL bot associated channels, bots, and other profile picture and name
-- [ ] Make 1.0 trailer
+- [ ] Make bot trailer
 - [X] Optimize code 10286 -> 4333 Lines of code
 - [X] Luck from Sol's rng (Finnaly..!)
 - [X] Make adding item easier
@@ -102,9 +102,9 @@ Main branch (Unreleased): 0.95.1
 - [X] Add scheduled maintanence
 - [X] Add Heaven biome
 - [X] Added intro
-- [ ] Code system
 
 **🛠️ To-do (Sometime)**:
+- [ ] Code system
 - [ ] Ban system
 - [ ] Auto collect lucky potions when autorolling
 
