@@ -2172,7 +2172,7 @@ def process_manual_roll(msg):
     if gif_id_to_send:
         try:
             bot.send_animation(msg.chat.id, gif_id_to_send)
-            time.sleep(12)  # Не блокирует других
+            time.sleep(12)
         except Exception as e:
             print(f"[⚠️] Failed to send GIF for {aura}: {e}")
 
@@ -3542,10 +3542,10 @@ def handle(msg):
         if user.get("rolls", 0) < 9999:
             bot.send_message(msg.chat.id, "10000 Rolls Required for this option!", reply_markup=main_menu(uid))
             return
-
+        
         user["auto_roll_enabled"] = True
         save_data()
-
+        
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.row(types.KeyboardButton("Disable Auto Roll"))
         bot.send_message(msg.chat.id, "Auto Roll enabled. Starting...", reply_markup=markup)
