@@ -1,5 +1,5 @@
 # Bot version: 1.0.0 (BETA)
-from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, start_msg
+from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text
 import telebot
 from telebot import types
 import random
@@ -1165,6 +1165,7 @@ threading.Thread(target=autosave_loop, daemon=True).start()
 user_pages = {}
 
 user_last_command = {}
+
 """
     Отправляет сообщение всем пользователям с учетом их настроек.
     message_type: 'default', 'global', 'day_night', 'biome'
@@ -1192,6 +1193,28 @@ def notify_all_users(message, message_type="default", pin=False):
     with ThreadPoolExecutor(max_workers=30) as executor:
         for uid, user_data in users_data.items():
             executor.submit(send_one, uid, user_data)
+
+
+def notify_all_users_gif(gif, pin=False):
+    with data_lock:
+        users_data = data.get("auras", {}).copy()
+
+    def send_one_gif(uid):
+        try:
+            sent_msg = bot.send_animation(uid, gif)
+            if pin:
+                try:    
+                    bot.pin_chat_message(uid, sent_msg.message_id, disable_notification=False)
+                except:
+                    pass
+        except:
+            pass
+
+    with ThreadPoolExecutor(max_workers=30) as executor:
+        for uid in users_data.items():
+            executor.submit(send_one_gif, uid)
+            
+
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
 
@@ -1298,6 +1321,8 @@ It uses notify_all_users function that notifies all users in Users_data_lines.js
 It called after using /CitadelOfOrder command from CitadelOfOrderEvent function.
 """
 def CitadelOfOrderMessages():
+    cutscene_link = event_gif_map.get("citadel", "https://t.me/solsrngbotcutscenes/228")
+    notify_all_users_gif(cutscene_link)
     notify_all_users("Every life commit sins.", message_type="default")
     time.sleep(2.5)
     notify_all_users("Wouldn't you agree?", message_type="default")
@@ -1327,7 +1352,7 @@ def CitadelOfOrderEvent(msg):
     if uid not in admin_ids:
         bot.send_message(chatid, "❌ No permission.")
         return
-    bot.send_message(chatid, "✨ Starting...") # if user IS admin says staring and calls CitadelOfOrderMessages
+    bot.send_message(chatid, "✨ Starting...")
     log_admin_action(msg, msg.text)
     # Set luck, Set event duration, disable it, and reset End time
     EVENT_DATA["event_multiplier"] = 1.2
@@ -1706,6 +1731,7 @@ def say_cmd(msg):
 def _do_say(message, msg, pin=False):
     threading.Thread(target=lambda: notify_all_users(f"{message} \n\n   ✧ {msg.from_user.username} ╝", message_type="global", pin=pin), daemon=True).start()
     return "✅ Sent to all users." + (" Pinned." if pin else "")
+
 
 # Новые админские команды для управления событием
 
@@ -2690,94 +2716,7 @@ def handle_limbo_exit(msg, uid, user):
 @bot.message_handler(commands=["help"])
 def admin_help(msg):
     uid = msg.from_user.id
-    user_help_text = (
-"""
-```
-🛠 COMMANDS
-/Profile <User_id|me>
-    → Показывает информацию о пользователе.
 
-/help — это сообщение
-```
-"""
-    )
-    admin_help_text = (
-"""
-```
-🛠 ADMIN COMMANDS
-
-👤 PLAYER MANAGEMENT
-/setluck <user_id|me> <value>
-  → Установить базовую удачу игроку
-
-/setmyluck <value>
-  → Установить базовую удачу себе
-
-/setRolls <user_id|me> <+/-/=> <amount>
-  → Изменить кол-во роллов
-  → Пример: /setRolls me = 0
-
-/setAura <user_id|me> <aura_name> <+/-/=> <amount>
-  → Изменить кол-во ауры у игрока
-  → Пример: /setAura me Solar + 10
-
-/giveItem <user_id|me> <Item Name> [amount]
-  → Выдать предмет (amount по умолчанию = 1)
-  → Пример: /giveItem me Lucky Potion 50
-
-🎲 FORCED ROLLS
-/addAuraQueue <user_id|me> <aura_name>
-  → Следующий ролл игрока выдаст эту ауру
-
-/addAuraQueueReason <user_id|me> <aura_name> <reason>
-  → То же самое, но с указанием причины
-  → Пример: /addAuraQueueReason me Solar победа в ивенте
-
-⚠️ DANGEROUS
-/giveMeAllAuras <amount>
-  → Выдать себе все ауры × amount
-/end <reason>
-    → Выключить бота
-/ScheduledMaintenance
-    → Включить отсчет ScheduledMaintenance который при окончании
-    выключает бота.
-
-📢 BROADCASTS
-/say <message>
-  → Отправить сообщение всем игрокам
-
-/sayPin <message>
-  → Отправить и закрепить у всех игроков
-
-🌍 WORLD
-/setbiome <biome_name>
-  → Сменить биом вручную
-
-🎉 LUCK EVENT
-/luckEventChange <multiplier> <HH:MM:SS>
-  → Настроить ивент (не запускает)
-  → Пример: /luckEventChange 2.5 05:00:00
-
-/luckEventStart
-  → Запустить ивент с текущими настройками
-
-/luckEventStop
-  → Остановить ивент
-
-🔍 INFO
-/itemReq <item_name>
-  → Показать требования для крафта предмета
-  → Пример: /itemReq [T5] Galactic Device
-/activeplayers
-    → Показать активных игроков в некоторый промежутках времени.
-  
-👤 NORMAL-USER COMMANDS
-/Profile <User_id|me>
-    → Показывает информацию о пользователе.
-
-/help — это сообщение
-```"""
-    )
     if str(uid) not in admin_ids:
         bot.send_message(msg.chat.id, user_help_text, parse_mode="Markdown")
         return

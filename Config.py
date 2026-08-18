@@ -447,6 +447,10 @@ aura_gif_map = {
     "NYCTOPHOBIA": "https://t.me/solsrngbotcutscenes/110",
 }
 
+event_gif_map = {
+    "citadel": "https://t.me/solsrngbotcutscenes/227"
+}
+
 start_msg = """✧ Welcome to the <b>Sol's RNG bot!</b>
 Sol's RNG bot is a bot based of a game called "Sol's RNG" on roblox!
 
@@ -460,3 +464,94 @@ Or if you find a bug? you can always tell us about it! (@DimdumXD or @underrosta
 Since it's your first time playing <b>Sol's Rng bot</b> Press continue And roll your first ever <b>aura</b>!
 
 <b>Good luck and have fun!!</b>"""
+
+user_help_text = """
+```
+🛠 COMMANDS
+/Profile <User_id|me>
+    → Показывает информацию о пользователе.
+
+/help — это сообщение
+```
+"""
+
+admin_help_text = """
+```
+🛠 ADMIN COMMANDS
+
+👤 PLAYER MANAGEMENT
+/setluck <user_id|me> <value>
+  → Установить базовую удачу игроку
+
+/setmyluck <value>
+  → Установить базовую удачу себе
+
+/setRolls <user_id|me> <+/-/=> <amount>
+  → Изменить кол-во роллов
+  → Пример: /setRolls me = 0
+
+/setAura <user_id|me> <aura_name> <+/-/=> <amount>
+  → Изменить кол-во ауры у игрока
+  → Пример: /setAura me Solar + 10
+
+/giveItem <user_id|me> <Item Name> [amount]
+  → Выдать предмет (amount по умолчанию = 1)
+  → Пример: /giveItem me Lucky Potion 50
+
+🎲 FORCED ROLLS
+/addAuraQueue <user_id|me> <aura_name>
+  → Следующий ролл игрока выдаст эту ауру
+
+/addAuraQueueReason <user_id|me> <aura_name> <reason>
+  → То же самое, но с указанием причины
+  → Пример: /addAuraQueueReason me Solar победа в ивенте
+
+⚠️ DANGEROUS
+/giveMeAllAuras <amount>
+  → Выдать себе все ауры × amount
+/end <reason>
+    → Выключить бота
+/ScheduledMaintenance
+    → Включить отсчет ScheduledMaintenance который при окончании
+    выключает бота.
+
+📢 BROADCASTS
+/say <message>
+  → Отправить сообщение всем игрокам
+
+/sayPin <message>
+  → Отправить и закрепить у всех игроков
+
+🌍 WORLD
+/setbiome <biome_name>
+  → Сменить биом вручную
+
+🎉 LUCK EVENT
+/luckEventChange <multiplier> <HH:MM:SS>
+  → Настроить ивент (не запускает)
+  → Пример: /luckEventChange 2.5 05:00:00
+
+/luckEventStart
+  → Запустить ивент с текущими настройками
+
+/luckEventStop
+  → Остановить ивент
+  
+🌌 Events
+/CitadelOfOrder
+    → Запускает Ивент Citadel of order
+    → дает 1.2 лака на 1 час
+
+🔍 INFO
+/itemReq <item_name>
+  → Показать требования для крафта предмета
+  → Пример: /itemReq [T5] Galactic Device
+/activeplayers
+    → Показать активных игроков в некоторый промежутках времени.
+  
+👤 NORMAL-USER COMMANDS
+/Profile <User_id|me>
+    → Показывает информацию о пользователе.
+
+/help — это сообщение
+```"""
