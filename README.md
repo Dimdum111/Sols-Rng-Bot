@@ -75,7 +75,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Fix autoroll
 - [X] Add all auras from original
 - [X] Add all cutscenes to them
-- [X] Update 📜 Credits
+- [ ] Update 📜 Credits
 - [X] Update Change logs
 - [X] Update ALL bot associated channels, bots, and other profile picture and name
 - [ ] Make bot trailer
