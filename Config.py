@@ -555,3 +555,46 @@ admin_help_text = """
 
 /help — это сообщение
 ```"""
+
+changelogs_text = """--=[Update 1.0.0]=--
+        🔨 Fixes:
+        | Autoroll Fixed!
+        | Fixed a bug where if you press any toggle in settigs autoroll will break
+        | Fixed a bug where you can use autoroll from 9 rolls
+        | Fixed a MASSIVE lag when activating luck event
+        | Fixed a bug where crafts didn't work
+        🛠️ Developers stuff:
+        | Code refactoring, optimizations 10000+ Lines -> ~4000 Lines
+        | Adding items is now easier
+        | You can now use me instead of user id
+        | /activeplayers command
+        | When admin uses /say it will say admin name at the bottom
+        ✨ New Stuff:
+        | Luck Is Now EXACLY the same like original Sol's RNG
+        | you can now see anyone stats by typing /profile <me/user id>
+        | you can now type /help and see all avalible commands for you!
+        | Added Heaven biome
+        | Added intro to the bot when you type /start the first time
+        | Added all auras from original Sol's RNG!
+        | Added all cutscenes from original Sol's RNG
+        | Added scheduled maintanence
+        | Made new pfp's for all Sol's RNG bot, news, chat.. etc
+        | Updated 📜 Credits
+        | Special event for 1.0..
+        📰 Developer notes:
+        🛠️ Dimdum111:
+        | Hi everyone! Long time no see- 8 MONTHS. IT'S FINNALY HERE. 1.0!!!!
+        | I Added a LOT of new stuff here, i hope there will be NO bugs..
+        | alsoo i added a special event... you'll see.. i'll announce it in @solsrngsimbotnews :D
+        | You can see full update log below with all auras added, hope you like it!
+        | i really hope next update will NOT take that long, but.. we'll see, we'll seeee..
+        | Alright ill give a work to Underrosta now:
+        🛠️ Underrosta:
+        | Thank you guys for your patience and anyone who was waiting for this update, we hope you'll enjoy and remember:
+        | Eat
+        | Sleep
+        | Roll
+        | Repeat.
+        🛠️ Dimdum111:
+        | Alright, that was it, hope you enjoy 1.0!! as i said you can see full update log below!
+        | And if you find any bugs please report them to @DimdumXD Or @underrosta, Thanks!"""

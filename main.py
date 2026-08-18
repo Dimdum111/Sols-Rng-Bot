@@ -1,5 +1,5 @@
 # Bot version: 1.0.0 (BETA)
-from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text
+from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text
 import telebot
 from telebot import types
 import random
@@ -3260,30 +3260,11 @@ def handle(msg):
 
     # --- Change Logs ---
     elif text == "📝 Change Logs":
-        changelogs_text = """--=[Update 1.0.0]=--
-        🔨 Fixes:
-        | Autoroll fixed!
-        | Code refactoring, optimiztion, and cleanup.
-        | Luck event are not not lagging when starting or ending!
-        | We don't need to restart the bot 2 times to start it anymore.
-        🛠️ Developers stuff:
-        | Code MASSIVLY refactored, -5000 Lines
-        | Adding items is now easier!
-        ✨ New Stuff:
-        | Updated Bot, Bot news, Bot chat Profile picture!
-        | New Event!! Citadel Of Order!
-        | 📜 Credits Updated
-        | Workshop icon changed (⚙️>🛠️)
-        | /Profile [UserId] to see user profile!
-        | Now when admins use say command It will show their name!
-        | /help command: See all avalible commands for you!
-        | ⏱️ Added Scheduled Maintenance! Now you can see when bot will shutdown and there will be less unexpected shutdowns.
-        📰 Developer notes:
-        | Hi everyone! Long time no see! This update took a while.. but it's finally here!
-        | i've been focusing on code rewrite, optimizations, and bug fixes in this update,
-        | But there is still a lot of new stuff and features! Hope you like this update,
-        | And if you find any bugs please report them to @DimdumXD Or @underrosta, Thanks!"""
-        bot.send_message(msg.chat.id, changelogs_text, reply_markup=back_menu())
+        bot.send_message(msg.chat.id, "📝 Change Logs", reply_markup=back_menu())
+        markup = types.InlineKeyboardMarkup(row_width=1)    
+        seefull = types.InlineKeyboardButton("See full update log", "https://telegra.ph/Wip-08-18")
+        markup.add(seefull)
+        bot.send_message(msg.chat.id, changelogs_text, reply_markup=markup)
         return
 
     # --- Credits ---
