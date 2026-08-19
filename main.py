@@ -3262,7 +3262,7 @@ def handle(msg):
     elif text == "📝 Change Logs":
         bot.send_message(msg.chat.id, "📝 Change Logs", reply_markup=back_menu())
         markup = types.InlineKeyboardMarkup(row_width=1)    
-        seefull = types.InlineKeyboardButton("See full update log", "https://telegra.ph/Wip-08-18")
+        seefull = types.InlineKeyboardButton("See all added auras", "https://telegra.ph/Sols-rng-bot-Added-auras-10-08-19")
         markup.add(seefull)
         bot.send_message(msg.chat.id, changelogs_text, reply_markup=markup)
         return
