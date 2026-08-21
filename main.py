@@ -4321,24 +4321,6 @@ def handle(msg):
             bot.send_message(msg.chat.id, f"You unequipped {item}.", reply_markup=back_menu())
         return
 
-def console_loop():
-
-    while True:
-        cmd = input().strip()
-        if cmd == "end":
-            Whyturnof = input("[❓] Shutdown Reason (or leave empty): ")
-            notify_all_users("━━━━━━━━━━━━━━━\n"
-            "🔴 BOT OFFLINE\n"
-            f"💬 Reason: {Whyturnof}\n"
-            "━━━━━━━━━━━━━━━", message_type="default")
-            print("\n[✓] Shutting down... Saving data.")
-            save_data()
-            print("[✓] Data saved. Stopping bot polling.")
-            bot.stop_polling()
-            break
-
-threading.Thread(target=console_loop, daemon=True).start()
-
 # Запускаем проверку Auto Roll в отдельном потоке, чтобы не блокировать старт
 
 threading.Thread(target=restart_auto_rollers, daemon=True).start()
