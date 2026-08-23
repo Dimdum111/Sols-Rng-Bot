@@ -586,15 +586,17 @@ changelogs_text = """--=[Update 1.0.0]=--
         | Hi everyone! Long time no see- 8 MONTHS. IT'S FINNALY HERE. 1.0!!!!
         | I Added a LOT of new stuff here, i hope there will be NO bugs..
         | alsoo i added a special event... you'll see.. i'll announce it in @solsrngsimbotnews :D
-        | You can see full update log below with all auras added, hope you like it!
+        | You can see all auras that was added in 1.0, hope you like it!
         | i really hope next update will NOT take that long, but.. we'll see, we'll seeee..
         | Alright ill give a work to Underrosta now:
         🛠️ Underrosta:
-        | Thank you guys for your patience and anyone who was waiting for this update, we hope you'll enjoy and remember:
-        | Eat
-        | Sleep
-        | Roll
-        | Repeat.
+        | guys I'm so fucking happy that 1.0 released and now please go to my basement and starve till 1.1 release NOW
+        | and remember the rules:
+        | 1. you cannot breathe unless I'll allow
+        | 2. you should cry
+        | 3. HAVE ATLEAST ONE P18 ON STRICT COMPLETED (or public execution)
+        | if you want to eat, uhh eat eachother i guess
+        | thank you very much for your patience! now GO TO MY BASEMENT NOW
         🛠️ Dimdum111:
-        | Alright, that was it, hope you enjoy 1.0!! as i said you can see full update log below!
+        | Alright, that was it, hope you enjoy 1.0!!
         | And if you find any bugs please report them to @DimdumXD Or @underrosta, Thanks!"""
