@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+.vscode/
+biome_data.json
+event_data.json
+global_settings.json
+UsedAdminCmds.txt
+users_data_lines.json

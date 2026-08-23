@@ -1,5 +1,6 @@
 # Bot version: 1.0.0 (BETA)
 from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text
+from dotenv import load_dotenv
 import telebot
 from telebot import types
 import random
@@ -11,9 +12,13 @@ import math
 import requests
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-LOG_BOT_TOKEN = "8514853088:AAH5FhcXDFGGVO8lXkKcVcxIhAWHkbmTvII"  # Токен бота Логера.
-TOKEN = "8535142439:AAH3c-cwndvvW54YGKZt3pkXuLkMgDvrZPo" # Основной бот
-# ОСНОВНОЙ БОТ - [7965336094:AAGDZd4o39plNUlgeebQYKvIALsQqd857Hs], TESTERS БОТ - [8535142439:AAH3c-cwndvvW54YGKZt3pkXuLkMgDvrZPo]
+
+load_dotenv()
+
+LOG_BOT_TOKEN = os.environ["LOG_BOT_TOKEN"]  # Токен бота Логера.
+TOKEN = os.environ["TOKEN"] # Основной бот
+TESTERS_BOT_TOKEN = os.environ["TESTERS_BOT_TOKEN"]
+
 bot = telebot.TeleBot(TOKEN)
 MaintanceActive = False
 
@@ -43,7 +48,7 @@ def log_admin_action(admin_msg, action_text): # Логирует действи�
     TestBot = ""
     with open("UsedAdminCmds.txt", "a", encoding="utf-8") as f:
         f.write(log_entry)
-        if TOKEN == "8535142439:AAH3c-cwndvvW54YGKZt3pkXuLkMgDvrZPo": TestBot = "╚ ⚠️ THIS COMMAND WAS USED IN THE TEST BOT ╗"
+        if TOKEN == TESTERS_BOT_TOKEN: TestBot = "╚ ⚠️ THIS COMMAND WAS USED IN THE TEST BOT ╗"
         else: TestBot = ""
         notification_text = (
             "⚠️ Admin command notification\n"
