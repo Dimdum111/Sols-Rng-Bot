@@ -93,7 +93,7 @@ Main branch (Unreleased): 0.95.1
 - [X] Make so you can use me for profile
 - [X] Fix a bug where if you press Day/night notifications or Global messages it will show that autoroll requires 25000 rolls
 - [X] FIX A CRITICAL BUG WHERE YOU CAN USE AUTOROLL FROM 9 ROLLS
-- [ ] Make special event for 1.0 [WIP]
+- [X] Make special event for 1.0
 - [X] Make /profile [User id] command
 - [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
 - [X] Fix a bug that YOU NEED TO RESTART THE BOT 2. TIMES. BEFORE. IT'S. WORKING. [I think i fixed it]
