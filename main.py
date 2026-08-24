@@ -1251,6 +1251,47 @@ def notify_all_users_gif(gif, pin=False):
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
 
+@bot.message_handler(commands=["wereSorry"])
+def sorrybuff(msg):
+    uid = str(msg.from_user.id)
+    text = msg.text
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+        return
+    
+    parts = text.split(" ", 2)
+    
+    if len(parts) < 2:
+        bot.send_message(msg.chat.id, "⚠️ Usage: /wereSorry <seconds>")
+        return
+
+    try:
+        time = int(parts[1])
+    except ValueError:
+        bot.send_message(msg.chat.id, "❌ ValueError: Time is not in int format. Example: 3400 - 1 hour")
+        return
+    
+    pending_confirmations[uid] = {
+        "cmd": msg.text,
+        "action": lambda: _do_weresorrybuff(time)
+    }
+    markup = types.InlineKeyboardMarkup()
+    markup.row(
+        types.InlineKeyboardButton("✅ Yes", callback_data=f"confirm_yes_{uid}"),
+        types.InlineKeyboardButton("❌ No", callback_data=f"confirm_no_{uid}")
+    )
+    bot.send_message(msg.chat.id, f"⚠️ Confirm: start we're sorry buff?", reply_markup=markup)
+
+def _do_weresorrybuff(time):
+    EVENT_DATA["event_multiplier"] = 1.2
+    EVENT_DATA["event_duration"] = time
+    EVENT_DATA["event_active"] = False
+    EVENT_DATA["event_end_time"] = None
+    notify_all_users("🔧 We're Sorry! (1.2X luck)", message_type="default", pin=True)
+    _do_luck_event_start()
+    return f"✅ Started We're Sorry Event for {time} seconds!"
+    
+    
 @bot.message_handler(commands=["activeplayers"])
 def active_players(msg):
     uid = str(msg.from_user.id)
@@ -1388,7 +1429,7 @@ def CitadelOfOrderEvent(msg):
     bot.send_message(chatid, "✨ Starting...")
     log_admin_action(msg, msg.text)
     # Set luck, Set event duration, disable it, and reset End time
-    EVENT_DATA["event_multiplier"] = 1.2
+    EVENT_DATA["event_multiplier"] = 1.5
     EVENT_DATA["event_duration"] = 3600
     EVENT_DATA["event_active"] = False
     EVENT_DATA["event_end_time"] = None
