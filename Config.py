@@ -255,7 +255,7 @@ limbo_auras = {
     "NYCTOPHOBIA": 1011111010
 }
 
-GLOBAL_THRESHOLD = 9_999_999
+GLOBAL_THRESHOLD = 99_999_999
 
 # Биомы и их настройки
 
