@@ -71,38 +71,6 @@ Main branch (Unreleased): 0.95.1
 | Sol's rng Bot Announcer | Admin only | Logger | https://t.me/Solsrngannouncerbot |
 | Sols rng Tester's bot | Admin only | Testers | https://t.me/SolsRngTestersBot |  
 
-**🔨 To-do (1.0.0)**:
-- [X] Fix autoroll
-- [X] Add all auras from original
-- [X] Add all cutscenes to them
-- [X] Update 📜 Credits
-- [X] Update Change logs
-- [X] Update ALL bot associated channels, bots, and other profile picture and name
-- [ ] Make bot trailer
-- [X] Optimize code 10286 -> 4333 Lines of code
-- [X] Luck from Sol's rng (Finnaly..!)
-- [X] Make adding item easier
-- [X] Allow /end directly from bot
-- [X] Add .Help
-- [X] Add Confirm for ALL commands
-- [X] Add Me instead of user_id
-- [X] [!DELETE!] Make username update every time user rolls
-- [X] Update README.md
-- [X] make so u see if command executed in test bot
-- [X] /activeplayers command
-- [X] Make so you can use me for profile
-- [X] Fix a bug where if you press Day/night notifications or Global messages it will show that autoroll requires 25000 rolls
-- [X] FIX A CRITICAL BUG WHERE YOU CAN USE AUTOROLL FROM 9 ROLLS
-- [X] Make special event for 1.0
-- [X] Make /profile [User id] command
-- [X] Fix a MASSIVE lag when using luck event (Add threading.thread().start() to it with lambda function
-- [X] Fix a bug that YOU NEED TO RESTART THE BOT 2. TIMES. BEFORE. IT'S. WORKING. [I think i fixed it]
-- [X] Make so when you do say/sayPin It says your name At the bottom.
-- [X] FIX CRAFTS
-- [X] Add scheduled maintanence
-- [X] Add Heaven biome
-- [X] Added intro
-
 **🛠️ To-do (Sometime)**:
 - [ ] Add referal system 
 - [ ] Code system
