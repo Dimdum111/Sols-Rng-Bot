@@ -825,6 +825,9 @@ admin_help_text = """
   → Остановить ивент
   
 🌌 Events
+/wereSorry <seconds>
+  → Запускает Ивент We're sorry
+  → дает 1.2 лака на Выбраное время
 /CitadelOfOrder
     → Запускает Ивент Citadel of order
     → дает 1.2 лака на 1 час
