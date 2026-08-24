@@ -255,6 +255,19 @@ limbo_auras = {
     "NYCTOPHOBIA": 1011111010
 }
 
+# Все крафтовые предметы в игре
+items = [
+    "[T1] 🧤 Luck Glove", "[T1] 🔥 Desire Glove", "[T1] ☀️ Solar Device",
+    "[T2] ⭐ Shining Star", "[T3] 💠 Exo Gauntlet", "[T3] 🌪️ Windstorm Device",
+    "[T4] ❄️ Subzero Device", "[T5] 🌌 Galactic Device", "[T5] 🌋 Volcanic Device",
+    "[T6] 🔮 Exoflex Device", "[T6] 🌈 Hologrammer", "[T7] ⚡ Ragnaröker",
+    "[T8] ✨ Starshaper", "[T9] 🔬 Neurolyzer", "[T10] 🌀 Genesis Drive",
+    "Lucky Potion", "Heavenly Potion", "Potion of Bound",
+    "Fortune Potion I", "Fortune Potion II", "Fortune Potion III",
+    "Jewellery Potion", "Zombie Potion", "Hades Godly Potion",
+    "Zeus Godly Potion", "Godlike Potion", "Unknown Potion"
+]
+
 GLOBAL_THRESHOLD = 99_999_999
 
 # Биомы и их настройки

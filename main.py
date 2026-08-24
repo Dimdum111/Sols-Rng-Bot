@@ -1,5 +1,5 @@
 # Bot version: 1.1.0
-from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text
+from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items
 from dotenv import load_dotenv
 import telebot
 from telebot import types
@@ -48,7 +48,7 @@ def log_admin_action(admin_msg, action_text): # Логирует действи�
     TestBot = ""
     with open("UsedAdminCmds.txt", "a", encoding="utf-8") as f:
         f.write(log_entry)
-        if TOKEN == TESTERS_BOT_TOKEN: TestBot = "╚ ⚠️ THIS COMMAND WAS USED IN THE TEST BOT ╗"
+        if TOKEN == TESTERS_BOT_TOKEN: TestBot = "╚ ⚠️ (THIS COMMAND WAS USED IN THE TEST BOT BTW) ╗"
         else: TestBot = ""
         notification_text = (
             "⚠️ Admin command notification\n"
@@ -1012,17 +1012,47 @@ def send_paginated_list(chat_id, uid, items):
     markup.row(types.KeyboardButton("⬅️ Back"))
     bot.send_message(chat_id, text, reply_markup=markup)
 
+# ======================AI P.1======================
+def build_auras_list(uid):
+    user = get_user_data(uid)
+    user_auras_owned = user.get("auras", {})
+
+    has_at_least_one_limbo_aura = False
+    for limbo_aura_name in limbo_auras.keys():
+        if limbo_aura_name in user_auras_owned and user_auras_owned[limbo_aura_name] > 0:
+            has_at_least_one_limbo_aura = True
+            break
+
+    aura_list = []
+
+    if has_at_least_one_limbo_aura:
+        aura_list.append("--- 🌌 Limbo Auras ---")
+        for a_name in limbo_auras.keys():
+            if a_name in user_auras_owned and user_auras_owned.get(a_name, 0) > 0:
+                aura_list.append(f"{a_name} ✨ x{user_auras_owned.get(a_name, 0)}")
+            else:
+                aura_list.append(f"🔒 LOCKED")
+        aura_list.append("---------------------")
+
+    main_aura_dict = auras_default if 'auras_default' in globals() else auras
+
+    for a_name in main_aura_dict.keys():
+        if a_name in user_auras_owned and user_auras_owned.get(a_name, 0) > 0:
+            aura_list.append(f"{a_name} ✨ x{user_auras_owned.get(a_name, 0)}")
+        else:
+            aura_list.append(f"🔒 LOCKED")
+
+    return aura_list
+
 def redo_last_list(uid, chat_id):
 
     cmd = user_last_command.get(uid)
     if not cmd:
         return
     if cmd == "Auras":
-        user = get_user_data(uid)
-        aura_list = [
-            f"{a} ✨ x{user['auras'].get(a, 0)}" if a in user.get("auras", {}) else f"🔒 LOCKED"
-            for a in auras]
+        aura_list = build_auras_list(uid)
         send_paginated_list(chat_id, uid, aura_list)
+      # ======================AI P.1======================
     elif cmd == "LeaderboardRoll":
         leaderboard = [(u.get("name", "User"), u.get("rolls", 0)) for u in data["auras"].values()]
         leaderboard.sort(key=lambda x: x[1], reverse=True)
@@ -1535,6 +1565,47 @@ def _do_give_item(target_uid, item_name, amount):
         inv.append(item_name)
     save_data()
     return f"✅ Added {amount}x {item_name} to {user.get('name', target_uid)}"
+
+# ======================AI P.1======================
+@bot.message_handler(commands=["giveMeAllItems"])
+
+def give_me_all_items_cmd(msg):
+    uid = str(msg.from_user.id)
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ No permission.")
+        return
+    parts = msg.text.split()
+    if len(parts) != 2:
+        bot.send_message(msg.chat.id, "Usage: /giveMeAllItems <amount>")
+        return
+    try:
+        amount = int(parts[1])
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        bot.send_message(msg.chat.id, "❌ Amount must be a positive number.")
+        return
+    pending_confirmations[uid] = {
+        "cmd": msg.text,
+        "action": lambda: _do_give_me_all_items(uid, amount)
+    }
+    markup = types.InlineKeyboardMarkup()
+    markup.row(
+        types.InlineKeyboardButton("✅ Yes", callback_data=f"confirm_yes_{uid}"),
+        types.InlineKeyboardButton("❌ No", callback_data=f"confirm_no_{uid}")
+    )
+    bot.send_message(msg.chat.id, f"⚠️ Confirm: give yourself ALL items x{amount}?", reply_markup=markup)
+
+def _do_give_me_all_items(uid, amount):
+    user = get_user_data(uid)
+    with data_lock:
+        inv = user.setdefault("inventory", [])
+        for item_name in items:
+            for _ in range(amount):
+                inv.append(item_name)
+    save_data()
+    return f"✅ Added {amount}x of all items to your inventory."
+# ======================AI P.1======================
 
 @bot.message_handler(commands=["setRolls"])
 
@@ -3096,44 +3167,16 @@ def handle(msg):
         return
 
     # --- Auras ---
+# ======================AI P.1======================
     elif text == "💫 Auras":
         user_last_command[uid] = "Auras"
         user_pages[uid] = 0
 
-        user_auras_owned = user.get("auras", {})
-
-        # 1. Проверяем, есть ли у пользователя ХОТЯ БЫ ОДНА аура из limbo_auras
-        has_at_least_one_limbo_aura = False
-        for limbo_aura_name in limbo_auras.keys():
-            if limbo_aura_name in user_auras_owned and user_auras_owned[limbo_aura_name] > 0:
-                has_at_least_one_limbo_aura = True
-                break
-
-        aura_list = []
-
-        # 2. Если у него есть хотя бы одна, показываем ВСЕ ауры Лимбо (разблокированные и нет)
-        if has_at_least_one_limbo_aura:
-            aura_list.append("--- 🌌 Limbo Auras ---")
-            for a_name in limbo_auras.keys():
-                if a_name in user_auras_owned and user_auras_owned.get(a_name, 0) > 0:
-                    aura_list.append(f"{a_name} ✨ x{user_auras_owned.get(a_name, 0)}")
-                else:
-                    # Показываем LOCKED только если есть хотя бы одна аура лимбо
-                    aura_list.append(f"🔒 LOCKED")
-            aura_list.append("---------------------")
-
-        # 3. Добавляем обычные ауры
-        # Используем auras_default, чтобы список был полным, а не зависел от дня/ночи
-        main_aura_dict = auras_default if 'auras_default' in globals() else auras
-
-        for a_name in main_aura_dict.keys():
-            if a_name in user_auras_owned and user_auras_owned.get(a_name, 0) > 0:
-                aura_list.append(f"{a_name} ✨ x{user_auras_owned.get(a_name, 0)}")
-            else:
-                aura_list.append(f"🔒 LOCKED")
+        aura_list = build_auras_list(uid)
 
         send_paginated_list(msg.chat.id, uid, aura_list)
         return
+# ======================AI P.1======================
 
     # --- Stats ---
     elif text == "📊 Stats":
