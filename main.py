@@ -1012,7 +1012,6 @@ def send_paginated_list(chat_id, uid, items):
     markup.row(types.KeyboardButton("⬅️ Back"))
     bot.send_message(chat_id, text, reply_markup=markup)
 
-# ======================AI P.1======================
 def build_auras_list(uid):
     user = get_user_data(uid)
     user_auras_owned = user.get("auras", {})
@@ -1052,7 +1051,6 @@ def redo_last_list(uid, chat_id):
     if cmd == "Auras":
         aura_list = build_auras_list(uid)
         send_paginated_list(chat_id, uid, aura_list)
-      # ======================AI P.1======================
     elif cmd == "LeaderboardRoll":
         leaderboard = [(u.get("name", "User"), u.get("rolls", 0)) for u in data["auras"].values()]
         leaderboard.sort(key=lambda x: x[1], reverse=True)
@@ -1566,7 +1564,6 @@ def _do_give_item(target_uid, item_name, amount):
     save_data()
     return f"✅ Added {amount}x {item_name} to {user.get('name', target_uid)}"
 
-# ======================AI P.1======================
 @bot.message_handler(commands=["giveMeAllItems"])
 
 def give_me_all_items_cmd(msg):
@@ -1605,7 +1602,6 @@ def _do_give_me_all_items(uid, amount):
                 inv.append(item_name)
     save_data()
     return f"✅ Added {amount}x of all items to your inventory."
-# ======================AI P.1======================
 
 @bot.message_handler(commands=["setRolls"])
 
@@ -3167,7 +3163,6 @@ def handle(msg):
         return
 
     # --- Auras ---
-# ======================AI P.1======================
     elif text == "💫 Auras":
         user_last_command[uid] = "Auras"
         user_pages[uid] = 0
@@ -3176,7 +3171,6 @@ def handle(msg):
 
         send_paginated_list(msg.chat.id, uid, aura_list)
         return
-# ======================AI P.1======================
 
     # --- Stats ---
     elif text == "📊 Stats":
