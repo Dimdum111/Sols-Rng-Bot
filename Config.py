@@ -262,6 +262,7 @@ items = [
     "[T4] ❄️ Subzero Device", "[T5] 🌌 Galactic Device", "[T5] 🌋 Volcanic Device",
     "[T6] 🔮 Exoflex Device", "[T6] 🌈 Hologrammer", "[T7] ⚡ Ragnaröker",
     "[T8] ✨ Starshaper", "[T9] 🔬 Neurolyzer", "[T10] 🌀 Genesis Drive",
+    "[T11] 😇 Heavenly Device",
     "Lucky Potion", "Heavenly Potion", "Potion of Bound",
     "Fortune Potion I", "Fortune Potion II", "Fortune Potion III",
     "Jewellery Potion", "Zombie Potion", "Hades Godly Potion",
@@ -592,6 +593,11 @@ CRAFT_RECIPES = {
         "item_reqs": {"[T9] 🔬 Neurolyzer": 1},
         "result": "[T10] 🌀 Genesis Drive", "result_display": "[T10] 🌀 Genesis Drive",
     },
+    "craft_heavenlydevice": {
+        "aura_reqs": {"Archangel": 1, "Prophecy": 2, "Icarus": 30, "Faith": 45, "Hope": 475, "Divinus : Angel": 2500},
+        "item_reqs": {"[T10] 🌀 Genesis Drive": 1},
+        "result": "[T11] 😇 Heavenly Device", "result_display": "[T11] 😇 Heavenly Device",
+    },
 }
 
 
@@ -689,6 +695,12 @@ WORKSHOP_ITEMS = {
         "craft_key": "craft_genesisdrive",
         "luck_bonus": 12.0,
         "desc": "[T10] 🌀 Genesis Drive\n+1200% (+12) luck\n\nRequirements:\nx1 [T9] Neurolyzer\nx2 Chromatic : Genesis\nx5 Matrix\nx10 Chromatic\nx30 Hyper-Volt\nx30 Origin\nx100 Virtual\nx600 Bounded\nx600 Aether\nx1000 Exotic\nx7500 WATT\nx10000 Powered",
+        "biome_bonus": None,
+    },
+  "[T11] 😇 Heavenly Device": {
+        "craft_key": "craft_heavenlydevice",
+        "luck_bonus": 15.0,
+        "desc": "[T11] 😇 Heavenly Device\n+1500% (+15) luck\n\nRequirements:\nx1 [T10] Genesis Drive\nx1 Archangel\nx2 Prophecy\nx30 Icarus\nx45 Faith\nx475 Hope\nx2500 Divinus : Angel",
         "biome_bonus": None,
     },
 }
