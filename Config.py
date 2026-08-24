@@ -598,6 +598,13 @@ CRAFT_RECIPES = {
         "item_reqs": {"[T10] 🌀 Genesis Drive": 1},
         "result": "[T11] 😇 Heavenly Device", "result_display": "[T11] 😇 Heavenly Device",
     },
+# =====ITEMS=====
+    "craft_biomerandomizer": {
+        "aura_reqs": {"Undefined": 2, "Hades": 2, "Poseidon": 2, "Galaxy": 2,
+                      "Astral": 2, "Permafrost": 2, "Stormal": 2, "Divinus : Guardian": 2},
+        "item_reqs": {},
+        "result": "🎲 Biome Randomizer", "result_display": "🎲 Biome Randomizer",
+    },
 }
 
 
@@ -703,6 +710,30 @@ WORKSHOP_ITEMS = {
         "desc": "[T11] 😇 Heavenly Device\n+1500% (+15) luck\n\nRequirements:\nx1 [T10] Genesis Drive\nx1 Archangel\nx2 Prophecy\nx30 Icarus\nx45 Faith\nx475 Hope\nx2500 Divinus : Angel",
         "biome_bonus": None,
     },
+}
+
+# ============================================================
+# СЛОВАРЬ ПРЕДМЕТОВ ВКЛАДКИ "ITEMS" (не гиры)
+# ============================================================
+WORKSHOP_TOOLS = {
+    "🎲 Biome Randomizer": {
+        "craft_key": "craft_biomerandomizer",
+        "desc": "🎲 Biome Randomizer\nRandomly changes the current biome when used.\n\nCooldown: 30 minutes\n\nRequirements:\nx2 Undefined\nx2 Hades\nx2 Poseidon\nx2 Galaxy\nx2 Astral\nx2 Permafrost\nx2 Stormal\nx2 Divinus : Guardian",
+    },
+}
+
+# Шансы биомов при использовании Biome Randomizer
+BIOME_RANDOMIZER_CHANCES = {
+    "Windy": 0.11087,
+    "Snowy": 0.11087,
+    "Rainy": 0.11087,
+    "Sand Storm": 0.11087,
+    "Hell": 0.11087,
+    "Heaven": 0.11087,
+    "Corruption": 0.11087,
+    "Null": 0.11087,
+    "Starfall": 0.1097689,
+    "Glitched": 0.0000333,
 }
 
 start_msg = """✧ Welcome to the <b>Sol's RNG bot!</b>

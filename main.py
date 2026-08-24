@@ -1,5 +1,5 @@
 # Bot version: 1.1.0
-from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS
+from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES
 from dotenv import load_dotenv
 import telebot
 from telebot import types
@@ -3359,17 +3359,51 @@ def handle(msg):
             bot.send_message(msg.chat.id, "There is no Lucky Potion around here...", reply_markup=main_menu(uid))
         return
 
-    # --- WORKSHOP ---
+    # --- WORKSHOP (вкладки) ---
     if text == "🛠️ Workshop":
         user_current_menu[uid] = "workshop"
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        # Все предметы всегда доступны для крафта
-        items_tiers = list(WORKSHOP_ITEMS.keys())  # Автогенерация из WORKSHOP_ITEMS
+        markup.row("⚙️ Gears", "📦 Items")
+        markup.row("⬅️ Back")
+        bot.send_message(msg.chat.id, "Welcome to the workshop! Choose a category:", reply_markup=markup)
+        return
 
-        for item in items_tiers:
+    # --- WORKSHOP: вкладка Gears ---
+    if text == "⚙️ Gears" and user_current_menu.get(uid) == "workshop":
+        user_current_menu[uid] = "workshop_gears"
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        for item in WORKSHOP_ITEMS.keys():
             markup.row(item)
         markup.row("⬅️ Back")
-        bot.send_message(msg.chat.id, "Welcome to the workshop! What do you wish to craft?", reply_markup=markup)
+        bot.send_message(msg.chat.id, "What do you want to craft?", reply_markup=markup)
+        return
+
+    # --- WORKSHOP: вкладка Items ---
+    if text == "📦 Items" and user_current_menu.get(uid) == "workshop":
+        user_current_menu[uid] = "workshop_tools"
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        for item in WORKSHOP_TOOLS.keys():
+            markup.row(item)
+        markup.row("⬅️ Back")
+        bot.send_message(msg.chat.id, "What do you want to craft?", reply_markup=markup)
+        return
+
+    # --- WORKSHOP ITEMS: показ описания + кнопка крафта (Gears) ---
+    _workshop_info = {name: (item["craft_key"], item["desc"]) for name, item in WORKSHOP_ITEMS.items()}
+    if text in _workshop_info and user_current_menu.get(uid) == "workshop_gears":
+        craft_key, desc = _workshop_info[text]
+        bot.send_message(msg.chat.id, desc,
+                         reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back"))
+        user_last_command[uid] = craft_key
+        return
+
+    # --- WORKSHOP ITEMS: показ описания + кнопка крафта (Items) ---
+    _workshop_tools_info = {name: (item["craft_key"], item["desc"]) for name, item in WORKSHOP_TOOLS.items()}
+    if text in _workshop_tools_info and user_current_menu.get(uid) == "workshop_tools":
+        craft_key, desc = _workshop_tools_info[text]
+        bot.send_message(msg.chat.id, desc,
+                         reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back"))
+        user_last_command[uid] = craft_key
         return
 
     # --- WORKSHOP ITEMS: показ описания + кнопка крафта (из WORKSHOP_ITEMS) ---
@@ -3507,6 +3541,11 @@ def handle(msg):
             msg_inv += f"\n\n[❔] Unknown Potion x{unknown_count}"
             markup.row(types.KeyboardButton("Unknown Potion"))
 
+        biome_randomizer_count = inv.count("🎲 Biome Randomizer")
+        if biome_randomizer_count > 0:
+            msg_inv += f"\n\n🎲 Biome Randomizer x{biome_randomizer_count}"
+            markup.row(types.KeyboardButton("🎲 Biome Randomizer"))
+
         markup.row("⬅️ Back")
         bot.send_message(msg.chat.id, msg_inv, reply_markup=markup)
         return
@@ -3544,6 +3583,61 @@ def handle(msg):
                              reply_markup=back_menu())
         else:
             bot.send_message(msg.chat.id, "❌ You don't have the Unknown Potion!", reply_markup=back_menu())
+        return
+
+    # --- Biome Randomizer ---
+    if text == "🎲 Biome Randomizer":
+        if "🎲 Biome Randomizer" not in user.get("inventory", []):
+            bot.send_message(msg.chat.id, "You don't have this item.", reply_markup=back_menu())
+            return
+
+        cooldown_end_str = user.get("biome_randomizer_cooldown_end")
+        if cooldown_end_str:
+            try:
+                cooldown_end = datetime.fromisoformat(cooldown_end_str)
+                if cooldown_end > datetime.now():
+                    remaining = cooldown_end - datetime.now()
+                    minutes, seconds = divmod(int(remaining.total_seconds()), 60)
+                    bot.send_message(msg.chat.id, f"⏳ On cooldown. Try again in {minutes}m {seconds}s.",
+                                     reply_markup=back_menu())
+                    return
+            except:
+                pass
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True).row("Use Randomizer").row("⬅️ Back")
+        bot.send_message(msg.chat.id, "🎲 Biome Randomizer\nRandomly changes the current biome.\n\nCooldown: 30 minutes",
+                         reply_markup=markup)
+        user_last_command[uid] = "use_biome_randomizer"
+        return
+
+    if text == "Use Randomizer" and user_last_command.get(uid) == "use_biome_randomizer":
+        if "🎲 Biome Randomizer" not in user.get("inventory", []):
+            bot.send_message(msg.chat.id, "❌ You don't have this item!", reply_markup=back_menu())
+            return
+
+        cooldown_end_str = user.get("biome_randomizer_cooldown_end")
+        if cooldown_end_str:
+            try:
+                cooldown_end = datetime.fromisoformat(cooldown_end_str)
+                if cooldown_end > datetime.now():
+                    remaining = cooldown_end - datetime.now()
+                    minutes, seconds = divmod(int(remaining.total_seconds()), 60)
+                    bot.send_message(msg.chat.id, f"⏳ On cooldown. Try again in {minutes}m {seconds}s.",
+                                     reply_markup=back_menu())
+                    return
+            except:
+                pass
+
+        # Выбираем случайный биом по весам
+        biome_names = list(BIOME_RANDOMIZER_CHANCES.keys())
+        weights = list(BIOME_RANDOMIZER_CHANCES.values())
+        chosen_biome = random.choices(biome_names, weights=weights, k=1)[0]
+
+        user["biome_randomizer_cooldown_end"] = (datetime.now() + timedelta(seconds=5)).isoformat()
+        save_data()
+
+        set_biome(chosen_biome)
+
         return
 
     # --- Lucky Potion ---
