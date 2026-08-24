@@ -464,6 +464,235 @@ event_gif_map = {
     "citadel": "https://t.me/solsrngbotcutscenes/227"
 }
 
+# ============================================================
+# УНИВЕРСАЛЬНАЯ ФУНКЦИЯ КРАФТА
+# Добавить новый предмет: просто добавь запись в CRAFT_RECIPES
+# ============================================================
+CRAFT_RECIPES = {
+    # --- ЗЕЛЬЯ ---
+    "craft_heavenly_potion": {
+        "aura_reqs": {"Celestial": 3, "Divinus : Angel": 2, "Powered": 5, "Quartz": 15},
+        "item_reqs": {"Lucky Potion": 70},
+        "result": "Heavenly Potion", "result_display": "Heavenly Potion",
+    },
+    "craft_potion_of_bound": {
+        "aura_reqs": {"Bounded": 2, "Permafrost": 5, "Lost Soul": 15},
+        "item_reqs": {"Lucky Potion": 35},
+        "result": "Potion of Bound", "result_display": "Potion of Bound",
+    },
+    "craft_fortune_potion_1": {
+        "aura_reqs": {}, "item_reqs": {"Lucky Potion": 10},
+        "result": "Fortune Potion I", "result_display": "Fortune Potion I",
+    },
+    "craft_fortune_potion_2": {
+        "aura_reqs": {}, "item_reqs": {"Lucky Potion": 20},
+        "result": "Fortune Potion II", "result_display": "Fortune Potion II",
+    },
+    "craft_fortune_potion_3": {
+        "aura_reqs": {}, "item_reqs": {"Lucky Potion": 30},
+        "result": "Fortune Potion III", "result_display": "Fortune Potion III",
+    },
+    "craft_jewellery_potion": {
+        "aura_reqs": {"Aquamarine": 3, "Sapphire": 3, "Gilded": 3, "Emerald": 3, "Ruby": 3, "Topaz": 3},
+        "item_reqs": {"Lucky Potion": 23},
+        "result": "Jewellery Potion", "result_display": "Jewellery Potion",
+    },
+    "craft_zombie_potion": {
+        "aura_reqs": {"Undead": 3, "Bleeding": 3},
+        "item_reqs": {"Lucky Potion": 17},
+        "result": "Zombie Potion", "result_display": "Zombie Potion",
+    },
+    "craft_hades_godly_potion": {
+        "aura_reqs": {"Hades": 1, "Diaboli": 15, "Bleeding": 12},
+        "item_reqs": {"Lucky Potion": 50},
+        "result": "Hades Godly Potion", "result_display": "Hades Godly Potion",
+    },
+    "craft_zeus_godly_potion": {
+        "aura_reqs": {"Zeus": 1, "Stormal": 4, "Wind": 30},
+        "item_reqs": {"Lucky Potion": 40},
+        "result": "Zeus Godly Potion", "result_display": "Zeus Godly Potion",
+    },
+    "craft_godlike_potion": {
+        "aura_reqs": {}, "item_reqs": {"Zeus Godly Potion": 2, "Hades Godly Potion": 1, "Lucky Potion": 250},
+        "result": "Godlike Potion", "result_display": "Godlike Potion",
+    },
+    # --- WORKSHOP ---
+    "craft_luckglove": {
+        "aura_reqs": {"Common": 50, "Uncommon": 35, "Rare": 10, "Crystallised": 3, "Sapphire": 1},
+        "item_reqs": {},
+        "result": "[T1] 🧤 Luck Glove", "result_display": "[T1] 🧤 Luck Glove",
+    },
+    "craft_desireglove": {
+        "aura_reqs": {"Rage": 20, "Ruby": 10, "Diaboli": 4, "Bleeding": 2},
+        "item_reqs": {},
+        "result": "[T1] 🔥 Desire Glove", "result_display": "[T1] 🔥 Desire Glove",
+    },
+    "craft_solardevice": {
+        "aura_reqs": {"Solar": 1, "Rare": 100, "Divinus": 50, "Uncommon": 300},
+        "item_reqs": {},
+        "result": "[T1] ☀️ Solar Device", "result_display": "[T1] ☀️ Solar Device",
+    },
+    "craft_shiningstar": {
+        "aura_reqs": {"Starlight": 2, "Star Rider": 2, "Wind": 50},
+        "item_reqs": {},
+        "result": "[T2] ⭐ Shining Star", "result_display": "[T2] ⭐ Shining Star",
+    },
+    "craft_exogauntlet": {
+        "aura_reqs": {"Gilded": 20, "Precious": 10, "Magnetic": 7, "Sidereum": 3, "Undead": 1, "Exotic": 1},
+        "item_reqs": {},
+        "result": "[T3] 💠 Exo Gauntlet", "result_display": "[T3] 💠 Exo Gauntlet",
+    },
+    "craft_windstormdevice": {
+        "aura_reqs": {"Wind": 90, "Stormal": 2, "Aquatic": 2, "Sidereum": 14, "Precious": 28},
+        "item_reqs": {},
+        "result": "[T3] 🌪️ Windstorm Device", "result_display": "[T3] 🌪️ Windstorm Device",
+    },
+    "craft_subzerodevice": {
+        "aura_reqs": {"Permafrost": 3, "Aquatic": 1, "Glacier": 20},
+        "item_reqs": {},
+        "result": "[T4] ❄️ Subzero Device", "result_display": "[T4] ❄️ Subzero Device",
+    },
+    "craft_galacticdevice": {
+        "aura_reqs": {"Galaxy": 1, "Sapphire": 320, "Solar": 30, "Magnetic": 100, "Comet": 4, "Diaboli": 150},
+        "item_reqs": {"[T1] ☀️ Solar Device": 2},
+        "result": "[T5] 🌌 Galactic Device", "result_display": "[T5] 🌌 Galactic Device",
+    },
+    "craft_volcanicdevice": {
+        "aura_reqs": {"Hades": 1, "Rage : Heated": 30, "Diaboli": 200, "Rage": 3000, "Bleeding": 133},
+        "item_reqs": {"[T1] ☀️ Solar Device": 3, "[T3] 🌪️ Windstorm Device": 1},
+        "result": "[T5] 🌋 Volcanic Device", "result_display": "[T5] 🌋 Volcanic Device",
+    },
+    "craft_exoflexdevice": {
+        "aura_reqs": {"Arcane": 5, "Jade": 15, "Exotic": 80, "Undead": 67, "Sidereum": 500, "Starlight": 140},
+        "item_reqs": {"[T3] 💠 Exo Gauntlet": 1},
+        "result": "[T6] 🔮 Exoflex Device", "result_display": "[T6] 🔮 Exoflex Device",
+    },
+    "craft_hologrammer": {
+        "aura_reqs": {"Virtual": 5, "Magnetic : Reverse Polarity": 5, "Twilight": 6, "Kyawthuite": 5, "Comet": 60},
+        "item_reqs": {},
+        "result": "[T6] 🌈 Hologrammer", "result_display": "[T6] 🌈 Hologrammer",
+    },
+    "craft_ragnaroker": {
+        "aura_reqs": {"Zeus": 7, "Hades": 7, "Poseidon": 7, "Star Rider": 175, "Solar": 300, "Lunar": 300},
+        "item_reqs": {},
+        "result": "[T7] ⚡ Ragnaröker", "result_display": "[T7] ⚡ Ragnaröker",
+    },
+    "craft_starshaper": {
+        "aura_reqs": {"Starscourge": 4, "Hyper-Volt": 6, "Galaxy": 6, "Comet": 270, "Star Rider": 600, "Solar": 3000},
+        "item_reqs": {"[T5] 🌌 Galactic Device": 2, "[T1] ☀️ Solar Device": 30},
+        "result": "[T8] ✨ Starshaper", "result_display": "[T8] ✨ Starshaper",
+    },
+    "craft_neurolyzer": {
+        "aura_reqs": {"Chromatic": 5, "Origin": 12, "Virtual": 30, "Twilight": 18, "Bounded : Unbound": 50},
+        "item_reqs": {"[T6] 🌈 Hologrammer": 1},
+        "result": "[T9] 🔬 Neurolyzer", "result_display": "[T9] 🔬 Neurolyzer",
+    },
+    "craft_genesisdrive": {
+        "aura_reqs": {"Chromatic : Genesis": 2, "Matrix": 5, "Chromatic": 10, "Hyper-Volt": 30, "Origin": 30},
+        "item_reqs": {"[T9] 🔬 Neurolyzer": 1},
+        "result": "[T10] 🌀 Genesis Drive", "result_display": "[T10] 🌀 Genesis Drive",
+    },
+}
+
+
+# ============================================================
+# МАСТЕР-СЛОВАРЬ ПРЕДМЕТОВ WORKSHOP
+# Чтобы добавить новый предмет — добавь ОДНУ запись сюда.
+# Всё остальное (меню, крафт, бонусы) генерируется автоматически.
+# ============================================================
+WORKSHOP_ITEMS = {
+    "[T1] 🧤 Luck Glove": {
+        "craft_key": "craft_luckglove",
+        "luck_bonus": 0.25,
+        "desc": "[T1] 🧤 Luck Glove\n+25% (+0.25) luck\n\nRequirements:\nx50 Common\nx35 Uncommon\nx10 Rare\nx3 Crystallised\nx1 Sapphire",
+        "biome_bonus": None,  # {"biome": "Starfall", "bonus": 6.0} или None
+    },
+    "[T1] 🔥 Desire Glove": {
+        "craft_key": "craft_desireglove",
+        "luck_bonus": 0.4,
+        "desc": "[T1] 🔥 Desire Glove\n+40% (+0.4) luck\n\nRequirements:\nx20 Rage\nx10 Ruby\nx4 Diaboli\nx2 Bleeding",
+        "biome_bonus": None,
+    },
+    "[T1] ☀️ Solar Device": {
+        "craft_key": "craft_solardevice",
+        "luck_bonus": 0.5,
+        "desc": "[T1] ☀️ Solar Device\n+50% (+0.5) luck\n\nRequirements:\nx1 Solar\nx100 Rare\nx50 Divinus\nx300 Uncommon",
+        "biome_bonus": None,
+    },
+    "[T2] ⭐ Shining Star": {
+        "craft_key": "craft_shiningstar",
+        "luck_bonus": 0.5,
+        "desc": "[T2] ⭐ Shining Star\n+50% luck (when Starfall biome: +250%)\n\nRequirements:\nx2 Starlight\nx2 Star Rider\nx50 Wind",
+        "biome_bonus": {"biome": "Starfall", "bonus": 2.5},
+    },
+    "[T3] 💠 Exo Gauntlet": {
+        "craft_key": "craft_exogauntlet",
+        "luck_bonus": 1.0,
+        "desc": "[T3] 💠 Exo Gauntlet\n+100% (+1.0) luck\n\nRequirements:\nx20 Gilded\nx10 Precious\nx7 Magnetic\nx3 Sidereum\nx1 Undead\nx1 Exotic",
+        "biome_bonus": None,
+    },
+    "[T3] 🌪️ Windstorm Device": {
+        "craft_key": "craft_windstormdevice",
+        "luck_bonus": 1.15,
+        "desc": "[T3] 🌪️ Windstorm Device\n+115% (+1.15) luck\n\nRequirements:\nx90 Wind\nx2 Stormal\nx2 Aquatic\nx14 Sidereum\nx28 Precious",
+        "biome_bonus": None,
+    },
+    "[T4] ❄️ Subzero Device": {
+        "craft_key": "craft_subzerodevice",
+        "luck_bonus": 1.5,
+        "desc": "[T4] ❄️ Subzero Device\n+150% (+1.5) luck\n\nRequirements:\nx3 Permafrost\nx1 Aquatic\nx20 Glacier",
+        "biome_bonus": None,
+    },
+    "[T5] 🌌 Galactic Device": {
+        "craft_key": "craft_galacticdevice",
+        "luck_bonus": 2.5,
+        "desc": "[T5] 🌌 Galactic Device\n+250% (+2.5) luck\n\nRequirements:\nx1 Galaxy\nx320 Sapphire\nx30 Solar\nx100 Magnetic\nx4 Comet\nx150 Diaboli\nx2 [T1] Solar Device",
+        "biome_bonus": None,
+    },
+    "[T5] 🌋 Volcanic Device": {
+        "craft_key": "craft_volcanicdevice",
+        "luck_bonus": 2.9,
+        "desc": "[T5] 🌋 Volcanic Device\n+290% (+2.9) luck\n\nRequirements:\nx1 Hades\nx30 Rage : Heated\nx200 Diaboli\nx3000 Rage\nx133 Bleeding\nx3 [T1] Solar Device\nx1 [T3] Windstorm Device",
+        "biome_bonus": None,
+    },
+    "[T6] 🔮 Exoflex Device": {
+        "craft_key": "craft_exoflexdevice",
+        "luck_bonus": 3.4,
+        "desc": "[T6] 🔮 Exoflex Device\n+340% (+3.4) luck\n\nRequirements:\nx5 Arcane\nx15 Jade\nx80 Exotic\nx67 Undead\nx500 Sidereum\nx140 Starlight\nx2000 Aquamarine\nx70000 Rare\nx1 [T3] Exo Gauntlet",
+        "biome_bonus": None,
+    },
+    "[T6] 🌈 Hologrammer": {
+        "craft_key": "craft_hologrammer",
+        "luck_bonus": 3.95,
+        "desc": "[T6] 🌈 Hologrammer\n+395% (+3.95) luck\n\nRequirements:\nx5 Virtual\nx5 Magnetic : Reverse Polarity\nx6 Twilight\nx5 Kyawthuite\nx60 Comet\nx100 Starlight\nx250 Rage : Heated\nx1000 Player\nx1350 Magnetic\nx5000 Diaboli\nx8000 Forbidden",
+        "biome_bonus": None,
+    },
+    "[T7] ⚡ Ragnaröker": {
+        "craft_key": "craft_ragnaroker",
+        "luck_bonus": 4.55,
+        "desc": "[T7] ⚡ Ragnaröker\n+455% (+4.55) luck\n\nRequirements:\nx7 Zeus\nx7 Hades\nx7 Poseidon\nx175 Star Rider\nx300 Solar\nx300 Lunar\nx400 Rage : Heated\nx600 Lost Soul\nx1000 Sidereum\nx4000 Ash\nx7000 Diaboli\nx50000 Rage",
+        "biome_bonus": {"biome": "Windy/Rainy/Hell", "bonus": 0.45},
+    },
+    "[T8] ✨ Starshaper": {
+        "craft_key": "craft_starshaper",
+        "luck_bonus": 7.0,
+        "desc": "[T8] ✨ Starshaper\n+700% (+7) luck\n\nRequirements:\nx2 [T5] Galactic Device\nx30 [T1] Solar Device\nx4 Starscourge\nx6 Hyper-Volt\nx6 Galaxy\nx270 Comet\nx600 Star Rider\nx3000 Solar\nx3000 Lunar\nx5000 Sidereum\nx10000 Magnetic",
+        "biome_bonus": None,
+    },
+    "[T9] 🔬 Neurolyzer": {
+        "craft_key": "craft_neurolyzer",
+        "luck_bonus": 8.5,
+        "desc": "[T9] 🔬 Neurolyzer\n+850% (+8.5) luck\n\nRequirements:\nx1 [T6] Hologrammer\nx5 Chromatic\nx12 Origin\nx30 Virtual\nx18 Twilight\nx50 Bounded : Unbound\nx800 Exotic\nx1200 Starlight\nx5000 Flushed\nx7500 Lost Soul",
+        "biome_bonus": None,
+    },
+    "[T10] 🌀 Genesis Drive": {
+        "craft_key": "craft_genesisdrive",
+        "luck_bonus": 12.0,
+        "desc": "[T10] 🌀 Genesis Drive\n+1200% (+12) luck\n\nRequirements:\nx1 [T9] Neurolyzer\nx2 Chromatic : Genesis\nx5 Matrix\nx10 Chromatic\nx30 Hyper-Volt\nx30 Origin\nx100 Virtual\nx600 Bounded\nx600 Aether\nx1000 Exotic\nx7500 WATT\nx10000 Powered",
+        "biome_bonus": None,
+    },
+}
+
 start_msg = """✧ Welcome to the <b>Sol's RNG bot!</b>
 Sol's RNG bot is a bot based of a game called "Sol's RNG" on roblox!
 
@@ -522,6 +751,8 @@ admin_help_text = """
 ⚠️ DANGEROUS
 /giveMeAllAuras <amount>
   → Выдать себе все ауры × amount
+/giveMeAllItems <amount>
+  → Выдать себе все предметы × amount
 /end <reason>
     → Выключить бота
 /ScheduledMaintenance
@@ -556,9 +787,6 @@ admin_help_text = """
     → дает 1.2 лака на 1 час
 
 🔍 INFO
-/itemReq <item_name>
-  → Показать требования для крафта предмета
-  → Пример: /itemReq [T5] Galactic Device
 /activeplayers
     → Показать активных игроков в некоторый промежутках времени.
   
