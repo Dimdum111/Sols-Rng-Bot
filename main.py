@@ -1,3 +1,4 @@
+# test commit 1.1.0 branch
 # Bot version: 1.0.0
 from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text
 from dotenv import load_dotenv
