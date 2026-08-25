@@ -388,7 +388,7 @@ def get_biome_multiplier(aura_name):
 
     # Возвращает множитель биома для конкретной ауры
     current_biome = BIOME_DATA["current_biome"]
-
+    
     # Glitched ауры доступны ТОЛЬКО в Glitched биоме
     if aura_name in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched":
         return math.inf  # Сделать невозможным выпадение
@@ -607,7 +607,7 @@ def set_biome(biome_name):
             def cyberspace_intro():
                 intro_lines = [
                     "[STATUS : SENDING...]",
-                    "[LOCATION: TELEGRAM]",
+                    "[LOCATION: ISLAND_SOL]",
                     "[HOST: JAKE]",
                     "[REQUEST: APPROVED]",
                     "[STATUS: RECEIVED]",
@@ -779,12 +779,11 @@ def auto_roll_thread(user_id, chat_id):
                 if aura == "Illusionary":
                     # Гифка Illusionary отправляется ВСЕГДА, игнорируя Gif rarity cutscenes
                     val = aura_gif_map.get("Illusionary")
-                    if val and val != "YOUR_ID_HERE":
+                    if val:
                         gif_id_to_send = val
                 elif aura in aura_gif_map and chance >= gif_threshold:
                     val = aura_gif_map[aura]
-                    if val != "YOUR_ID_HERE":
-                        gif_id_to_send = val
+                    gif_id_to_send = val
 
                 # Подготовка данных для сообщения
                 display_luck = int(effective_luck) if effective_luck == int(effective_luck) else round(effective_luck, 2)
