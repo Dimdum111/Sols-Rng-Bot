@@ -462,7 +462,8 @@ aura_gif_map = {
 }
 
 event_gif_map = {
-    "citadel": "https://t.me/solsrngbotcutscenes/227"
+    "citadel": "https://t.me/solsrngbotcutscenes/227",
+    "mastermind": "https://t.me/solsrngbotcutscenes/229"
 }
 
 # ============================================================
@@ -828,6 +829,9 @@ admin_help_text = """
 /wereSorry <seconds>
   → Запускает Ивент We're sorry
   → дает 1.2 лака на Выбраное время
+/mastermind
+  → Запускает Ивент Mastermind
+  → дает 2 лака на 2 часа
 /CitadelOfOrder
     → Запускает Ивент Citadel of order
     → дает 1.2 лака на 1 час

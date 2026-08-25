@@ -330,6 +330,7 @@ def get_user_data(user_id, user_name="User"):
         u.setdefault("forced_aura", None)
         u.setdefault("gif_rarity_threshold", 1000000)
         u.setdefault("DidIntro", False)
+        u.setdefault("biome_randomizer_cooldown_end", None)
         #u.setdefault("codes", []) 
         # лимбо
         u.setdefault("limbo_unlocked", False)
@@ -1250,47 +1251,6 @@ def notify_all_users_gif(gif, pin=False):
 
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
-
-@bot.message_handler(commands=["wereSorry"])
-def sorrybuff(msg):
-    uid = str(msg.from_user.id)
-    text = msg.text
-    if uid not in admin_ids:
-        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
-        return
-    
-    parts = text.split(" ", 2)
-    
-    if len(parts) < 2:
-        bot.send_message(msg.chat.id, "⚠️ Usage: /wereSorry <seconds>")
-        return
-
-    try:
-        time = int(parts[1])
-    except ValueError:
-        bot.send_message(msg.chat.id, "❌ ValueError: Time is not in int format. Example: 3400 - 1 hour")
-        return
-    
-    pending_confirmations[uid] = {
-        "cmd": msg.text,
-        "action": lambda: _do_weresorrybuff(time)
-    }
-    markup = types.InlineKeyboardMarkup()
-    markup.row(
-        types.InlineKeyboardButton("✅ Yes", callback_data=f"confirm_yes_{uid}"),
-        types.InlineKeyboardButton("❌ No", callback_data=f"confirm_no_{uid}")
-    )
-    bot.send_message(msg.chat.id, f"⚠️ Confirm: start we're sorry buff?", reply_markup=markup)
-
-def _do_weresorrybuff(time):
-    EVENT_DATA["event_multiplier"] = 1.2
-    EVENT_DATA["event_duration"] = time
-    EVENT_DATA["event_active"] = False
-    EVENT_DATA["event_end_time"] = None
-    notify_all_users("🔧 We're Sorry! (1.2X luck)", message_type="default", pin=True)
-    _do_luck_event_start()
-    return f"✅ Started We're Sorry Event for {time} seconds!"
-    
     
 @bot.message_handler(commands=["activeplayers"])
 def active_players(msg):
@@ -1388,6 +1348,96 @@ def profile(msg):
                      f"┃🔄 Auto Roll Enabled: {user_info.get('auto_roll_enabled')}\n"
                      f"┃💎 Rarest: {user_info.get('rarest')}\n"
                      f"┕🍀 Luck: x{user_info.get('user_luck')}")
+    
+# -- ↓ EVENTS ↓ --
+
+@bot.message_handler(commands=["mastermind"])
+def SpawnMastermind(msg):
+    uid = str(msg.from_user.id)
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+        return
+    
+    pending_confirmations[uid] = {
+            "cmd": msg.text,
+            "action": lambda: _Start_Mastermind(msg)
+        }
+    
+    markup = types.InlineKeyboardMarkup()
+    markup.row(
+            types.InlineKeyboardButton("✅ Yes", callback_data=f"confirm_yes_{uid}"),
+            types.InlineKeyboardButton("❌ No", callback_data=f"confirm_no_{uid}")
+        )
+    bot.send_message(msg.chat.id, f"⚠️ Confirm: Start Mastermind event?", reply_markup=markup)
+
+def _Start_Mastermind(msg):
+    EVENT_DATA["event_multiplier"] = 2
+    EVENT_DATA["event_duration"] = 7200
+    EVENT_DATA["event_active"] = False
+    EVENT_DATA["event_end_time"] = None
+    threading.Thread(target=MastermindMessages, args=(msg,), daemon=True).start()
+    return "💫 Starting.."
+
+def MastermindMessages(msg):
+    cutscene_link = event_gif_map.get("mastermind", "https://t.me/solsrngbotcutscenes/228")
+    nameofeventstarter = msg.from_user.first_name
+    # -- Pre Event messages --
+    notify_all_users(f"{nameofeventstarter}:\nEven the flow of air and sound seems to have halted.\n\nothing can be heard, and you cannot even breathe.\n\nlight itself slows and then stops; everything that was once in view turns gray.")
+    time.sleep(15)
+    notify_all_users(f"{nameofeventstarter}:\nand soon you are faced with a completely dark world.\n\nOnly then do you realize it.")
+    time.sleep(10)
+    notify_all_users(f"{nameofeventstarter}:\nTime has stopped.")
+    time.sleep(5)
+    # -- Event Messages --
+    notify_all_users_gif(cutscene_link)
+    notify_all_users("Have you ever..")
+    time.sleep(3)
+    notify_all_users("Faced a real <b>GOD</b>?")
+    time.sleep(11)
+    notify_all_users("[MASTERMIND]")
+    _do_luck_event_start()
+
+@bot.message_handler(commands=["wereSorry"])
+def sorrybuff(msg):
+    uid = str(msg.from_user.id)
+    text = msg.text
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+        return
+    
+    parts = text.split(" ", 2)
+    
+    if len(parts) < 2:
+        bot.send_message(msg.chat.id, "⚠️ Usage: /wereSorry <seconds>")
+        return
+
+    try:
+        time = int(parts[1])
+    except ValueError:
+        bot.send_message(msg.chat.id, "❌ ValueError: Time is not in int format. Example: 3400 - 1 hour")
+        return
+    
+    pending_confirmations[uid] = {
+        "cmd": msg.text,
+        "action": lambda: _do_weresorrybuff(time)
+    }
+    markup = types.InlineKeyboardMarkup()
+    markup.row(
+        types.InlineKeyboardButton("✅ Yes", callback_data=f"confirm_yes_{uid}"),
+        types.InlineKeyboardButton("❌ No", callback_data=f"confirm_no_{uid}")
+    )
+    bot.send_message(msg.chat.id, f"⚠️ Confirm: start we're sorry buff?", reply_markup=markup)
+
+def _do_weresorrybuff(time):
+    EVENT_DATA["event_multiplier"] = 1.2
+    EVENT_DATA["event_duration"] = time
+    EVENT_DATA["event_active"] = False
+    EVENT_DATA["event_end_time"] = None
+    notify_all_users("🔧 We're Sorry! (1.2X luck)", message_type="default", pin=True)
+    _do_luck_event_start()
+    return f"✅ Started We're Sorry Event for {time} seconds!"
+
+
 """
 CITADEL OF ORDER event!
 CitadelOfOrderMessages Contains all messages that should be send after the command to all users.
@@ -1434,6 +1484,8 @@ def CitadelOfOrderEvent(msg):
     EVENT_DATA["event_active"] = False
     EVENT_DATA["event_end_time"] = None
     threading.Thread(target=CitadelOfOrderMessages, daemon=True).start()
+    
+# -- ↑ EVENTS ↑ --
 
 @bot.message_handler(commands=["setluck"])
 
@@ -3590,7 +3642,7 @@ def handle(msg):
         if "🎲 Biome Randomizer" not in user.get("inventory", []):
             bot.send_message(msg.chat.id, "You don't have this item.", reply_markup=back_menu())
             return
-
+        
         cooldown_end_str = user.get("biome_randomizer_cooldown_end")
         if cooldown_end_str:
             try:
