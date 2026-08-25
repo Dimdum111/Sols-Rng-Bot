@@ -229,6 +229,7 @@ auras = {
     "⭐⭐": 1000,
     "⭐⭐⭐": 10000,
     "Dreammetric": 520000000,
+    "Illusionary": 10000000,  # Спец-аура Cyberspace: шанс всегда фиксирован 1/10,000,000, luck/гиры/зелья не влияют (см. main.py)
 }
 
 # лимбо ауры
@@ -295,7 +296,8 @@ BIOMES = {
     "Null": {"chance": 1 / 10000, "duration": 99, "multiplier": 1000, "auras": ["Undefined", "Flowed", "Shift lock", "Nihility"]},
     "Glitched": {"chance": 1 / 6000000, "duration": 184, "multiplier": 1,
                  "auras": ["Oppression", "Glitch", "Fault", "⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]},
-    "Dreamspace": {"chance": 1 / 5000000, "duration": 128, "multiplier": 1, "auras": ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]}
+    "Dreamspace": {"chance": 1 / 5000000, "duration": 128, "multiplier": 1, "auras": ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"]},
+    "Cyberspace": {"chance": 0, "duration": 720, "multiplier": 2, "auras": ["Forbidden", "Player", "Respawn", "Virtual", "Metabytes", "Virtual : Fatal Error", "Matrix", "Antivirus", "Virtual : Full Control", "Virtual : WorldWide", "Virtual Memory", "Cytokinesis", "Matrix : Overdrive", "Aegis", "Pixelation"]}
 }
 
 # --- СЛОВАРЬ ДЛЯ GIF ---
@@ -459,6 +461,7 @@ aura_gif_map = {
     "Prologue": "https://t.me/solsrngbotcutscenes/108",
     "dreamscape": "https://t.me/solsrngbotcutscenes/109",
     "NYCTOPHOBIA": "https://t.me/solsrngbotcutscenes/110",
+    "Illusionary": "https://t.me/solsrngbotcutscenes/113",
 }
 
 event_gif_map = {
@@ -735,6 +738,7 @@ BIOME_RANDOMIZER_CHANCES = {
     "Null": 0.11087,
     "Starfall": 0.1097689,
     "Glitched": 0.0000333,
+    "Cyberspace": 1/10
 }
 
 start_msg = """✧ Welcome to the <b>Sol's RNG bot!</b>
@@ -847,47 +851,16 @@ admin_help_text = """
 /help — это сообщение
 ```"""
 
-changelogs_text = """--=[Update 1.0.0]=--
-        🔨 Fixes:
-        | Autoroll Fixed!
-        | Fixed a bug where if you press any toggle in settigs autoroll will break
-        | Fixed a bug where you can use autoroll from 9 rolls
-        | Fixed a MASSIVE lag when activating luck event
-        | Fixed a bug where crafts didn't work
-        🛠️ Developers stuff:
-        | Code refactoring, optimizations 10000+ Lines -> ~4000 Lines
-        | Adding items is now easier
-        | You can now use me instead of user id
-        | /activeplayers command
-        | When admin uses /say it will say admin name at the bottom
-        ✨ New Stuff:
-        | Luck Is Now EXACLY the same like original Sol's RNG
-        | you can now see anyone stats by typing /profile <me/user id>
-        | you can now type /help and see all avalible commands for you!
-        | Added Heaven biome
-        | Added intro to the bot when you type /start the first time
-        | Added all auras from original Sol's RNG!
-        | Added all cutscenes from original Sol's RNG
-        | Added scheduled maintanence
-        | Made new pfp's for all Sol's RNG bot, news, chat.. etc
-        | Updated 📜 Credits
-        | Special event for 1.0..
-        📰 Developer notes:
-        🛠️ Dimdum111:
-        | Hi everyone! Long time no see- 8 MONTHS. IT'S FINNALY HERE. 1.0!!!!
-        | I Added a LOT of new stuff here, i hope there will be NO bugs..
-        | alsoo i added a special event... you'll see.. i'll announce it in @solsrngsimbotnews :D
-        | You can see all auras that was added in 1.0, hope you like it!
-        | i really hope next update will NOT take that long, but.. we'll see, we'll seeee..
-        | Alright ill give a work to Underrosta now:
-        🛠️ Underrosta:
-        | guys I'm so fucking happy that 1.0 released and now please go to my basement and starve till 1.1 release NOW
-        | and remember the rules:
-        | 1. you cannot breathe unless I'll allow
-        | 2. you should cry
-        | 3. HAVE ATLEAST ONE P18 ON STRICT COMPLETED (or public execution)
-        | if you want to eat, uhh eat eachother i guess
-        | thank you very much for your patience! now GO TO MY BASEMENT NOW
-        🛠️ Dimdum111:
-        | Alright, that was it, hope you enjoy 1.0!!
-        | And if you find any bugs please report them to @DimdumXD Or @underrosta, Thanks!"""
+changelogs_text = """---=[ Update 1.1.0 ]=---
+
+    ✨ New Stuff:
+    | Added categories to the Workshop
+    | Added new item "Biome Randomizer"
+    | Added new rare biome
+    | Added new CHALLENGED+ tier aura
+
+DevNote from UnderRosta:
+    - I'm back to developing so updates will take less time to make now, also we know about potions bug, we will fix it in 1.2.0 or 1.1.5 (probably)
+
+ •If you find any bugs, please, report them to @DimdumXD Or @underrosta, Thanks•
+Enjoy the update!^^"""

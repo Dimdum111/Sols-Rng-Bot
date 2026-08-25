@@ -409,6 +409,11 @@ def get_biome_multiplier(aura_name):
     if aura_name == "Breakthrough" and current_biome == "Null":
         return math.inf
 
+    # Illusionary никогда не проходит через обычную luck-систему.
+    # Её шанс всегда фиксирован 1/10,000,000 и проверяется отдельно (см. roll-обработчики).
+    if aura_name == "Illusionary":
+        return math.inf
+
     biome_info = BIOMES[current_biome]
 
     # Glitched биом включает все множители
@@ -482,6 +487,7 @@ def roll_aura(effective_luck, user):
         if aura == "Leviathan" and current_biome not in ["Rainy", "Glitched"]: continue
         if aura == "Borealis" and current_biome != "Dreamspace": continue
         if aura == "Breakthrough" and current_biome == "Null": continue
+        if aura == "Illusionary": continue  # только отдельная фиксированная проверка в Cyberspace
 
         biome_multiplier = get_biome_multiplier(aura)
         adjusted_rarity = base_chance / biome_multiplier
@@ -596,22 +602,41 @@ def set_biome(biome_name):
 
     # Уведомляем всех пользователей о смене биома
     if biome_name != "Normal":
-        biome_messages = {
-            "Windy": "A refreshing and cool wind passes through the world..",
-            "Snowy": "White snow and cold begin to cover the surroundings..",
-            "Rainy": "Strong winds and showers sweep through the world..",
-            "Sand Storm": "A harsh Sand Storm blocks your path...",
-            "Hell": "A strong and violent energy of chaos overtakes the world..",
-            "Heaven": "A hand of angel leads you into divine place...",
-            "Starfall": "Beautiful and dreamy starlight pours into the world..",
-            "Corruption": "Poisonous pollution spreads throughout the world..",
-            "Null": "It's too dark here..",
-            "Dreamspace": "You begin to feel sleepy...",
-            "Glitched": "Unexpected error occurred. [Code 404]"
-        }
+        if biome_name == "Cyberspace":
+            # Cyberspace: сначала спец-последовательность (по 1 сообщению в секунду), потом сообщение о начале биома
+            def cyberspace_intro():
+                intro_lines = [
+                    "[STATUS : SENDING...]",
+                    "[LOCATION: TELEGRAM]",
+                    "[HOST: JAKE]",
+                    "[REQUEST: APPROVED]",
+                    "[STATUS: RECEIVED]",
+                    "WELCOME",
+                    "CYBERSPACE_",
+                ]
+                for line in intro_lines:
+                    notify_all_users(line, message_type="biome")
+                    time.sleep(1)
+                notify_all_users("[Cyberspace]: Signal_Received | From : Telegram", message_type="biome")
 
-        message = f"[{biome_name}]: {biome_messages.get(biome_name, '')}"
-        threading.Thread(target=lambda: notify_all_users(message, message_type="biome"), daemon=True).start()
+            threading.Thread(target=cyberspace_intro, daemon=True).start()
+        else:
+            biome_messages = {
+                "Windy": "A refreshing and cool wind passes through the world..",
+                "Snowy": "White snow and cold begin to cover the surroundings..",
+                "Rainy": "Strong winds and showers sweep through the world..",
+                "Sand Storm": "A harsh Sand Storm blocks your path...",
+                "Hell": "A strong and violent energy of chaos overtakes the world..",
+                "Heaven": "A hand of angel leads you into divine place...",
+                "Starfall": "Beautiful and dreamy starlight pours into the world..",
+                "Corruption": "Poisonous pollution spreads throughout the world..",
+                "Null": "It's too dark here..",
+                "Dreamspace": "You begin to feel sleepy...",
+                "Glitched": "Unexpected error occurred. [Code 404]"
+            }
+
+            message = f"[{biome_name}]: {biome_messages.get(biome_name, '')}"
+            threading.Thread(target=lambda: notify_all_users(message, message_type="biome"), daemon=True).start()
 
     # Уведомление о конце биома
     elif old_biome != "Normal":
@@ -620,6 +645,8 @@ def set_biome(biome_name):
             message = "[Dreamspace]: Waking up..."
         elif old_biome == "Glitched":
             message = "[Manager]: [Code 404] has resolved."
+        elif old_biome == "Cyberspace":
+            message = "[Cyberspace]: Signal Lost."
 
         if message:
             threading.Thread(target=lambda: notify_all_users(message, message_type="biome"), daemon=True).start()
@@ -730,6 +757,9 @@ def auto_roll_thread(user_id, chat_id):
                     chance = auras.get(aura, limbo_auras.get(aura, 1000000))
                     user["forced_aura"] = None
                     user["forced_aura_reason"] = None  # <--- Очищаем причину
+                elif BIOME_DATA["current_biome"] == "Cyberspace" and random.random() < (1 / 10000000):
+                    # Illusionary: фиксированный шанс 1/10,000,000, luck/гиры/зелья НИКАК не влияют
+                    aura, chance = "Illusionary", 10000000
                 else:
                     aura, chance = roll_aura(effective_luck, user)
 
@@ -746,7 +776,12 @@ def auto_roll_thread(user_id, chat_id):
 
                 # Подготовка данных для GIF (но не отправка!)
                 gif_threshold = user.get("gif_rarity_threshold", 1000000)
-                if aura in aura_gif_map and chance >= gif_threshold:
+                if aura == "Illusionary":
+                    # Гифка Illusionary отправляется ВСЕГДА, игнорируя Gif rarity cutscenes
+                    val = aura_gif_map.get("Illusionary")
+                    if val and val != "YOUR_ID_HERE":
+                        gif_id_to_send = val
+                elif aura in aura_gif_map and chance >= gif_threshold:
                     val = aura_gif_map[aura]
                     if val != "YOUR_ID_HERE":
                         gif_id_to_send = val
@@ -807,6 +842,8 @@ def auto_roll_thread(user_id, chat_id):
                     msg_text = f"YOU HAVE DISCOVERED Dreammetric WITH CHANCE OF 1 IN 520000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
                 elif aura == "Leviathan":
                     msg_text = f"You have tamed the Ruler of Beneath. 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+                elif aura == "Illusionary":
+                    msg_text = f"You have become ███'█ PERFECT PUPPET. 🍀 x{display_luck}\n⚫⚪⚫ CHALLENGED+ ⚪⚫⚪"
                 else:
                     chance_display = int(chance) if chance == int(chance) else chance
                     if chance > 99_999_998:
@@ -835,7 +872,7 @@ def auto_roll_thread(user_id, chat_id):
                     msg_text += f"\n\n(Was given by admin: {forced_reason})"
 
                 # Подготовка Глобального сообщения
-                if chance > GLOBAL_THRESHOLD or aura == "Glitch":
+                if chance > GLOBAL_THRESHOLD or aura == "Glitch" or aura == "Illusionary":
                     from_biome_global = ""
                     # Повторяем логику биома для глобалки (или используем уже готовую логику выше)
                     if current_biome == "Dreamspace" and aura in dreamspace_auras:
@@ -870,6 +907,8 @@ def auto_roll_thread(user_id, chat_id):
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} has found ???, chance of 1 in {chance_display} [BREAKTHROUGH!]{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     elif aura == "Glitch":
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} HAS ROLLED {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+                    elif aura == "Illusionary":
+                        global_msg_to_send = f"💫GLOBAL💫\n{user_name} has become ███'█ PERFECT PUPPET.\n1 in ???\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     else:
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} Has rolled {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
 
@@ -2127,6 +2166,9 @@ def process_manual_roll(msg):
             aura = forced_aura
             chance = auras.get(aura, limbo_auras.get(aura, 1000000))
             user["forced_aura"] = None
+        elif BIOME_DATA["current_biome"] == "Cyberspace" and random.random() < (1 / 10000000):
+            # Illusionary: фиксированный шанс 1/10,000,000, luck/гиры/зелья НИКАК не влияют
+            aura, chance = "Illusionary", 10000000
         else:
             aura, chance = roll_aura(effective_luck, user)
 
@@ -2152,7 +2194,12 @@ def process_manual_roll(msg):
 
         # Подготовка GIF
         gif_threshold = user.get("gif_rarity_threshold", 1000000)
-        if aura in aura_gif_map and chance >= gif_threshold:
+        if aura == "Illusionary":
+            # Гифка Illusionary отправляется ВСЕГДА, игнорируя Gif rarity cutscenes
+            val = aura_gif_map.get("Illusionary")
+            if val and val != "YOUR_ID_HERE":
+                gif_id_to_send = val
+        elif aura in aura_gif_map and chance >= gif_threshold:
             val = aura_gif_map[aura]
             if val != "YOUR_ID_HERE":
                 gif_id_to_send = val
@@ -2204,6 +2251,8 @@ def process_manual_roll(msg):
             msg_text = f"YOU HAVE DISCOVERED Dreammetric WITH CHANCE OF 1 IN 520000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
         elif aura == "Leviathan":
             msg_text = f"You have tamed the Ruler of Beneath. 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+        elif aura == "Illusionary":
+            msg_text = f"You have become ███'█ PERFECT PUPPET. 🍀 x{display_luck}\n⚫⚪⚫ CHALLENGED+ ⚪⚫⚪"
         else:
             chance_display = int(chance) if chance == int(chance) else chance
             if chance > 99_999_998:
@@ -2228,7 +2277,7 @@ def process_manual_roll(msg):
             should_pin = True
 
         # Global
-        if chance > GLOBAL_THRESHOLD or aura == "Glitch":
+        if chance > GLOBAL_THRESHOLD or aura == "Glitch" or aura == "Illusionary":
             from_biome_global = ""
             # Упрощаем логику для глобалки, берем то что уже посчитали
             if "Dreamspace" in from_biome:
@@ -2256,6 +2305,8 @@ def process_manual_roll(msg):
                 global_msg_to_send = f"💫GLOBAL💫\n{name} has found ???, chance of 1 in {chance_display} [BREAKTHROUGH!]{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"              
             elif aura == "Glitch":
                 global_msg_to_send = f"💫GLOBAL💫\n{name} HAS ROLLED {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+            elif aura == "Illusionary":
+                global_msg_to_send = f"💫GLOBAL💫\n{name} has become ███'█ PERFECT PUPPET.\n1 in ???\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
             else:
                 global_msg_to_send = f"💫GLOBAL💫\n{name} Has rolled {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
 
@@ -3679,6 +3730,13 @@ def handle(msg):
                     return
             except:
                 pass
+
+        current_biome_rand = BIOME_DATA["current_biome"]
+        if current_biome_rand in ["Glitched", "Dreamspace", "Cyberspace"]:
+            bot.send_message(msg.chat.id,
+                             f"❌ You can't use the Biome Randomizer while [{current_biome_rand}] is active!",
+                             reply_markup=back_menu())
+            return
 
         # Выбираем случайный биом по весам
         biome_names = list(BIOME_RANDOMIZER_CHANCES.keys())
