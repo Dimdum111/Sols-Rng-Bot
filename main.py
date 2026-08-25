@@ -80,7 +80,8 @@ def load_event_data():
                 if "event_end_time" in event_data and event_data["event_end_time"]:
                     event_data["event_end_time"] = datetime.fromisoformat(event_data["event_end_time"])
                 return event_data
-        except:
+        except Exception as e:
+            print(f"[⚠️] Error loading event data: {e}")
             return {"event_active": False, "event_end_time": None, "event_multiplier": 2.0, "event_duration": 18000}
     return {"event_active": False, "event_end_time": None, "event_multiplier": 2.0, "event_duration": 18000}
 
@@ -106,7 +107,8 @@ def load_biome_data():
                 if "biome_end_time" in biome_data and biome_data["biome_end_time"]:
                     biome_data["biome_end_time"] = datetime.fromisoformat(biome_data["biome_end_time"])
                 return biome_data
-        except:
+        except Exception as e:
+            print(f"[⚠️] Error loading biome data: {e}")
             return {"current_biome": "Normal", "biome_end_time": None}
     return {"current_biome": "Normal", "biome_end_time": None}
 
