@@ -57,9 +57,9 @@ Currently, We have 2 Developers and 1 Tester, Which is:
 **❓️ Other**
 
 **🔑 Version**:  
-Released version: 1.0
-Main branch: 1.0
-Dev branch: 1.1.0
+Released version: 1.0  
+Main branch: 1.0  
+Dev branch: 1.1.0  
 
 **🆔 All sol's rng bot channels and bots**:  
 | Name | Accessibility | Type | Link |
