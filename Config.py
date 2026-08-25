@@ -864,3 +864,5 @@ DevNote from UnderRosta:
 
  •If you find any bugs, please, report them to @DimdumXD Or @underrosta, Thanks•
 Enjoy the update!^^"""
+
+CyberspaceMsg = "[STATUS : SENDING...]\n[LOCATION: TELEGRAM]\n[HOST: JAKE]\n[REQUEST: APPROVED]\n[STATUS: RECEIVED]\n\nWELCOME\nCYBERSPACE_\n\n[Cyberspace]: Signal_Received | From : TELEGRAM"

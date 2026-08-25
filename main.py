@@ -1,5 +1,5 @@
 # Bot version: 1.1.0
-from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES
+from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES, CyberspaceMsg
 from dotenv import load_dotenv
 import telebot
 from telebot import types
@@ -602,41 +602,23 @@ def set_biome(biome_name):
 
     # Уведомляем всех пользователей о смене биома
     if biome_name != "Normal":
-        if biome_name == "Cyberspace":
-            # Cyberspace: сначала спец-последовательность (по 1 сообщению в секунду), потом сообщение о начале биома
-            def cyberspace_intro():
-                intro_lines = [
-                    "[STATUS : SENDING...]",
-                    "[LOCATION: ISLAND_SOL]",
-                    "[HOST: JAKE]",
-                    "[REQUEST: APPROVED]",
-                    "[STATUS: RECEIVED]",
-                    "WELCOME",
-                    "CYBERSPACE_",
-                ]
-                for line in intro_lines:
-                    notify_all_users(line, message_type="biome")
-                    time.sleep(1)
-                notify_all_users("[Cyberspace]: Signal_Received | From : Telegram", message_type="biome")
+        biome_messages = {
+            "Windy": "A refreshing and cool wind passes through the world..",
+            "Snowy": "White snow and cold begin to cover the surroundings..",
+            "Rainy": "Strong winds and showers sweep through the world..",
+            "Sand Storm": "A harsh Sand Storm blocks your path...",
+            "Hell": "A strong and violent energy of chaos overtakes the world..",
+            "Heaven": "A hand of angel leads you into divine place...",
+            "Starfall": "Beautiful and dreamy starlight pours into the world..",
+            "Corruption": "Poisonous pollution spreads throughout the world..",
+            "Null": "It's too dark here..",
+            "Dreamspace": "You begin to feel sleepy...",
+            "Glitched": "Unexpected error occurred. [Code 404]",
+            "Cyberspace": CyberspaceMsg # (In Config.py)
+        }
 
-            threading.Thread(target=cyberspace_intro, daemon=True).start()
-        else:
-            biome_messages = {
-                "Windy": "A refreshing and cool wind passes through the world..",
-                "Snowy": "White snow and cold begin to cover the surroundings..",
-                "Rainy": "Strong winds and showers sweep through the world..",
-                "Sand Storm": "A harsh Sand Storm blocks your path...",
-                "Hell": "A strong and violent energy of chaos overtakes the world..",
-                "Heaven": "A hand of angel leads you into divine place...",
-                "Starfall": "Beautiful and dreamy starlight pours into the world..",
-                "Corruption": "Poisonous pollution spreads throughout the world..",
-                "Null": "It's too dark here..",
-                "Dreamspace": "You begin to feel sleepy...",
-                "Glitched": "Unexpected error occurred. [Code 404]"
-            }
-
-            message = f"[{biome_name}]: {biome_messages.get(biome_name, '')}"
-            threading.Thread(target=lambda: notify_all_users(message, message_type="biome"), daemon=True).start()
+        message = f"[{biome_name}]: {biome_messages.get(biome_name, '')}"
+        threading.Thread(target=lambda: notify_all_users(message, message_type="biome"), daemon=True).start()
 
     # Уведомление о конце биома
     elif old_biome != "Normal":
