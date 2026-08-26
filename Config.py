@@ -852,15 +852,24 @@ admin_help_text = """
 ```"""
 
 changelogs_text = """---=[ Update 1.1.0 ]=---
-
+    🛠️ Fixes:
+    | Fixed a bug with aura lists when it will not show some auras
+    | Fixed some code bugs..
     ✨ New Stuff:
     | Added categories to the Workshop
     | Added new item "Biome Randomizer"
-    | Added new rare biome
+    | Added Cyberspace
     | Added new CHALLENGED+ tier aura
+    | Added Heavenly device
+    | Buffed Citadel of order (Prev. X1.2 > 1.5)
+    | Added "We're sorry!" buff
+    | Added new admin event
+    | Bugs (to fix)
 
 DevNote from UnderRosta:
     - I'm back to developing so updates will take less time to make now, also we know about potions bug, we will fix it in 1.2.0 or 1.1.5 (probably)
+DevNote from Dimdum111:
+    - Hi everyone! this update was quicker that expected.. we fixed some bugs, etc.. but hope you enjoy this update! :D
 
  •If you find any bugs, please, report them to @DimdumXD Or @underrosta, Thanks•
 Enjoy the update!^^"""
