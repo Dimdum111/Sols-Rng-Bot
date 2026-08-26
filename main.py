@@ -3104,11 +3104,11 @@ def handle(msg):
 
     # --- Change Logs ---
     elif text == "📝 Change Logs":
-        bot.send_message(msg.chat.id, "📝 Change Logs", reply_markup=back_menu())
-        markup = types.InlineKeyboardMarkup(row_width=1)    
-        seefull = types.InlineKeyboardButton("Prev. Update log (1.0)", "https://graph.org/10-Update-log-08-26")
-        markup.add(seefull)
-        bot.send_message(msg.chat.id, changelogs_text, reply_markup=markup)
+        # bot.send_message(msg.chat.id, "📝 Change Logs", reply_markup=back_menu())
+        # markup = types.InlineKeyboardMarkup(row_width=1)    
+        # seefull = types.InlineKeyboardButton("Prev. Update log (1.0)", "https://graph.org/10-Update-log-08-26")
+        # markup.add(seefull)
+        bot.send_message(msg.chat.id, changelogs_text, reply_markup=back_menu())
         return
 
     # --- Credits ---
