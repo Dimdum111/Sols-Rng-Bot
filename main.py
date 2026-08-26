@@ -1,5 +1,5 @@
-# Bot version: 1.0.0
-from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text
+# Bot version: 1.1.0
+from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES, CyberspaceMsg
 from dotenv import load_dotenv
 import telebot
 from telebot import types
@@ -48,7 +48,7 @@ def log_admin_action(admin_msg, action_text): # Логирует действи�
     TestBot = ""
     with open("UsedAdminCmds.txt", "a", encoding="utf-8") as f:
         f.write(log_entry)
-        if TOKEN == TESTERS_BOT_TOKEN: TestBot = "╚ ⚠️ THIS COMMAND WAS USED IN THE TEST BOT ╗"
+        if TOKEN == TESTERS_BOT_TOKEN: TestBot = "╚ ⚠️ (THIS COMMAND WAS USED IN THE TEST BOT BTW) ╗"
         else: TestBot = ""
         notification_text = (
             "⚠️ Admin command notification\n"
@@ -80,7 +80,8 @@ def load_event_data():
                 if "event_end_time" in event_data and event_data["event_end_time"]:
                     event_data["event_end_time"] = datetime.fromisoformat(event_data["event_end_time"])
                 return event_data
-        except:
+        except Exception as e:
+            print(f"[⚠️] Error loading event data: {e}")
             return {"event_active": False, "event_end_time": None, "event_multiplier": 2.0, "event_duration": 18000}
     return {"event_active": False, "event_end_time": None, "event_multiplier": 2.0, "event_duration": 18000}
 
@@ -106,7 +107,8 @@ def load_biome_data():
                 if "biome_end_time" in biome_data and biome_data["biome_end_time"]:
                     biome_data["biome_end_time"] = datetime.fromisoformat(biome_data["biome_end_time"])
                 return biome_data
-        except:
+        except Exception as e:
+            print(f"[⚠️] Error loading biome data: {e}")
             return {"current_biome": "Normal", "biome_end_time": None}
     return {"current_biome": "Normal", "biome_end_time": None}
 
@@ -330,6 +332,7 @@ def get_user_data(user_id, user_name="User"):
         u.setdefault("forced_aura", None)
         u.setdefault("gif_rarity_threshold", 1000000)
         u.setdefault("DidIntro", False)
+        u.setdefault("biome_randomizer_cooldown_end", None)
         #u.setdefault("codes", []) 
         # лимбо
         u.setdefault("limbo_unlocked", False)
@@ -387,7 +390,7 @@ def get_biome_multiplier(aura_name):
 
     # Возвращает множитель биома для конкретной ауры
     current_biome = BIOME_DATA["current_biome"]
-
+    
     # Glitched ауры доступны ТОЛЬКО в Glitched биоме
     if aura_name in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched":
         return math.inf  # Сделать невозможным выпадение
@@ -406,6 +409,11 @@ def get_biome_multiplier(aura_name):
         return math.inf
     
     if aura_name == "Breakthrough" and current_biome == "Null":
+        return math.inf
+
+    # Illusionary никогда не проходит через обычную luck-систему.
+    # Её шанс всегда фиксирован 1/10,000,000 и проверяется отдельно (см. roll-обработчики).
+    if aura_name == "Illusionary":
         return math.inf
 
     biome_info = BIOMES[current_biome]
@@ -481,6 +489,7 @@ def roll_aura(effective_luck, user):
         if aura == "Leviathan" and current_biome not in ["Rainy", "Glitched"]: continue
         if aura == "Borealis" and current_biome != "Dreamspace": continue
         if aura == "Breakthrough" and current_biome == "Null": continue
+        if aura == "Illusionary": continue  # только отдельная фиксированная проверка в Cyberspace
 
         biome_multiplier = get_biome_multiplier(aura)
         adjusted_rarity = base_chance / biome_multiplier
@@ -606,7 +615,8 @@ def set_biome(biome_name):
             "Corruption": "Poisonous pollution spreads throughout the world..",
             "Null": "It's too dark here..",
             "Dreamspace": "You begin to feel sleepy...",
-            "Glitched": "Unexpected error occurred. [Code 404]"
+            "Glitched": "Unexpected error occurred. [Code 404]",
+            "Cyberspace": CyberspaceMsg # (In Config.py)
         }
 
         message = f"[{biome_name}]: {biome_messages.get(biome_name, '')}"
@@ -619,6 +629,8 @@ def set_biome(biome_name):
             message = "[Dreamspace]: Waking up..."
         elif old_biome == "Glitched":
             message = "[Manager]: [Code 404] has resolved."
+        elif old_biome == "Cyberspace":
+            message = "[Cyberspace]: Signal Lost."
 
         if message:
             threading.Thread(target=lambda: notify_all_users(message, message_type="biome"), daemon=True).start()
@@ -729,6 +741,9 @@ def auto_roll_thread(user_id, chat_id):
                     chance = auras.get(aura, limbo_auras.get(aura, 1000000))
                     user["forced_aura"] = None
                     user["forced_aura_reason"] = None  # <--- Очищаем причину
+                elif BIOME_DATA["current_biome"] == "Cyberspace" and random.random() < (1 / 10000000):
+                    # Illusionary: фиксированный шанс 1/10,000,000, luck/гиры/зелья НИКАК не влияют
+                    aura, chance = "Illusionary", 10000000
                 else:
                     aura, chance = roll_aura(effective_luck, user)
 
@@ -745,10 +760,14 @@ def auto_roll_thread(user_id, chat_id):
 
                 # Подготовка данных для GIF (но не отправка!)
                 gif_threshold = user.get("gif_rarity_threshold", 1000000)
-                if aura in aura_gif_map and chance >= gif_threshold:
-                    val = aura_gif_map[aura]
-                    if val != "YOUR_ID_HERE":
+                if aura == "Illusionary":
+                    # Гифка Illusionary отправляется ВСЕГДА, игнорируя Gif rarity cutscenes
+                    val = aura_gif_map.get("Illusionary")
+                    if val:
                         gif_id_to_send = val
+                elif aura in aura_gif_map and chance >= gif_threshold:
+                    val = aura_gif_map[aura]
+                    gif_id_to_send = val
 
                 # Подготовка данных для сообщения
                 display_luck = int(effective_luck) if effective_luck == int(effective_luck) else round(effective_luck, 2)
@@ -806,6 +825,8 @@ def auto_roll_thread(user_id, chat_id):
                     msg_text = f"YOU HAVE DISCOVERED Dreammetric WITH CHANCE OF 1 IN 520000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
                 elif aura == "Leviathan":
                     msg_text = f"You have tamed the Ruler of Beneath. 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+                elif aura == "Illusionary":
+                    msg_text = f"You have become ███'█ PERFECT PUPPET. 🍀 x{display_luck}\n⚫⚪⚫ CHALLENGED+ ⚪⚫⚪"
                 else:
                     chance_display = int(chance) if chance == int(chance) else chance
                     if chance > 99_999_998:
@@ -834,7 +855,7 @@ def auto_roll_thread(user_id, chat_id):
                     msg_text += f"\n\n(Was given by admin: {forced_reason})"
 
                 # Подготовка Глобального сообщения
-                if chance > GLOBAL_THRESHOLD or aura == "Glitch":
+                if chance > GLOBAL_THRESHOLD or aura == "Glitch" or aura == "Illusionary":
                     from_biome_global = ""
                     # Повторяем логику биома для глобалки (или используем уже готовую логику выше)
                     if current_biome == "Dreamspace" and aura in dreamspace_auras:
@@ -869,6 +890,8 @@ def auto_roll_thread(user_id, chat_id):
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} has found ???, chance of 1 in {chance_display} [BREAKTHROUGH!]{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     elif aura == "Glitch":
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} HAS ROLLED {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
+                    elif aura == "Illusionary":
+                        global_msg_to_send = f"💫GLOBAL💫\n{user_name} has become ███'█ PERFECT PUPPET.\n1 in ???\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
                     else:
                         global_msg_to_send = f"💫GLOBAL💫\n{user_name} Has rolled {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user_rolls}\nWith luck of: x{display_luck}"
 
@@ -1012,16 +1035,44 @@ def send_paginated_list(chat_id, uid, items):
     markup.row(types.KeyboardButton("⬅️ Back"))
     bot.send_message(chat_id, text, reply_markup=markup)
 
+def build_auras_list(uid):
+    user = get_user_data(uid)
+    user_auras_owned = user.get("auras", {})
+
+    has_at_least_one_limbo_aura = False
+    for limbo_aura_name in limbo_auras.keys():
+        if limbo_aura_name in user_auras_owned and user_auras_owned[limbo_aura_name] > 0:
+            has_at_least_one_limbo_aura = True
+            break
+
+    aura_list = []
+
+    if has_at_least_one_limbo_aura:
+        aura_list.append("--- 🌌 Limbo Auras ---")
+        for a_name in limbo_auras.keys():
+            if a_name in user_auras_owned and user_auras_owned.get(a_name, 0) > 0:
+                aura_list.append(f"{a_name} ✨ x{user_auras_owned.get(a_name, 0)}")
+            else:
+                aura_list.append(f"🔒 LOCKED")
+        aura_list.append("---------------------")
+
+    main_aura_dict = auras_default if 'auras_default' in globals() else auras
+
+    for a_name in main_aura_dict.keys():
+        if a_name in user_auras_owned and user_auras_owned.get(a_name, 0) > 0:
+            aura_list.append(f"{a_name} ✨ x{user_auras_owned.get(a_name, 0)}")
+        else:
+            aura_list.append(f"🔒 LOCKED")
+
+    return aura_list
+
 def redo_last_list(uid, chat_id):
 
     cmd = user_last_command.get(uid)
     if not cmd:
         return
     if cmd == "Auras":
-        user = get_user_data(uid)
-        aura_list = [
-            f"{a} ✨ x{user['auras'].get(a, 0)}" if a in user.get("auras", {}) else f"🔒 LOCKED"
-            for a in auras]
+        aura_list = build_auras_list(uid)
         send_paginated_list(chat_id, uid, aura_list)
     elif cmd == "LeaderboardRoll":
         leaderboard = [(u.get("name", "User"), u.get("rolls", 0)) for u in data["auras"].values()]
@@ -1222,7 +1273,7 @@ def notify_all_users_gif(gif, pin=False):
 
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
-
+    
 @bot.message_handler(commands=["activeplayers"])
 def active_players(msg):
     uid = str(msg.from_user.id)
@@ -1319,6 +1370,96 @@ def profile(msg):
                      f"┃🔄 Auto Roll Enabled: {user_info.get('auto_roll_enabled')}\n"
                      f"┃💎 Rarest: {user_info.get('rarest')}\n"
                      f"┕🍀 Luck: x{user_info.get('user_luck')}")
+    
+# -- ↓ EVENTS ↓ --
+
+@bot.message_handler(commands=["mastermind"])
+def SpawnMastermind(msg):
+    uid = str(msg.from_user.id)
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+        return
+    
+    pending_confirmations[uid] = {
+            "cmd": msg.text,
+            "action": lambda: _Start_Mastermind(msg)
+        }
+    
+    markup = types.InlineKeyboardMarkup()
+    markup.row(
+            types.InlineKeyboardButton("✅ Yes", callback_data=f"confirm_yes_{uid}"),
+            types.InlineKeyboardButton("❌ No", callback_data=f"confirm_no_{uid}")
+        )
+    bot.send_message(msg.chat.id, f"⚠️ Confirm: Start Mastermind event?", reply_markup=markup)
+
+def _Start_Mastermind(msg):
+    EVENT_DATA["event_multiplier"] = 2
+    EVENT_DATA["event_duration"] = 7200
+    EVENT_DATA["event_active"] = False
+    EVENT_DATA["event_end_time"] = None
+    threading.Thread(target=MastermindMessages, args=(msg,), daemon=True).start()
+    return "💫 Starting.."
+
+def MastermindMessages(msg):
+    cutscene_link = event_gif_map.get("mastermind", "https://t.me/solsrngbotcutscenes/228")
+    nameofeventstarter = msg.from_user.first_name
+    # -- Pre Event messages --
+    notify_all_users(f"{nameofeventstarter}:\nEven the flow of air and sound seems to have halted.\n\nothing can be heard, and you cannot even breathe.\n\nlight itself slows and then stops; everything that was once in view turns gray.")
+    time.sleep(15)
+    notify_all_users(f"{nameofeventstarter}:\nand soon you are faced with a completely dark world.\n\nOnly then do you realize it.")
+    time.sleep(10)
+    notify_all_users(f"{nameofeventstarter}:\nTime has stopped.")
+    time.sleep(5)
+    # -- Event Messages --
+    notify_all_users_gif(cutscene_link)
+    notify_all_users("Have you ever..")
+    time.sleep(3)
+    notify_all_users("Faced a real <b>GOD</b>?")
+    time.sleep(11)
+    notify_all_users("[MASTERMIND]")
+    _do_luck_event_start()
+
+@bot.message_handler(commands=["wereSorry"])
+def sorrybuff(msg):
+    uid = str(msg.from_user.id)
+    text = msg.text
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+        return
+    
+    parts = text.split(" ", 2)
+    
+    if len(parts) < 2:
+        bot.send_message(msg.chat.id, "⚠️ Usage: /wereSorry <seconds>")
+        return
+
+    try:
+        time = int(parts[1])
+    except ValueError:
+        bot.send_message(msg.chat.id, "❌ ValueError: Time is not in int format. Example: 3400 - 1 hour")
+        return
+    
+    pending_confirmations[uid] = {
+        "cmd": msg.text,
+        "action": lambda: _do_weresorrybuff(time)
+    }
+    markup = types.InlineKeyboardMarkup()
+    markup.row(
+        types.InlineKeyboardButton("✅ Yes", callback_data=f"confirm_yes_{uid}"),
+        types.InlineKeyboardButton("❌ No", callback_data=f"confirm_no_{uid}")
+    )
+    bot.send_message(msg.chat.id, f"⚠️ Confirm: start we're sorry buff?", reply_markup=markup)
+
+def _do_weresorrybuff(time):
+    EVENT_DATA["event_multiplier"] = 1.2
+    EVENT_DATA["event_duration"] = time
+    EVENT_DATA["event_active"] = False
+    EVENT_DATA["event_end_time"] = None
+    notify_all_users("🔧 We're Sorry! (1.2X luck)", message_type="default", pin=True)
+    _do_luck_event_start()
+    return f"✅ Started We're Sorry Event for {time} seconds!"
+
+
 """
 CITADEL OF ORDER event!
 CitadelOfOrderMessages Contains all messages that should be send after the command to all users.
@@ -1360,11 +1501,13 @@ def CitadelOfOrderEvent(msg):
     bot.send_message(chatid, "✨ Starting...")
     log_admin_action(msg, msg.text)
     # Set luck, Set event duration, disable it, and reset End time
-    EVENT_DATA["event_multiplier"] = 1.2
+    EVENT_DATA["event_multiplier"] = 1.5
     EVENT_DATA["event_duration"] = 3600
     EVENT_DATA["event_active"] = False
     EVENT_DATA["event_end_time"] = None
     threading.Thread(target=CitadelOfOrderMessages, daemon=True).start()
+    
+# -- ↑ EVENTS ↑ --
 
 @bot.message_handler(commands=["setluck"])
 
@@ -1535,6 +1678,45 @@ def _do_give_item(target_uid, item_name, amount):
         inv.append(item_name)
     save_data()
     return f"✅ Added {amount}x {item_name} to {user.get('name', target_uid)}"
+
+@bot.message_handler(commands=["giveMeAllItems"])
+
+def give_me_all_items_cmd(msg):
+    uid = str(msg.from_user.id)
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ No permission.")
+        return
+    parts = msg.text.split()
+    if len(parts) != 2:
+        bot.send_message(msg.chat.id, "Usage: /giveMeAllItems <amount>")
+        return
+    try:
+        amount = int(parts[1])
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        bot.send_message(msg.chat.id, "❌ Amount must be a positive number.")
+        return
+    pending_confirmations[uid] = {
+        "cmd": msg.text,
+        "action": lambda: _do_give_me_all_items(uid, amount)
+    }
+    markup = types.InlineKeyboardMarkup()
+    markup.row(
+        types.InlineKeyboardButton("✅ Yes", callback_data=f"confirm_yes_{uid}"),
+        types.InlineKeyboardButton("❌ No", callback_data=f"confirm_no_{uid}")
+    )
+    bot.send_message(msg.chat.id, f"⚠️ Confirm: give yourself ALL items x{amount}?", reply_markup=markup)
+
+def _do_give_me_all_items(uid, amount):
+    user = get_user_data(uid)
+    with data_lock:
+        inv = user.setdefault("inventory", [])
+        for item_name in items:
+            for _ in range(amount):
+                inv.append(item_name)
+    save_data()
+    return f"✅ Added {amount}x of all items to your inventory."
 
 @bot.message_handler(commands=["setRolls"])
 
@@ -1872,102 +2054,6 @@ def _do_set_biome(biome_name):
     set_biome(biome_name)
     return f"✅ Biome set to {biome_name}"
 
-@bot.message_handler(commands=["itemReq"])
-
-def item_req_cmd(msg):
-
-    uid = str(msg.from_user.id)
-    if uid not in admin_ids:
-        bot.send_message(msg.chat.id, "❌ No permission.")
-        return
-    log_admin_action(msg, msg.text)
-
-    parts = msg.text.split(maxsplit=1)
-    if len(parts) != 2:
-        bot.send_message(msg.chat.id, "Usage: /itemReq <item_name>")
-        return
-
-    item_name = parts[1]
-    user = get_user_data(uid, msg.from_user.first_name or "Admin")
-
-    # Список ВСЕХ предметов, которые могут быть ингредиентами (чтобы отличать их от аур)
-    ingredient_items = [
-        "[T1] Solar Device", "[T3] Exo Gauntlet", "[T3] Windstorm Device",
-        "[T5] Galactic Device", "[T6] Hologrammer", "[T9] Neurolyzer",
-        "Lucky Potion", "Hades Godly Potion", "Zeus Godly Potion", "Unknown Potion"
-    ]
-
-    # Определяем требования для каждого предмета
-    requirements = {
-        "[T1] 🧤 Luck Glove": {"Common": 50, "Uncommon": 35, "Rare": 10, "Crystallised": 3, "Sapphire": 1},
-        "[T1] 🔥 Desire Glove": {"Rage": 20, "Ruby": 10, "Diaboli": 4, "Bleeding": 2},
-        "[T1] ☀️ Solar Device": {"Solar": 1, "Rare": 100, "Divinus": 50, "Uncommon": 300},
-        "[T2] ⭐ Shining Star": {"Starlight": 2, "Star Rider": 2, "Wind": 50},
-        "[T3] 💠 Exo Gauntlet": {"Gilded": 20, "Precious": 10, "Magnetic": 7, "Sidereum": 3, "Undead": 1, "Exotic": 1},
-        "[T3] 🌪️ Windstorm Device": {"Wind": 90, "Stormal": 2, "Aquatic": 2, "Sidereum": 14, "Precious": 28},
-        "[T4] ❄️ Subzero Device": {"Permafrost": 3, "Aquatic": 1, "Glacier": 20},
-        "[T5] 🌌 Galactic Device": {"Galaxy": 1, "Sapphire": 320, "Solar": 30, "Magnetic": 100, "Comet": 4,
-                                   "Diaboli": 150, "[T1] Solar Device": 2},
-        "[T5] 🌋 Volcanic Device": {"Hades": 1, "Rage : Heated": 30, "Diaboli": 200, "Rage": 3000, "Bleeding": 133,
-                                   "[T1] Solar Device": 3, "[T3] Windstorm Device": 1},
-        "[T6] 🔮 Exoflex Device": {"Arcane": 5, "Jade": 15, "Exotic": 80, "Undead": 67, "Sidereum": 500,
-                                  "Starlight": 140, "Aquamarine": 2000, "Rare": 70000, "[T3] Exo Gauntlet": 1},
-        "[T6] 🌈 Hologrammer": {"Virtual": 5, "Magnetic : Reverse Polarity": 5, "Twilight": 6, "Kyawthuite": 5,
-                               "Comet": 60, "Starlight": 100, "Rage : Heated": 250, "Player": 1000, "Magnetic": 1350,
-                               "Diaboli": 5000, "Forbidden": 8000},
-        "[T7] ⚡ Ragnaröker": {"Zeus": 7, "Hades": 7, "Poseidon": 7, "Star Rider": 175, "Solar": 300, "Lunar": 300,
-                              "Rage : Heated": 400, "Lost Soul": 600, "Sidereum": 1000, "Ash": 4000, "Diaboli": 7000,
-                              "Rage": 50000},
-        "[T8] ✨ Starshaper": {"[T5] Galactic Device": 2, "[T1] Solar Device": 30, "Starscourge": 4, "Hyper-Volt": 6,
-                              "Galaxy": 6, "Comet": 270, "Star Rider": 600, "Solar": 3000, "Lunar": 3000,
-                              "Sidereum": 5000, "Magnetic": 10000},
-        "[T9] 🔬 Neurolyzer": {"[T6] Hologrammer": 1, "Chromatic": 5, "Origin": 12, "Virtual": 30, "Twilight": 18,
-                              "Bounded : Unbound": 50, "Exotic": 800, "Starlight": 1200, "Flushed": 5000,
-                              "Lost Soul": 7500},
-        "[T10] 🌀 Genesis Drive": {"[T9] Neurolyzer": 1, "Chromatic : Genesis": 2, "Matrix": 5, "Chromatic": 10,
-                                  "Hyper-Volt": 30, "Origin": 30, "Virtual": 100, "Bounded": 600, "Aether": 600,
-                                  "Exotic": 1000, "WATT": 7500, "Powered": 10000},
-
-        # Рецепты зелий
-        "Heavenly Potion": {"Celestial": 3, "Lucky Potion": 70, "Divinus : Angel": 2, "Powered": 5, "Quartz": 15},
-        "Potion of Bound": {"Bounded": 2, "Permafrost": 5, "Lucky Potion": 35, "Lost Soul": 15},
-        "Fortune Potion I": {"Lucky Potion": 10},
-        "Fortune Potion II": {"Lucky Potion": 20},
-        "Fortune Potion III": {"Lucky Potion": 30},
-        "Jewellery Potion": {"Lucky Potion": 23, "Aquamarine": 3, "Sapphire": 3, "Gilded": 3, "Emerald": 3, "Ruby": 3,
-                             "Topaz": 3},
-        "Zombie Potion": {"Lucky Potion": 17, "Undead": 3, "Bleeding": 3},
-        "Hades Godly Potion": {"Lucky Potion": 50, "Hades": 1, "Diaboli": 15, "Bleeding": 12},
-        "Zeus Godly Potion": {"Lucky Potion": 40, "Zeus": 1, "Stormal": 4, "Wind": 30},
-        "Godlike Potion": {"Zeus Godly Potion": 2, "Hades Godly Potion": 1, "Lucky Potion": 250},
-        "Unknown Potion": {"Undefined": 20, "Shift lock": 15, "Nihility": 10}
-    }
-
-    if item_name not in requirements:
-        bot.send_message(msg.chat.id, f"❌ Item '{item_name}' not found.")
-        return
-
-    # Выдаем все ингредиенты
-    reqs = requirements[item_name]
-    for ingredient_name, amount in reqs.items():
-        # Проверяем, ПРЕДМЕТ ли это (сравнивая со списком ingredient_items)
-        if ingredient_name in ingredient_items:
-            # Добавляем предмет в инвентарь
-            if "inventory" not in user:
-                user["inventory"] = []
-
-            # Добавляем недостающее кол-во
-            current_count = sum(1 for item in user["inventory"] if item == ingredient_name)
-            needed = amount - current_count
-            if needed > 0:
-                for _ in range(needed):
-                    user["inventory"].append(ingredient_name)
-        else:
-            # Это аура, добавляем ее
-            user["auras"][ingredient_name] = user["auras"].get(ingredient_name, 0) + amount
-
-    save_data()
-    bot.send_message(msg.chat.id, f"✅ All ingredients for {item_name} have been added to your inventory and auras!")
 
 def apply_timed_potion(user, new_bonus, new_duration_seconds):
 
@@ -2063,6 +2149,9 @@ def process_manual_roll(msg):
             aura = forced_aura
             chance = auras.get(aura, limbo_auras.get(aura, 1000000))
             user["forced_aura"] = None
+        elif BIOME_DATA["current_biome"] == "Cyberspace" and random.random() < (1 / 10000000):
+            # Illusionary: фиксированный шанс 1/10,000,000, luck/гиры/зелья НИКАК не влияют
+            aura, chance = "Illusionary", 10000000
         else:
             aura, chance = roll_aura(effective_luck, user)
 
@@ -2088,7 +2177,12 @@ def process_manual_roll(msg):
 
         # Подготовка GIF
         gif_threshold = user.get("gif_rarity_threshold", 1000000)
-        if aura in aura_gif_map and chance >= gif_threshold:
+        if aura == "Illusionary":
+            # Гифка Illusionary отправляется ВСЕГДА, игнорируя Gif rarity cutscenes
+            val = aura_gif_map.get("Illusionary")
+            if val and val != "YOUR_ID_HERE":
+                gif_id_to_send = val
+        elif aura in aura_gif_map and chance >= gif_threshold:
             val = aura_gif_map[aura]
             if val != "YOUR_ID_HERE":
                 gif_id_to_send = val
@@ -2140,6 +2234,8 @@ def process_manual_roll(msg):
             msg_text = f"YOU HAVE DISCOVERED Dreammetric WITH CHANCE OF 1 IN 520000000 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED+ ⚪⚫⚪ »"
         elif aura == "Leviathan":
             msg_text = f"You have tamed the Ruler of Beneath. 🍀x{display_luck}{from_biome}\n\n« ⚫⚪⚫ CHALLENGED ⚪⚫⚪ »"
+        elif aura == "Illusionary":
+            msg_text = f"You have become ███'█ PERFECT PUPPET. 🍀 x{display_luck}\n⚫⚪⚫ CHALLENGED+ ⚪⚫⚪"
         else:
             chance_display = int(chance) if chance == int(chance) else chance
             if chance > 99_999_998:
@@ -2164,7 +2260,7 @@ def process_manual_roll(msg):
             should_pin = True
 
         # Global
-        if chance > GLOBAL_THRESHOLD or aura == "Glitch":
+        if chance > GLOBAL_THRESHOLD or aura == "Glitch" or aura == "Illusionary":
             from_biome_global = ""
             # Упрощаем логику для глобалки, берем то что уже посчитали
             if "Dreamspace" in from_biome:
@@ -2192,6 +2288,8 @@ def process_manual_roll(msg):
                 global_msg_to_send = f"💫GLOBAL💫\n{name} has found ???, chance of 1 in {chance_display} [BREAKTHROUGH!]{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"              
             elif aura == "Glitch":
                 global_msg_to_send = f"💫GLOBAL💫\n{name} HAS ROLLED {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
+            elif aura == "Illusionary":
+                global_msg_to_send = f"💫GLOBAL💫\n{name} has become ███'█ PERFECT PUPPET.\n1 in ???\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
             else:
                 global_msg_to_send = f"💫GLOBAL💫\n{name} Has rolled {aura}\n1 in {chance_display}{from_biome_global}\nRolled at: {user['rolls']}\nWith luck of: x{display_luck}"
 
@@ -2414,235 +2512,6 @@ def handle_potion_use(msg, uid, name, use_key, amount=1):
     bot.send_message(msg.chat.id, response, reply_markup=back_menu())
     user_last_command[uid] = None
     return True
-
-# ============================================================
-# УНИВЕРСАЛЬНАЯ ФУНКЦИЯ КРАФТА
-# Добавить новый предмет: просто добавь запись в CRAFT_RECIPES
-# ============================================================
-CRAFT_RECIPES = {
-    # --- ЗЕЛЬЯ ---
-    "craft_heavenly_potion": {
-        "aura_reqs": {"Celestial": 3, "Divinus : Angel": 2, "Powered": 5, "Quartz": 15},
-        "item_reqs": {"Lucky Potion": 70},
-        "result": "Heavenly Potion", "result_display": "Heavenly Potion",
-    },
-    "craft_potion_of_bound": {
-        "aura_reqs": {"Bounded": 2, "Permafrost": 5, "Lost Soul": 15},
-        "item_reqs": {"Lucky Potion": 35},
-        "result": "Potion of Bound", "result_display": "Potion of Bound",
-    },
-    "craft_fortune_potion_1": {
-        "aura_reqs": {}, "item_reqs": {"Lucky Potion": 10},
-        "result": "Fortune Potion I", "result_display": "Fortune Potion I",
-    },
-    "craft_fortune_potion_2": {
-        "aura_reqs": {}, "item_reqs": {"Lucky Potion": 20},
-        "result": "Fortune Potion II", "result_display": "Fortune Potion II",
-    },
-    "craft_fortune_potion_3": {
-        "aura_reqs": {}, "item_reqs": {"Lucky Potion": 30},
-        "result": "Fortune Potion III", "result_display": "Fortune Potion III",
-    },
-    "craft_jewellery_potion": {
-        "aura_reqs": {"Aquamarine": 3, "Sapphire": 3, "Gilded": 3, "Emerald": 3, "Ruby": 3, "Topaz": 3},
-        "item_reqs": {"Lucky Potion": 23},
-        "result": "Jewellery Potion", "result_display": "Jewellery Potion",
-    },
-    "craft_zombie_potion": {
-        "aura_reqs": {"Undead": 3, "Bleeding": 3},
-        "item_reqs": {"Lucky Potion": 17},
-        "result": "Zombie Potion", "result_display": "Zombie Potion",
-    },
-    "craft_hades_godly_potion": {
-        "aura_reqs": {"Hades": 1, "Diaboli": 15, "Bleeding": 12},
-        "item_reqs": {"Lucky Potion": 50},
-        "result": "Hades Godly Potion", "result_display": "Hades Godly Potion",
-    },
-    "craft_zeus_godly_potion": {
-        "aura_reqs": {"Zeus": 1, "Stormal": 4, "Wind": 30},
-        "item_reqs": {"Lucky Potion": 40},
-        "result": "Zeus Godly Potion", "result_display": "Zeus Godly Potion",
-    },
-    "craft_godlike_potion": {
-        "aura_reqs": {}, "item_reqs": {"Zeus Godly Potion": 2, "Hades Godly Potion": 1, "Lucky Potion": 250},
-        "result": "Godlike Potion", "result_display": "Godlike Potion",
-    },
-    # --- WORKSHOP ---
-    "craft_luckglove": {
-        "aura_reqs": {"Common": 50, "Uncommon": 35, "Rare": 10, "Crystallised": 3, "Sapphire": 1},
-        "item_reqs": {},
-        "result": "[T1] 🧤 Luck Glove", "result_display": "[T1] 🧤 Luck Glove",
-    },
-    "craft_desireglove": {
-        "aura_reqs": {"Rage": 20, "Ruby": 10, "Diaboli": 4, "Bleeding": 2},
-        "item_reqs": {},
-        "result": "[T1] 🔥 Desire Glove", "result_display": "[T1] 🔥 Desire Glove",
-    },
-    "craft_solardevice": {
-        "aura_reqs": {"Solar": 1, "Rare": 100, "Divinus": 50, "Uncommon": 300},
-        "item_reqs": {},
-        "result": "[T1] ☀️ Solar Device", "result_display": "[T1] ☀️ Solar Device",
-    },
-    "craft_shiningstar": {
-        "aura_reqs": {"Starlight": 2, "Star Rider": 2, "Wind": 50},
-        "item_reqs": {},
-        "result": "[T2] ⭐ Shining Star", "result_display": "[T2] ⭐ Shining Star",
-    },
-    "craft_exogauntlet": {
-        "aura_reqs": {"Gilded": 20, "Precious": 10, "Magnetic": 7, "Sidereum": 3, "Undead": 1, "Exotic": 1},
-        "item_reqs": {},
-        "result": "[T3] 💠 Exo Gauntlet", "result_display": "[T3] 💠 Exo Gauntlet",
-    },
-    "craft_windstormdevice": {
-        "aura_reqs": {"Wind": 90, "Stormal": 2, "Aquatic": 2, "Sidereum": 14, "Precious": 28},
-        "item_reqs": {},
-        "result": "[T3] 🌪️ Windstorm Device", "result_display": "[T3] 🌪️ Windstorm Device",
-    },
-    "craft_subzerodevice": {
-        "aura_reqs": {"Permafrost": 3, "Aquatic": 1, "Glacier": 20},
-        "item_reqs": {},
-        "result": "[T4] ❄️ Subzero Device", "result_display": "[T4] ❄️ Subzero Device",
-    },
-    "craft_galacticdevice": {
-        "aura_reqs": {"Galaxy": 1, "Sapphire": 320, "Solar": 30, "Magnetic": 100, "Comet": 4, "Diaboli": 150},
-        "item_reqs": {"[T1] ☀️ Solar Device": 2},
-        "result": "[T5] 🌌 Galactic Device", "result_display": "[T5] 🌌 Galactic Device",
-    },
-    "craft_volcanicdevice": {
-        "aura_reqs": {"Hades": 1, "Rage : Heated": 30, "Diaboli": 200, "Rage": 3000, "Bleeding": 133},
-        "item_reqs": {"[T1] ☀️ Solar Device": 3, "[T3] 🌪️ Windstorm Device": 1},
-        "result": "[T5] 🌋 Volcanic Device", "result_display": "[T5] 🌋 Volcanic Device",
-    },
-    "craft_exoflexdevice": {
-        "aura_reqs": {"Arcane": 5, "Jade": 15, "Exotic": 80, "Undead": 67, "Sidereum": 500, "Starlight": 140},
-        "item_reqs": {"[T3] 💠 Exo Gauntlet": 1},
-        "result": "[T6] 🔮 Exoflex Device", "result_display": "[T6] 🔮 Exoflex Device",
-    },
-    "craft_hologrammer": {
-        "aura_reqs": {"Virtual": 5, "Magnetic : Reverse Polarity": 5, "Twilight": 6, "Kyawthuite": 5, "Comet": 60},
-        "item_reqs": {},
-        "result": "[T6] 🌈 Hologrammer", "result_display": "[T6] 🌈 Hologrammer",
-    },
-    "craft_ragnaroker": {
-        "aura_reqs": {"Zeus": 7, "Hades": 7, "Poseidon": 7, "Star Rider": 175, "Solar": 300, "Lunar": 300},
-        "item_reqs": {},
-        "result": "[T7] ⚡ Ragnaröker", "result_display": "[T7] ⚡ Ragnaröker",
-    },
-    "craft_starshaper": {
-        "aura_reqs": {"Starscourge": 4, "Hyper-Volt": 6, "Galaxy": 6, "Comet": 270, "Star Rider": 600, "Solar": 3000},
-        "item_reqs": {"[T5] 🌌 Galactic Device": 2, "[T1] ☀️ Solar Device": 30},
-        "result": "[T8] ✨ Starshaper", "result_display": "[T8] ✨ Starshaper",
-    },
-    "craft_neurolyzer": {
-        "aura_reqs": {"Chromatic": 5, "Origin": 12, "Virtual": 30, "Twilight": 18, "Bounded : Unbound": 50},
-        "item_reqs": {"[T6] 🌈 Hologrammer": 1},
-        "result": "[T9] 🔬 Neurolyzer", "result_display": "[T9] 🔬 Neurolyzer",
-    },
-    "craft_genesisdrive": {
-        "aura_reqs": {"Chromatic : Genesis": 2, "Matrix": 5, "Chromatic": 10, "Hyper-Volt": 30, "Origin": 30},
-        "item_reqs": {"[T9] 🔬 Neurolyzer": 1},
-        "result": "[T10] 🌀 Genesis Drive", "result_display": "[T10] 🌀 Genesis Drive",
-    },
-}
-
-
-# ============================================================
-# МАСТЕР-СЛОВАРЬ ПРЕДМЕТОВ WORKSHOP
-# Чтобы добавить новый предмет — добавь ОДНУ запись сюда.
-# Всё остальное (меню, крафт, бонусы) генерируется автоматически.
-# ============================================================
-WORKSHOP_ITEMS = {
-    "[T1] 🧤 Luck Glove": {
-        "craft_key": "craft_luckglove",
-        "luck_bonus": 0.25,
-        "desc": "[T1] 🧤 Luck Glove\n+25% (+0.25) luck\n\nRequirements:\nx50 Common\nx35 Uncommon\nx10 Rare\nx3 Crystallised\nx1 Sapphire",
-        "biome_bonus": None,  # {"biome": "Starfall", "bonus": 6.0} или None
-    },
-    "[T1] 🔥 Desire Glove": {
-        "craft_key": "craft_desireglove",
-        "luck_bonus": 0.4,
-        "desc": "[T1] 🔥 Desire Glove\n+40% (+0.4) luck\n\nRequirements:\nx20 Rage\nx10 Ruby\nx4 Diaboli\nx2 Bleeding",
-        "biome_bonus": None,
-    },
-    "[T1] ☀️ Solar Device": {
-        "craft_key": "craft_solardevice",
-        "luck_bonus": 0.5,
-        "desc": "[T1] ☀️ Solar Device\n+50% (+0.5) luck\n\nRequirements:\nx1 Solar\nx100 Rare\nx50 Divinus\nx300 Uncommon",
-        "biome_bonus": None,
-    },
-    "[T2] ⭐ Shining Star": {
-        "craft_key": "craft_shiningstar",
-        "luck_bonus": 0.5,
-        "desc": "[T2] ⭐ Shining Star\n+50% luck (when Starfall biome: +250%)\n\nRequirements:\nx2 Starlight\nx2 Star Rider\nx50 Wind",
-        "biome_bonus": {"biome": "Starfall", "bonus": 2.5},
-    },
-    "[T3] 💠 Exo Gauntlet": {
-        "craft_key": "craft_exogauntlet",
-        "luck_bonus": 1.0,
-        "desc": "[T3] 💠 Exo Gauntlet\n+100% (+1.0) luck\n\nRequirements:\nx20 Gilded\nx10 Precious\nx7 Magnetic\nx3 Sidereum\nx1 Undead\nx1 Exotic",
-        "biome_bonus": None,
-    },
-    "[T3] 🌪️ Windstorm Device": {
-        "craft_key": "craft_windstormdevice",
-        "luck_bonus": 1.15,
-        "desc": "[T3] 🌪️ Windstorm Device\n+115% (+1.15) luck\n\nRequirements:\nx90 Wind\nx2 Stormal\nx2 Aquatic\nx14 Sidereum\nx28 Precious",
-        "biome_bonus": None,
-    },
-    "[T4] ❄️ Subzero Device": {
-        "craft_key": "craft_subzerodevice",
-        "luck_bonus": 1.5,
-        "desc": "[T4] ❄️ Subzero Device\n+150% (+1.5) luck\n\nRequirements:\nx3 Permafrost\nx1 Aquatic\nx20 Glacier",
-        "biome_bonus": None,
-    },
-    "[T5] 🌌 Galactic Device": {
-        "craft_key": "craft_galacticdevice",
-        "luck_bonus": 2.5,
-        "desc": "[T5] 🌌 Galactic Device\n+250% (+2.5) luck\n\nRequirements:\nx1 Galaxy\nx320 Sapphire\nx30 Solar\nx100 Magnetic\nx4 Comet\nx150 Diaboli\nx2 [T1] Solar Device",
-        "biome_bonus": None,
-    },
-    "[T5] 🌋 Volcanic Device": {
-        "craft_key": "craft_volcanicdevice",
-        "luck_bonus": 2.9,
-        "desc": "[T5] 🌋 Volcanic Device\n+290% (+2.9) luck\n\nRequirements:\nx1 Hades\nx30 Rage : Heated\nx200 Diaboli\nx3000 Rage\nx133 Bleeding\nx3 [T1] Solar Device\nx1 [T3] Windstorm Device",
-        "biome_bonus": None,
-    },
-    "[T6] 🔮 Exoflex Device": {
-        "craft_key": "craft_exoflexdevice",
-        "luck_bonus": 3.4,
-        "desc": "[T6] 🔮 Exoflex Device\n+340% (+3.4) luck\n\nRequirements:\nx5 Arcane\nx15 Jade\nx80 Exotic\nx67 Undead\nx500 Sidereum\nx140 Starlight\nx2000 Aquamarine\nx70000 Rare\nx1 [T3] Exo Gauntlet",
-        "biome_bonus": None,
-    },
-    "[T6] 🌈 Hologrammer": {
-        "craft_key": "craft_hologrammer",
-        "luck_bonus": 3.95,
-        "desc": "[T6] 🌈 Hologrammer\n+395% (+3.95) luck\n\nRequirements:\nx5 Virtual\nx5 Magnetic : Reverse Polarity\nx6 Twilight\nx5 Kyawthuite\nx60 Comet\nx100 Starlight\nx250 Rage : Heated\nx1000 Player\nx1350 Magnetic\nx5000 Diaboli\nx8000 Forbidden",
-        "biome_bonus": None,
-    },
-    "[T7] ⚡ Ragnaröker": {
-        "craft_key": "craft_ragnaroker",
-        "luck_bonus": 4.55,
-        "desc": "[T7] ⚡ Ragnaröker\n+455% (+4.55) luck\n\nRequirements:\nx7 Zeus\nx7 Hades\nx7 Poseidon\nx175 Star Rider\nx300 Solar\nx300 Lunar\nx400 Rage : Heated\nx600 Lost Soul\nx1000 Sidereum\nx4000 Ash\nx7000 Diaboli\nx50000 Rage",
-        "biome_bonus": {"biome": "Windy/Rainy/Hell", "bonus": 0.45},
-    },
-    "[T8] ✨ Starshaper": {
-        "craft_key": "craft_starshaper",
-        "luck_bonus": 7.0,
-        "desc": "[T8] ✨ Starshaper\n+700% (+7) luck\n\nRequirements:\nx2 [T5] Galactic Device\nx30 [T1] Solar Device\nx4 Starscourge\nx6 Hyper-Volt\nx6 Galaxy\nx270 Comet\nx600 Star Rider\nx3000 Solar\nx3000 Lunar\nx5000 Sidereum\nx10000 Magnetic",
-        "biome_bonus": None,
-    },
-    "[T9] 🔬 Neurolyzer": {
-        "craft_key": "craft_neurolyzer",
-        "luck_bonus": 8.5,
-        "desc": "[T9] 🔬 Neurolyzer\n+850% (+8.5) luck\n\nRequirements:\nx1 [T6] Hologrammer\nx5 Chromatic\nx12 Origin\nx30 Virtual\nx18 Twilight\nx50 Bounded : Unbound\nx800 Exotic\nx1200 Starlight\nx5000 Flushed\nx7500 Lost Soul",
-        "biome_bonus": None,
-    },
-    "[T10] 🌀 Genesis Drive": {
-        "craft_key": "craft_genesisdrive",
-        "luck_bonus": 12.0,
-        "desc": "[T10] 🌀 Genesis Drive\n+1200% (+12) luck\n\nRequirements:\nx1 [T9] Neurolyzer\nx2 Chromatic : Genesis\nx5 Matrix\nx10 Chromatic\nx30 Hyper-Volt\nx30 Origin\nx100 Virtual\nx600 Bounded\nx600 Aether\nx1000 Exotic\nx7500 WATT\nx10000 Powered",
-        "biome_bonus": None,
-    },
-}
 
 # Автогенерация из WORKSHOP_ITEMS — не редактировать вручную
 gear_items = list(WORKSHOP_ITEMS.keys())
@@ -3100,37 +2969,7 @@ def handle(msg):
         user_last_command[uid] = "Auras"
         user_pages[uid] = 0
 
-        user_auras_owned = user.get("auras", {})
-
-        # 1. Проверяем, есть ли у пользователя ХОТЯ БЫ ОДНА аура из limbo_auras
-        has_at_least_one_limbo_aura = False
-        for limbo_aura_name in limbo_auras.keys():
-            if limbo_aura_name in user_auras_owned and user_auras_owned[limbo_aura_name] > 0:
-                has_at_least_one_limbo_aura = True
-                break
-
-        aura_list = []
-
-        # 2. Если у него есть хотя бы одна, показываем ВСЕ ауры Лимбо (разблокированные и нет)
-        if has_at_least_one_limbo_aura:
-            aura_list.append("--- 🌌 Limbo Auras ---")
-            for a_name in limbo_auras.keys():
-                if a_name in user_auras_owned and user_auras_owned.get(a_name, 0) > 0:
-                    aura_list.append(f"{a_name} ✨ x{user_auras_owned.get(a_name, 0)}")
-                else:
-                    # Показываем LOCKED только если есть хотя бы одна аура лимбо
-                    aura_list.append(f"🔒 LOCKED")
-            aura_list.append("---------------------")
-
-        # 3. Добавляем обычные ауры
-        # Используем auras_default, чтобы список был полным, а не зависел от дня/ночи
-        main_aura_dict = auras_default if 'auras_default' in globals() else auras
-
-        for a_name in main_aura_dict.keys():
-            if a_name in user_auras_owned and user_auras_owned.get(a_name, 0) > 0:
-                aura_list.append(f"{a_name} ✨ x{user_auras_owned.get(a_name, 0)}")
-            else:
-                aura_list.append(f"🔒 LOCKED")
+        aura_list = build_auras_list(uid)
 
         send_paginated_list(msg.chat.id, uid, aura_list)
         return
@@ -3267,7 +3106,7 @@ def handle(msg):
     elif text == "📝 Change Logs":
         bot.send_message(msg.chat.id, "📝 Change Logs", reply_markup=back_menu())
         markup = types.InlineKeyboardMarkup(row_width=1)    
-        seefull = types.InlineKeyboardButton("See all added auras", "https://telegra.ph/Sols-rng-bot-Added-auras-10-08-19")
+        seefull = types.InlineKeyboardButton("Prev. Update log (1.0)", "https://graph.org/10-Update-log-08-26")
         markup.add(seefull)
         bot.send_message(msg.chat.id, changelogs_text, reply_markup=markup)
         return
@@ -3606,17 +3445,51 @@ def handle(msg):
             bot.send_message(msg.chat.id, "There is no Lucky Potion around here...", reply_markup=main_menu(uid))
         return
 
-    # --- WORKSHOP ---
+    # --- WORKSHOP (вкладки) ---
     if text == "🛠️ Workshop":
         user_current_menu[uid] = "workshop"
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        # Все предметы всегда доступны для крафта
-        items_tiers = list(WORKSHOP_ITEMS.keys())  # Автогенерация из WORKSHOP_ITEMS
+        markup.row("⚙️ Gears", "📦 Items")
+        markup.row("⬅️ Back")
+        bot.send_message(msg.chat.id, "Welcome to the workshop! Choose a category:", reply_markup=markup)
+        return
 
-        for item in items_tiers:
+    # --- WORKSHOP: вкладка Gears ---
+    if text == "⚙️ Gears" and user_current_menu.get(uid) == "workshop":
+        user_current_menu[uid] = "workshop_gears"
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        for item in WORKSHOP_ITEMS.keys():
             markup.row(item)
         markup.row("⬅️ Back")
-        bot.send_message(msg.chat.id, "Welcome to the workshop! What do you wish to craft?", reply_markup=markup)
+        bot.send_message(msg.chat.id, "What do you want to craft?", reply_markup=markup)
+        return
+
+    # --- WORKSHOP: вкладка Items ---
+    if text == "📦 Items" and user_current_menu.get(uid) == "workshop":
+        user_current_menu[uid] = "workshop_tools"
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        for item in WORKSHOP_TOOLS.keys():
+            markup.row(item)
+        markup.row("⬅️ Back")
+        bot.send_message(msg.chat.id, "What do you want to craft?", reply_markup=markup)
+        return
+
+    # --- WORKSHOP ITEMS: показ описания + кнопка крафта (Gears) ---
+    _workshop_info = {name: (item["craft_key"], item["desc"]) for name, item in WORKSHOP_ITEMS.items()}
+    if text in _workshop_info and user_current_menu.get(uid) == "workshop_gears":
+        craft_key, desc = _workshop_info[text]
+        bot.send_message(msg.chat.id, desc,
+                         reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back"))
+        user_last_command[uid] = craft_key
+        return
+
+    # --- WORKSHOP ITEMS: показ описания + кнопка крафта (Items) ---
+    _workshop_tools_info = {name: (item["craft_key"], item["desc"]) for name, item in WORKSHOP_TOOLS.items()}
+    if text in _workshop_tools_info and user_current_menu.get(uid) == "workshop_tools":
+        craft_key, desc = _workshop_tools_info[text]
+        bot.send_message(msg.chat.id, desc,
+                         reply_markup=types.ReplyKeyboardMarkup(resize_keyboard=True).row("🛠 Craft").row("⬅️ Back"))
+        user_last_command[uid] = craft_key
         return
 
     # --- WORKSHOP ITEMS: показ описания + кнопка крафта (из WORKSHOP_ITEMS) ---
@@ -3754,6 +3627,11 @@ def handle(msg):
             msg_inv += f"\n\n[❔] Unknown Potion x{unknown_count}"
             markup.row(types.KeyboardButton("Unknown Potion"))
 
+        biome_randomizer_count = inv.count("🎲 Biome Randomizer")
+        if biome_randomizer_count > 0:
+            msg_inv += f"\n\n🎲 Biome Randomizer x{biome_randomizer_count}"
+            markup.row(types.KeyboardButton("🎲 Biome Randomizer"))
+
         markup.row("⬅️ Back")
         bot.send_message(msg.chat.id, msg_inv, reply_markup=markup)
         return
@@ -3791,6 +3669,68 @@ def handle(msg):
                              reply_markup=back_menu())
         else:
             bot.send_message(msg.chat.id, "❌ You don't have the Unknown Potion!", reply_markup=back_menu())
+        return
+
+    # --- Biome Randomizer ---
+    if text == "🎲 Biome Randomizer":
+        if "🎲 Biome Randomizer" not in user.get("inventory", []):
+            bot.send_message(msg.chat.id, "You don't have this item.", reply_markup=back_menu())
+            return
+        
+        cooldown_end_str = user.get("biome_randomizer_cooldown_end")
+        if cooldown_end_str:
+            try:
+                cooldown_end = datetime.fromisoformat(cooldown_end_str)
+                if cooldown_end > datetime.now():
+                    remaining = cooldown_end - datetime.now()
+                    minutes, seconds = divmod(int(remaining.total_seconds()), 60)
+                    bot.send_message(msg.chat.id, f"⏳ On cooldown. Try again in {minutes}m {seconds}s.",
+                                     reply_markup=back_menu())
+                    return
+            except:
+                pass
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True).row("Use Randomizer").row("⬅️ Back")
+        bot.send_message(msg.chat.id, "🎲 Biome Randomizer\nRandomly changes the current biome.\n\nCooldown: 30 minutes",
+                         reply_markup=markup)
+        user_last_command[uid] = "use_biome_randomizer"
+        return
+
+    if text == "Use Randomizer" and user_last_command.get(uid) == "use_biome_randomizer":
+        if "🎲 Biome Randomizer" not in user.get("inventory", []):
+            bot.send_message(msg.chat.id, "❌ You don't have this item!", reply_markup=back_menu())
+            return
+
+        cooldown_end_str = user.get("biome_randomizer_cooldown_end")
+        if cooldown_end_str:
+            try:
+                cooldown_end = datetime.fromisoformat(cooldown_end_str)
+                if cooldown_end > datetime.now():
+                    remaining = cooldown_end - datetime.now()
+                    minutes, seconds = divmod(int(remaining.total_seconds()), 60)
+                    bot.send_message(msg.chat.id, f"⏳ On cooldown. Try again in {minutes}m {seconds}s.",
+                                     reply_markup=back_menu())
+                    return
+            except:
+                pass
+
+        current_biome_rand = BIOME_DATA["current_biome"]
+        if current_biome_rand in ["Glitched", "Dreamspace", "Cyberspace"]:
+            bot.send_message(msg.chat.id,
+                             f"❌ You can't use the Biome Randomizer while [{current_biome_rand}] is active!",
+                             reply_markup=back_menu())
+            return
+
+        # Выбираем случайный биом по весам
+        biome_names = list(BIOME_RANDOMIZER_CHANCES.keys())
+        weights = list(BIOME_RANDOMIZER_CHANCES.values())
+        chosen_biome = random.choices(biome_names, weights=weights, k=1)[0]
+
+        user["biome_randomizer_cooldown_end"] = (datetime.now() + timedelta(minutes=30)).isoformat()
+        save_data()
+
+        set_biome(chosen_biome)
+
         return
 
     # --- Lucky Potion ---

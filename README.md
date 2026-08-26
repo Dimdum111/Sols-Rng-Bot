@@ -57,9 +57,9 @@ Currently, We have 2 Developers and 1 Tester, Which is:
 **❓️ Other**
 
 **🔑 Version**:  
-Released version: 0.95  
-Main branch (Unreleased): 0.95.1  
-1.0.0 branch (Development): 1.0.0
+Released version: 1.0  
+Main branch: 1.0  
+Dev branch: 1.1.0  
 
 **🆔 All sol's rng bot channels and bots**:  
 | Name | Accessibility | Type | Link |
@@ -77,4 +77,4 @@ Main branch (Unreleased): 0.95.1
 - [ ] Ban system
 - [ ] Auto collect lucky potions when autorolling
 
--Dimdum
+-Dimdum111
