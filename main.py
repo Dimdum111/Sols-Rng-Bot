@@ -3726,9 +3726,7 @@ def handle(msg):
         weights = list(BIOME_RANDOMIZER_CHANCES.values())
         chosen_biome = random.choices(biome_names, weights=weights, k=1)[0]
 
-        #!!!!!TODO: SET "seconds=5" TO "minutes=30"!!!!!
-        user["biome_randomizer_cooldown_end"] = (datetime.now() + timedelta(seconds=5)).isoformat()
-        #!!!!!TODO: SET "seconds=5" TO "minutes=30"!!!!!
+        user["biome_randomizer_cooldown_end"] = (datetime.now() + timedelta(minutes=30)).isoformat()
         save_data()
 
         set_biome(chosen_biome)
