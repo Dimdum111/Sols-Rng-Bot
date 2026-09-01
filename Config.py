@@ -851,27 +851,21 @@ admin_help_text = """
 /help — это сообщение
 ```"""
 
-changelogs_text = """---=[ Update 1.1.0 ]=---
+changelogs_text = """--=[ Update 1.1.5 ]=--
     🛠️ Fixes:
-    | Fixed a bug with aura lists when it will not show some auras
-    | Fixed some code bugs..
+    | Fixed some bugs
     ✨ New Stuff:
-    | Added categories to the Workshop
-    | Added new item "Biome Randomizer"
-    | Added Cyberspace
-    | Added new CHALLENGED+ tier aura
-    | Added Heavenly device
-    | Buffed Citadel of order (Prev. X1.2 > 1.5)
-    | Added "We're sorry!" buff
-    | Added new admin event
-    | Bugs (to fix)
+    | Added "Help" In settings!
 
-DevNote from UnderRosta:
-    - I'm back to developing so updates will take less time to make now, also we know about potions bug, we will fix it in 1.2.0 or 1.1.5 (probably)
-DevNote from Dimdum111:
-    - Hi everyone! this update was quicker that expected.. we fixed some bugs, etc.. but hope you enjoy this update! :D
+🛠️ Dimdum111:
+Hi everyone! this small update was focused on bug fixes,
+1.2 is currently in development, and because of something
+that's happening in our dev-team, 1.2 will take longer that expected..
 
- [!] If you find any bugs, please, report them to @DimdumXD Or @underrosta, Thanks!
-Enjoy the update!^^"""
+And, Please.. Subscribe to our new news channel!!! (@solsrngbotnews)
+I will publish news, sneakpeaks, And much much more here!!!!!
+Alright, Enjoy the small update! :D
+
+[!] If you find any bugs, please, report them to @DimdumXD Or @underrosta, Thanks!"""
 
 CyberspaceMsg = "[STATUS : SENDING...]\n[LOCATION: TELEGRAM]\n[HOST: JAKE]\n[REQUEST: APPROVED]\n[STATUS: RECEIVED]\n\nWELCOME\nCYBERSPACE_\n\n[Cyberspace]: Signal_Received | From : TELEGRAM"

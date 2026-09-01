@@ -28,7 +28,7 @@ EVENT_FILE = "event_data.json"
 BIOME_FILE = "biome_data.json"
 PAGE_SIZE = 20
 
-admin_ids = ["5298923430", "1876839608"]
+admin_ids = ["1876839608"]
 
 # Словарь для хранения ожидающих подтверждения команд
 # {uid: {"cmd": original_text, "action": callable}}
@@ -2588,7 +2588,7 @@ def handle_limbo_exit(msg, uid, user):
     bot.send_message(msg.chat.id, "Returning to reality...\nTime flows again.", reply_markup=main_menu(uid))
 
 @bot.message_handler(commands=["help"])
-def admin_help(msg):
+def help(msg):
     uid = msg.from_user.id
 
     if str(uid) not in admin_ids:
@@ -3129,6 +3129,7 @@ def handle(msg):
 ━━━━━━━━━━━━━━━━━━━━━━━━
 
 🌸 Original Idea - Sol's RNG Team
+📰 Subscribe to @solsrngbotnews for news, sneakpeaks, and more!
 📩 For help Write to - @underrosta · @DimdumXD
 
 """
@@ -3269,7 +3270,7 @@ def handle(msg):
         gif_status = f"({gif_rarity})" if gif_rarity >= 1000000 else "(OFF)"
         markup.row(types.KeyboardButton(f"Gif rarity cutscenes {gif_status}"))
 
-        # Новая логика для кнопки Auto Roll
+        # Auto Roll button logic
         rolls = user.get("rolls", 0)
         if rolls > 9999:
             # Если Auto Roll уже включен, показываем только статус ON
@@ -3279,6 +3280,10 @@ def handle(msg):
                 markup.row(types.KeyboardButton("Auto Roll (OFF)"))
         else:
             markup.row(types.KeyboardButton("Auto Roll (10000 Rolls Required)"))
+            
+        markup.row(types.KeyboardButton("❓ Help"))
+        
+        # markup.row(types.KeyboardButton("🔗 Referral system")) << WIP 1.2
 
         markup.row(types.KeyboardButton("⬅️ Back"))
         bot.send_message(msg.chat.id, "User Settings:", reply_markup=markup)
@@ -3316,6 +3321,10 @@ def handle(msg):
 
         # Запускаем поток для этого пользователя
         threading.Thread(target=auto_roll_thread, args=(uid, msg.chat.id), daemon=True).start()
+        return
+    
+    elif text == "❓ Help":
+        help(msg)
         return
 
     elif text == "Disable Auto Roll":
