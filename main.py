@@ -1,5 +1,5 @@
 # Bot version: 1.1.0
-from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES, CyberspaceMsg
+from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES, credits_text, CyberspaceMsg
 from dotenv import load_dotenv
 import telebot
 from telebot import types
@@ -10,6 +10,7 @@ import threading
 import time
 import math
 import requests
+# import subprocess <<< gonna add so u can check server stats in the next update.. 
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 
@@ -1273,7 +1274,17 @@ def notify_all_users_gif(gif, pin=False):
 
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
+
+@bot.message_handler(commands=["servstats"])
+def server_stats(msg):
+    uid = str(msg.from_user.id)
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
+        return
+    # TODO: make a command that executes fastfetch to check server stats!
+    msg.reply_to("WIP")
     
+
 @bot.message_handler(commands=["activeplayers"])
 def active_players(msg):
     uid = str(msg.from_user.id)
@@ -3113,27 +3124,6 @@ def handle(msg):
 
     # --- Credits ---
     elif text == "📜 Credits":
-        credits_text = """
-
--= CREDITS =-
-
---= 🔨 Main developers =--
-
-⭐👑🔨 @underrosta - Owner, Developer
-⭐👑🔨🧪 @DimdumXD - Co-Owner, Developer, Tester
-
---= 🧪 Testers =--
-
-🧪 ener - Tester
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-🌸 Original Idea - Sol's RNG Team
-📰 Subscribe to @solsrngbotnews for news, sneakpeaks, and more!
-📩 For help Write to - @underrosta · @DimdumXD
-
-"""
-
         bot.send_message(msg.chat.id, credits_text, reply_markup=back_menu())
         return
 
@@ -4297,3 +4287,4 @@ while True:
         time.sleep(5)  # Спим дольше при неизвестных ошибках
 
 print("[✓] Bot shut down complete.")
+# 9/11/2026: Sol's RNG bot is now open-source under GPL-3.0 license!!

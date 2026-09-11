@@ -1,3 +1,6 @@
+# Config.py
+# We store auras, items, big texts here so it would not make main.py 1 big blob of a code!!
+
 # Все ауры в игре
 auras = {
     "Common": 2,
@@ -229,10 +232,8 @@ auras = {
     "⭐⭐": 1000,
     "⭐⭐⭐": 10000,
     "Dreammetric": 520000000,
-    "Illusionary": 10000000,  # Спец-аура Cyberspace: шанс всегда фиксирован 1/10,000,000, luck/гиры/зелья не влияют (см. main.py)
+    "Illusionary": 10000000, # Special Cyberspace aura: It's chance is ALWAYS 1/10,000,000. Any luck bonuses, effects, etc.. Don't apply. (See main.py)
 }
-
-# лимбо ауры
 
 limbo_auras = {
     "Nothing": 1,
@@ -758,7 +759,7 @@ Since it's your first time playing <b>Sol's Rng bot</b> Press continue And roll 
 user_help_text = """
 ```
 🛠 COMMANDS
-/Profile <User_id|me>
+/profile <User_id|me>
     → Показывает информацию о пользователе.
 
 /help — это сообщение
@@ -845,7 +846,7 @@ admin_help_text = """
     → Показать активных игроков в некоторый промежутках времени.
   
 👤 NORMAL-USER COMMANDS
-/Profile <User_id|me>
+/profile <User_id|me>
     → Показывает информацию о пользователе.
 
 /help — это сообщение
@@ -854,6 +855,7 @@ admin_help_text = """
 changelogs_text = """--=[ Update 1.1.5 ]=--
     🛠️ Fixes:
     | Fixed some bugs
+    | /profile instead of /Profile in help now
     ✨ New Stuff:
     | Added "Help" In settings!
 
@@ -862,10 +864,31 @@ Hi everyone! this small update was focused on bug fixes,
 1.2 is currently in development, and because of something
 that's happening in our dev-team, 1.2 will take longer that expected..
 
-And, Please.. Subscribe to our new news channel!!! (@solsrngbotnews)
+And, Please.. Subscribe to our new news channel!!! (@solsrngsimbotnews)
 I will publish news, sneakpeaks, And much much more here!!!!!
 Alright, Enjoy the small update! :D
 
 [!] If you find any bugs, please, report them to @DimdumXD Or @underrosta, Thanks!"""
+
+credits_text = """
+
+-= CREDITS =-
+
+--= 🔨 Main developers =--
+
+⭐👑🔨 @underrosta - Owner, Developer
+⭐👑🔨🧪 @DimdumXD - Co-Owner, Developer, Tester
+
+--= 🧪 Testers =--
+
+🧪 ener - Tester
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌸 Original Idea - Sol's RNG Team
+📰 Subscribe to @solsrngbotnews for news, sneakpeaks, and more!
+📩 For help Write to - @underrosta · @DimdumXD
+
+"""
 
 CyberspaceMsg = "[STATUS : SENDING...]\n[LOCATION: TELEGRAM]\n[HOST: JAKE]\n[REQUEST: APPROVED]\n[STATUS: RECEIVED]\n\nWELCOME\nCYBERSPACE_\n\n[Cyberspace]: Signal_Received | From : TELEGRAM"

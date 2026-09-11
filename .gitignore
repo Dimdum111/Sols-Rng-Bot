@@ -1,7 +1,12 @@
+# Secrets(Api keys/Etc..)
 .env
+
+# Caches
 __pycache__/
 *.pyc
 .vscode/
+
+# Bot stuff
 biome_data.json
 event_data.json
 global_settings.json
