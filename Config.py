@@ -881,6 +881,7 @@ credits_text = """
 
 --= 🧪 Testers =--
 
+🧪 @DukeDvdforeverEm - Tester
 🧪 ener - Tester
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
