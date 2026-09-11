@@ -615,7 +615,7 @@ CRAFT_RECIPES = {
 
 # ============================================================
 # МАСТЕР-СЛОВАРЬ ПРЕДМЕТОВ WORKSHOP
-# Чтобы добавить новый предмет — добавь ОДНУ запись сюда.
+# Чтобы добавить новый предмет - добавь ОДНУ запись сюда.
 # Всё остальное (меню, крафт, бонусы) генерируется автоматически.
 # ============================================================
 WORKSHOP_ITEMS = {
@@ -759,12 +759,32 @@ Since it's your first time playing <b>Sol's Rng bot</b> Press continue And roll 
 user_help_text = """
 ```
 🛠 COMMANDS
+
+🔍 INFO
 /profile <User_id|me>
     → Показывает информацию о пользователе.
 
-/help — это сообщение
+/help - это сообщение
 ```
 """
+
+
+
+tester_help_text = """
+```
+🛠 TESTER COMMANDS
+
+🔍 INFO
+/profile <User_id|me>
+    → Показывает информацию о пользователе.
+/servstats
+    → Показать статус сервера на котором запущен бот.
+
+/help - это сообщение
+```
+"""
+
+
 
 admin_help_text = """
 ```
@@ -844,13 +864,15 @@ admin_help_text = """
 🔍 INFO
 /activeplayers
     → Показать активных игроков в некоторый промежутках времени.
-  
-👤 NORMAL-USER COMMANDS
+/servstats
+    → Показать статус сервера на котором запущен бот.
 /profile <User_id|me>
     → Показывает информацию о пользователе.
 
-/help — это сообщение
+/help - это сообщение
 ```"""
+
+
 
 changelogs_text = """--=[ Update 1.1.5 ]=--
     🛠️ Fixes:
@@ -869,6 +891,8 @@ I will publish news, sneakpeaks, And much much more here!!!!!
 Alright, Enjoy the small update! :D
 
 [!] If you find any bugs, please, report them to @DimdumXD Or @underrosta, Thanks!"""
+
+
 
 credits_text = """
 
@@ -891,5 +915,6 @@ credits_text = """
 📩 For help Write to - @underrosta · @DimdumXD
 
 """
+
 
 CyberspaceMsg = "[STATUS : SENDING...]\n[LOCATION: TELEGRAM]\n[HOST: JAKE]\n[REQUEST: APPROVED]\n[STATUS: RECEIVED]\n\nWELCOME\nCYBERSPACE_\n\n[Cyberspace]: Signal_Received | From : TELEGRAM"

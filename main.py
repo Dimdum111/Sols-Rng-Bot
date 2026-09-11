@@ -1,5 +1,5 @@
 # Bot version: 1.1.0
-from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES, credits_text, CyberspaceMsg
+from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES, credits_text, tester_help_text, CyberspaceMsg
 from dotenv import load_dotenv
 import telebot
 from telebot import types
@@ -10,7 +10,7 @@ import threading
 import time
 import math
 import requests
-# import subprocess <<< gonna add so u can check server stats in the next update.. 
+import subprocess
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 
@@ -29,7 +29,8 @@ EVENT_FILE = "event_data.json"
 BIOME_FILE = "biome_data.json"
 PAGE_SIZE = 20
 
-admin_ids = ["1876839608"]
+admin_ids = ["5298923430", "1876839608"] # Underrosta & Dimdum111
+tester_ids = ["5298923430", "1876839608", "5221898690", "8587237759"] # Underrosta & Dimdum111 & Ener & Тапочек
 
 # Словарь для хранения ожидающих подтверждения команд
 # {uid: {"cmd": original_text, "action": callable}}
@@ -1275,14 +1276,22 @@ def notify_all_users_gif(gif, pin=False):
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
 
+# The amount of undocumented shit in this code is unbelivable
 @bot.message_handler(commands=["servstats"])
 def server_stats(msg):
     uid = str(msg.from_user.id)
-    if uid not in admin_ids:
+    if uid not in tester_ids:
         bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
         return
-    # TODO: make a command that executes fastfetch to check server stats!
-    bot.reply_to("WIP")
+
+    output = subprocess.run(["fastfetch", "--logo", "none", "--structure-disabled", "colors"], capture_output=True, text=True)
+
+    # Checking for the error: If output.stdout is empty: it means fastfetch returned an error, so we send that error.
+    if not output.stdout:
+        bot.reply_to(msg, f"```fastfetch\n{output.stderr}```", parse_mode="Markdown")
+        return
+
+    bot.reply_to(msg, f"```fastfetch\n{output.stdout}```", parse_mode="Markdown")
     
 
 @bot.message_handler(commands=["activeplayers"])
@@ -2600,12 +2609,15 @@ def handle_limbo_exit(msg, uid, user):
 
 @bot.message_handler(commands=["help"])
 def help(msg):
-    uid = msg.from_user.id
+    uid = str(msg.from_user.id)
 
-    if str(uid) not in admin_ids:
-        bot.send_message(msg.chat.id, user_help_text, parse_mode="Markdown")
-        return
-    bot.send_message(msg.chat.id, admin_help_text, parse_mode="Markdown")
+    if uid in admin_ids:
+        return bot.send_message(msg.chat.id, admin_help_text, parse_mode="Markdown")
+    
+    if uid in tester_ids:
+        return bot.send_message(msg.chat.id, tester_help_text, parse_mode="Markdown")
+
+    bot.send_message(msg.chat.id, user_help_text, parse_mode="Markdown")
 
 
 @bot.message_handler(commands=["end"])
