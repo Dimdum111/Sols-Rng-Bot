@@ -1282,7 +1282,7 @@ def server_stats(msg):
         bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
         return
     # TODO: make a command that executes fastfetch to check server stats!
-    msg.reply_to("WIP")
+    bot.reply_to("WIP")
     
 
 @bot.message_handler(commands=["activeplayers"])
