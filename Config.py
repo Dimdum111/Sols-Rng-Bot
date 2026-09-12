@@ -763,6 +763,8 @@ user_help_text = """
 🔍 INFO
 /profile <User_id|me>
     → Показывает информацию о пользователе.
+/racoon
+    → Показывает рандомный факт о енотах.. Не спрашивайте зачем
 
 /help - это сообщение
 ```
@@ -779,6 +781,8 @@ tester_help_text = """
     → Показывает информацию о пользователе.
 /servstats
     → Показать статус сервера на котором запущен бот.
+/racoon
+    → Показывает рандомный факт о енотах.. Не спрашивайте зачем
 
 /help - это сообщение
 ```
@@ -868,6 +872,8 @@ admin_help_text = """
     → Показать статус сервера на котором запущен бот.
 /profile <User_id|me>
     → Показывает информацию о пользователе.
+/racoon
+    → Показывает рандомный факт о енотах.. Не спрашивайте зачем
 
 /help - это сообщение
 ```"""
@@ -881,6 +887,7 @@ changelogs_text = """--=[ Update 1.1.5 ]=--
     ✨ New Stuff:
     | Added "Help" In settings!
     | Now Admins, Testers, And users have their own /help and commands!
+    | /racoon command.. What?
 
 🛠️ Dimdum111:
 Hi everyone! this small update was focused on bug fixes,

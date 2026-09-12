@@ -1276,6 +1276,15 @@ def notify_all_users_gif(gif, pin=False):
 
 threading.Thread(target=lambda: notify_all_users("🟢 Bot online", message_type="default"), daemon=True).start()
 
+@bot.message_handler(commands=["racoon"])
+def send_racoon(msg):
+    # FIXME: Fix that racoon command sends only 1 image and no random imgs.. look i'll fix it later
+    response = requests.get("https://some-random-api.com/animal/racoon")
+    data = response.json()
+    image = data['image']
+    fact = data['fact']
+    bot.send_photo(msg.chat.id, image, fact)
+
 # The amount of undocumented shit in this code is unbelivable
 @bot.message_handler(commands=["servstats"])
 def server_stats(msg):
