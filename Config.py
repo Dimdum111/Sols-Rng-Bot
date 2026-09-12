@@ -880,6 +880,7 @@ changelogs_text = """--=[ Update 1.1.5 ]=--
     | /profile instead of /Profile in help now
     ✨ New Stuff:
     | Added "Help" In settings!
+    | Now Admins, Testers, And users have their own /help and commands!
 
 🛠️ Dimdum111:
 Hi everyone! this small update was focused on bug fixes,
