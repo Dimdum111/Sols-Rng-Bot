@@ -889,6 +889,8 @@ changelogs_text = """--=[ Update 1.1.5 ]=--
     | Now Admins, Testers, And users have their own /help and commands!
     | /racoon command.. What?
 
+    | ! Sol's RNG bot in now OPEN-SOURCE! https://github.com/Dimdum111/Sols-Rng-Bot
+
 🛠️ Dimdum111:
 Hi everyone! this small update was focused on bug fixes,
 1.2 is currently in development, It will take longer that expected..
@@ -921,6 +923,7 @@ credits_text = """
 📰 Subscribe to @solsrngbotnews for news, sneakpeaks, and more!
 📩 For help Write to - @underrosta · @DimdumXD
 
+❓ Sol's RNG bot is distributed as OPEN-SOURCE under GPL-3.0 license. You can view its source code <a href="https://github.com/Dimdum111/Sols-Rng-Bot">HERE!</a>
 """
 
 

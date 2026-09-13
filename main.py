@@ -3149,7 +3149,7 @@ def handle(msg):
 
     # --- Credits ---
     elif text == "📜 Credits":
-        bot.send_message(msg.chat.id, credits_text, reply_markup=back_menu())
+        bot.send_message(msg.chat.id, credits_text, reply_markup=back_menu(), parse_mode="HTML")
         return
 
     # --- Potions Menu ---
