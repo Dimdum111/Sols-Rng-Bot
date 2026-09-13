@@ -880,7 +880,7 @@ admin_help_text = """
 
 
 
-changelogs_text = """--=[ Update 1.1.5 ]=--
+changelogs_text = """--=[ Update 1.1.6 (HOTFIX) ]=--
     🛠️ Fixes:
     | Fixed some bugs
     | /profile instead of /Profile in help now

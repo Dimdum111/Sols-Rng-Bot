@@ -1292,7 +1292,7 @@ def server_stats(msg):
         bot.send_message(msg.chat.id, "❌ You don't have permission to use this command.")
         return
 
-    output = subprocess.run(["fastfetch", "--logo", "none", "--structure-disabled", "colors"], capture_output=True, text=True)
+    output = subprocess.run(["fastfetch", "--logo", "none"], capture_output=True, text=True)
 
     # Checking for the error: If output.stdout is empty: it means fastfetch returned an error, so we send that error.
     if not output.stdout:
