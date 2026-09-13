@@ -891,8 +891,7 @@ changelogs_text = """--=[ Update 1.1.5 ]=--
 
 🛠️ Dimdum111:
 Hi everyone! this small update was focused on bug fixes,
-1.2 is currently in development, and because of something
-that's happening in our dev-team, 1.2 will take longer that expected..
+1.2 is currently in development, It will take longer that expected..
 
 And, Please.. Subscribe to our new news channel!!! (@solsrngsimbotnews)
 I will publish news, sneakpeaks, And much much more here!!!!!

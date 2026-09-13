@@ -1380,15 +1380,20 @@ and shows a profile. ('me' shows yourself)"""
 @bot.message_handler(commands=["profile"])
 def profile(msg):
     parts = msg.text.split()
+    
     if len(parts) != 2:
         bot.send_message(msg.chat.id, f"💫 Usage: /profile <User_id|me>")
         return
+    
     if parts[1] == "me":
         parts[1] = str(msg.from_user.id)
+        
     user_info = data["auras"].get(parts[1])
+    
     if not user_info:
         bot.send_message(msg.chat.id, f"💫 User id is not found in our database!")
         return
+    
     # showing the info
     bot.send_message(msg.chat.id,
                      f"┍👤 Profile\n"
