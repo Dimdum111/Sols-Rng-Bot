@@ -12,7 +12,10 @@ import requests
 import subprocess
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
+
 from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES, credits_text, tester_help_text, CyberspaceMsg
+from rng import get_biome_multiplier, roll_aura
+from data_files import BIOME_DATA, save_biome_data
 from telegram import TOKEN, bot
 
 LOG_BOT_TOKEN = os.environ["LOG_BOT_TOKEN"]  # Токен бота Логера.
@@ -23,7 +26,6 @@ MaintanceActive = False
 USER_DATA_FILE = "users_data_lines.json"
 SAVE_FILE = "global_settings.json"
 EVENT_FILE = "event_data.json"
-BIOME_FILE = "biome_data.json"
 PAGE_SIZE = 20
 
 admin_ids = ["5298923430", "1876839608"] # Underrosta & Dimdum111
@@ -94,37 +96,9 @@ def save_event_data():
     with open(EVENT_FILE, "w", encoding="utf-8") as f:
         json.dump(event_data_to_save, f, ensure_ascii=False)
 
-# Загрузка данных биома
-
-def load_biome_data():
-
-    if os.path.exists(BIOME_FILE):
-        try:
-            with open(BIOME_FILE, "r", encoding="utf-8") as f:
-                biome_data = json.load(f)
-                # Преобразуем строку времени обратно в datetime
-                if "biome_end_time" in biome_data and biome_data["biome_end_time"]:
-                    biome_data["biome_end_time"] = datetime.fromisoformat(biome_data["biome_end_time"])
-                return biome_data
-        except Exception as e:
-            print(f"[⚠️] Error loading biome data: {e}")
-            return {"current_biome": "Normal", "biome_end_time": None}
-    return {"current_biome": "Normal", "biome_end_time": None}
-
-def save_biome_data():
-
-    biome_data_to_save = {
-        "current_biome": BIOME_DATA["current_biome"],
-        "biome_end_time": BIOME_DATA["biome_end_time"].isoformat() if BIOME_DATA["biome_end_time"] else None
-    }
-    with open(BIOME_FILE, "w", encoding="utf-8") as f:
-        json.dump(biome_data_to_save, f, ensure_ascii=False)
-
 # Инициализация данных события и биома
 
 EVENT_DATA = load_event_data()
-
-BIOME_DATA = load_biome_data()
 
 # При запуске бота событие выключено по умолчанию
 
@@ -384,131 +358,6 @@ def get_effective_luck(calculated_luck):
     if EVENT_DATA["event_active"] and EVENT_DATA["event_end_time"] and datetime.now() < EVENT_DATA["event_end_time"]:
         return calculated_luck * EVENT_DATA["event_multiplier"]
     return calculated_luck
-
-def get_biome_multiplier(aura_name):
-
-    # Возвращает множитель биома для конкретной ауры
-    current_biome = BIOME_DATA["current_biome"]
-    
-    # Glitched ауры доступны ТОЛЬКО в Glitched биоме
-    if aura_name in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched":
-        return math.inf  # Сделать невозможным выпадение
-
-    # Dreamspace ауры доступны только в Glitched и Dreamspace биомах
-    if aura_name in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]:
-        return math.inf  # Сделать невозможным выпадение
-    
-    if aura_name == "Monarch" and current_biome not in ["Corruption", "Glitched"]:
-        return math.inf
-    
-    if aura_name == "Leviathan" and current_biome not in ["Rainy", "Glitched"]:
-        return math.inf
-    
-    if aura_name == "Borealis" and current_biome != "Dreamspace":
-        return math.inf
-    
-    if aura_name == "Breakthrough" and current_biome == "Null":
-        return math.inf
-
-    # Illusionary никогда не проходит через обычную luck-систему.
-    # Её шанс всегда фиксирован 1/10,000,000 и проверяется отдельно (см. roll-обработчики).
-    if aura_name == "Illusionary":
-        return math.inf
-
-    biome_info = BIOMES[current_biome]
-
-    # Glitched биом включает все множители
-    if current_biome == "Glitched":
-        for biome_name, info in BIOMES.items():
-            if biome_name != "Normal" and aura_name in info["auras"]:
-                return info["multiplier"]
-        return 1
-
-    # Dreamspace не дает множителя
-    if current_biome == "Dreamspace":
-        return 1
-
-    # Для других биомов проверяем, относится ли аура к текущему биому
-    if aura_name in biome_info["auras"]:
-        return biome_info["multiplier"]
-
-    return 1
-
-def roll_aura(effective_luck, user):
-
-    # Определяем, в каком мы мире
-    in_limbo = user.get("in_limbo", False)
-
-    if in_limbo:
-        # === ЛОГИКА ЛИМБО: Rarity Threshold System ===
-        # 1. Сортируем ауры от Редких (High) к Частым (Low), исключая Nothing
-        sorted_limbo = sorted(
-            [(k, v) for k, v in limbo_auras.items() if k != "Nothing"],
-            key=lambda x: x[1],
-            reverse=True
-        )
-
-        current_biome = BIOME_DATA["current_biome"]
-
-        for aura, base_chance in sorted_limbo:
-            # Пропуск аур, не подходящих под биом (для Glitched и Dreamspace)
-            if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
-            if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
-            if aura == "Monarch" and current_biome not in ["Corruption", "Glitched"]: continue
-            if aura == "Leviathan" and current_biome not in ["Rainy", "Glitched"]: continue
-            if aura == "Borealis" and current_biome != "Dreamspace": continue
-            if aura == "Breakthrough" and current_biome == "Null": continue
-            # Если снаружи Null биом, в Лимбо он не должен давать множитель x1000
-            if current_biome == "Null":
-                biome_multiplier = 1
-            else:
-                biome_multiplier = get_biome_multiplier(aura)
-
-            adjusted_chance = base_chance / biome_multiplier
-
-            # 1. ГАРАНТ
-            if effective_luck >= adjusted_chance:
-                return aura, adjusted_chance
-
-            # 2. ПОПЫТКА РОЛЛА
-            if random.uniform(0, adjusted_chance) <= effective_luck:
-                return aura, adjusted_chance
-
-        # 3. ЕСЛИ НИЧЕГО НЕ ВЫПАЛО В ЛИМБО
-        return "Nothing", 1
-
-    # === Luck logic (fixed) ===
-    current_biome = BIOME_DATA["current_biome"]
-
-    pool = []
-    for aura, base_chance in auras.items():
-        if aura in ["Oppression", "Glitch", "Fault"] and current_biome != "Glitched": continue
-        if aura in ["⭐", "⭐⭐", "⭐⭐⭐", "Dreammetric"] and current_biome not in ["Glitched", "Dreamspace"]: continue
-        if aura == "Monarch" and current_biome not in ["Corruption", "Glitched"]: continue
-        if aura == "Leviathan" and current_biome not in ["Rainy", "Glitched"]: continue
-        if aura == "Borealis" and current_biome != "Dreamspace": continue
-        if aura == "Breakthrough" and current_biome == "Null": continue
-        if aura == "Illusionary": continue  # только отдельная фиксированная проверка в Cyberspace
-
-        biome_multiplier = get_biome_multiplier(aura)
-        adjusted_rarity = base_chance / biome_multiplier
-        pool.append((aura, adjusted_rarity))
-
-    # Sort rarest -> most common (highest rarity number first), matching original algorithm
-    pool.sort(key=lambda x: x[1], reverse=True)
-
-    for i, (aura, adjusted_rarity) in enumerate(pool):
-        if i == len(pool) - 1:
-            # Last (most common) aura is the guaranteed catch-all if everything above missed
-            return aura, adjusted_rarity
-
-        new_rarity = max(1, math.floor(adjusted_rarity / effective_luck + 0.5))
-        if random.randint(1, new_rarity) == 1:
-            return aura, adjusted_rarity
-
-    # Should be unreachable, but just in case the pool was empty
-    best = min(auras.items(), key=lambda x: x[1])
-    return best[0], best[1]
 
 
 def get_time_remaining():
