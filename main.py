@@ -1,5 +1,4 @@
 # Bot version: 1.1.0
-from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES, credits_text, tester_help_text, CyberspaceMsg
 from dotenv import load_dotenv
 import telebot
 from telebot import types
@@ -13,14 +12,12 @@ import requests
 import subprocess
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-
-load_dotenv()
+from Config import auras, limbo_auras, BIOMES, GLOBAL_THRESHOLD, aura_gif_map, event_gif_map, start_msg, user_help_text, admin_help_text, changelogs_text, items, CRAFT_RECIPES, WORKSHOP_ITEMS, WORKSHOP_TOOLS, BIOME_RANDOMIZER_CHANCES, credits_text, tester_help_text, CyberspaceMsg
+from telegram import TOKEN, bot
 
 LOG_BOT_TOKEN = os.environ["LOG_BOT_TOKEN"]  # Токен бота Логера.
-TOKEN = os.environ["TOKEN"] # Основной бот
 TESTERS_BOT_TOKEN = os.environ["TESTERS_BOT_TOKEN"]
 
-bot = telebot.TeleBot(TOKEN)
 MaintanceActive = False
 
 USER_DATA_FILE = "users_data_lines.json"
