@@ -315,6 +315,11 @@ def get_user_data(user_id, user_name="User"):
         # другое
 
         return u
+    
+def find_user(user_id):
+    """Returns the user dict if they exist, or None if they don't. Use this if you need to get user data without creating one."""
+    user_id = str(user_id)
+    return data.get("auras", {}).get(user_id)
 
 def get_calculated_luck(user):
 
@@ -1387,6 +1392,28 @@ def CitadelOfOrderEvent(msg):
     threading.Thread(target=CitadelOfOrderMessages, daemon=True).start()
     
 # -- ↑ EVENTS ↑ --
+
+@bot.message_handler(commands=["getUserData"])
+def get_data(msg):
+    uid = str(msg.from_user.id)
+    
+    if uid not in admin_ids:
+        bot.send_message(msg.chat.id, "❌ No permission.")
+        return
+
+    parts = msg.text.split()
+    
+    if len(parts) != 2:
+        bot.send_message(msg.chat.id, f"💫 Usage: /getUserData <User_id>")
+        return
+    
+    data_got = find_user(parts[1])
+    
+    if not data_got:
+        bot.send_message(msg.chat.id, "❌ Not found.")
+        return
+    bot.send_message(msg.chat.id, f"✅ Found user.\n {data_got}")
+        
 
 @bot.message_handler(commands=["setluck"])
 
