@@ -880,26 +880,16 @@ admin_help_text = """
 
 
 
-changelogs_text = """--=[ Update 1.1.6 (HOTFIX) ]=--
+changelogs_text = """--=[ Update 1.2 ]=--
     🛠️ Fixes:
-    | Fixed some bugs
-    | /profile instead of /Profile in help now
+    | Fixed a few bugs.
+    | Fixed a bug when you open help menu back button doesn't appear.
+    🔧 Code stuff:
+    | Started refactoring the code!
     ✨ New Stuff:
-    | Added "Help" In settings!
-    | Now Admins, Testers, And users have their own /help and commands!
-    | /racoon command.. What?
-
-    | ! Sol's RNG bot in now OPEN-SOURCE! https://github.com/Dimdum111/Sols-Rng-Bot
-
-🛠️ Dimdum111:
-Hi everyone! this small update was focused on bug fixes,
-1.2 is currently in development, It will take longer that expected..
-
-And, Please.. Subscribe to our new news channel!!! (@solsrngsimbotnews)
-I will publish news, sneakpeaks, And much much more here!!!!!
-Alright, Enjoy the small update! :D
-
-[!] If you find any bugs, please, report them to @DimdumXD Or @underrosta, Thanks!"""
+    | PLACEHOLDER (But i will add referals)
+    🛠️ Dimdum111:
+    PLACEHOLDER"""
 
 
 
